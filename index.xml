@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>软院云平台文档</title><link>https://scs.buaa.edu.cn/doc/</link><description>Recent content on 软院云平台文档</description><generator>Hugo -- gohugo.io</generator><atom:link href="https://scs.buaa.edu.cn/doc/index.xml" rel="self" type="application/rss+xml"/><item><title>Kubernetes实验（三）</title><link>https://scs.buaa.edu.cn/doc/cloud-labs/cloud/kube-single-3/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://scs.buaa.edu.cn/doc/cloud-labs/cloud/kube-single-3/</guid><description>Kubernetes实验（三） Kubernetes的基本使用 # 实验目的 # 了解Kubernetes的各种特性 掌握Kubernetes的常用功能 注意事项
-请务必阅读虚拟机使用说明
+请务必阅读 虚拟机使用说明
 分配的虚拟机中，已经安装了Docker，无需重复安装；并设置了Docker镜像地址（该地址指向校内地址），理论上docker.io中的镜像不用联网即可拉取。例如可以直接在虚拟机上docker pull nginx。
 创建Kubernetes集群
 在实验开始前，请利用云平台提供的虚拟机或者自己的本地资源，创建一个至少包含两节点的Kubernetes集群。
