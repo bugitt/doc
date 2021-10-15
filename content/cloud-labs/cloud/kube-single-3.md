@@ -14,7 +14,7 @@ weight: 1
 
 **注意事项**  
 
-1. 请务必阅读虚拟机使用说明
+1. 请务必阅读[虚拟机使用说明](../..//01_common/virtual_machine_help.md)
 
 2. 分配的虚拟机中，已经安装了Docker，无需重复安装；并设置了Docker镜像地址（该地址指向校内地址），理论上docker.io中的镜像不用联网即可拉取。例如可以直接在虚拟机上`docker pull nginx`。
 
