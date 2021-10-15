@@ -1,0 +1,264 @@
+<!doctype html><html lang=en dir=ltr>
+<head>
+<meta charset=utf-8>
+<meta name=viewport content="width=device-width,initial-scale=1">
+<meta name=description content="虚拟机使用说明 #  连接虚拟机 #  Linux系统 #  首先从云平台中获取虚拟机的IP和登录名，之后即可在本地通过任意ssh客户端登录。
+MacOS 使用系统自带的Terminal.app登录即可。
+为了更好的使用体验，推荐使用 iterm2登录。
+当然，你也可以使用 termius进行多个ssh连接的管理。
+Linux 如果你是Linux Desktop用户，那么你肯定已经有了自己喜爱的终端模拟器，此处不再赘述。Windows 一般来讲，Windows 10（及以上）自带的cmd.exe都自带ssh client，打开cmd后直接ssh foo@x.x.x.x即可登录。
+为了更好的使用体验，推荐下载使用 Windows Terminal。
+当然，你也可以使用 termius或者其他工具（如 Xshell等）进行多个ssh连接的管理。
+校外跳板 通过 d.buaa.edu.cn 跳转登录即可。 联网 #  Linux系统 #  登录虚拟机后，可以执行下面命令进行联网，请注意替换学号和密码：
+/usr/bin/curl -k -d &#34;action=login&username=学号&password=密码&type=2&n=117&ac_id=1&#34; &#34;https://gw.buaa.edu.cn/cgi-bin/srun_portal&#34; 传输文件 #  Linux系统 #  MacOS & Linux 可以使用使用SCP命令进行服务器与本地之间的文件交换。Windows 除了在终端中使用SCP命令外，
+还可以使用 WinSCP进行图形化的文件管理。
+校外跳板 d.buaa.edu.cn 的Linux界面已经提供了比较完善的文件管理工具。 ">
+<meta name=theme-color content="#FFFFFF">
+<meta name=color-scheme content="light dark"><meta property="og:title" content="虚拟机使用说明">
+<meta property="og:description" content="虚拟机使用说明 #  连接虚拟机 #  Linux系统 #  首先从云平台中获取虚拟机的IP和登录名，之后即可在本地通过任意ssh客户端登录。
+MacOS 使用系统自带的Terminal.app登录即可。
+为了更好的使用体验，推荐使用 iterm2登录。
+当然，你也可以使用 termius进行多个ssh连接的管理。
+Linux 如果你是Linux Desktop用户，那么你肯定已经有了自己喜爱的终端模拟器，此处不再赘述。Windows 一般来讲，Windows 10（及以上）自带的cmd.exe都自带ssh client，打开cmd后直接ssh foo@x.x.x.x即可登录。
+为了更好的使用体验，推荐下载使用 Windows Terminal。
+当然，你也可以使用 termius或者其他工具（如 Xshell等）进行多个ssh连接的管理。
+校外跳板 通过 d.buaa.edu.cn 跳转登录即可。 联网 #  Linux系统 #  登录虚拟机后，可以执行下面命令进行联网，请注意替换学号和密码：
+/usr/bin/curl -k -d &#34;action=login&username=学号&password=密码&type=2&n=117&ac_id=1&#34; &#34;https://gw.buaa.edu.cn/cgi-bin/srun_portal&#34; 传输文件 #  Linux系统 #  MacOS & Linux 可以使用使用SCP命令进行服务器与本地之间的文件交换。Windows 除了在终端中使用SCP命令外，
+还可以使用 WinSCP进行图形化的文件管理。
+校外跳板 d.buaa.edu.cn 的Linux界面已经提供了比较完善的文件管理工具。 ">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://scs.buaa.edu.cn/doc/01_common/virtual_machine_help/"><meta property="article:section" content="01_common">
+<meta property="article:modified_time" content="2021-10-15T17:13:04+08:00">
+<title>虚拟机使用说明 | 软院云平台文档</title>
+<link rel=manifest href=/doc/manifest.json>
+<link rel=icon href=/doc/favicon.png type=image/x-icon>
+<link rel=stylesheet href=/doc/book.min.46181bc93375ba932026e753b37c40e6ff8bb16a9ef770c78bcc663e4577b1ba.css integrity="sha256-RhgbyTN1upMgJudTs3xA5v+LsWqe93DHi8xmPkV3sbo=" crossorigin=anonymous>
+<script defer src=/doc/flexsearch.min.js></script>
+<script defer src=/doc/en.search.min.fc216d7470ad48b1265af0c9811a5d689f2ec809f511924d4b2b6a4e41d4ffa0.js integrity="sha256-/CFtdHCtSLEmWvDJgRpdaJ8uyAn1EZJNSytqTkHU/6A=" crossorigin=anonymous></script>
+<script defer src=/doc/sw.min.5b0a96517f3d8417c3b8e3f5f1aaf1cba3d2cc7cc19a9780a18ecfa3beff6666.js integrity="sha256-WwqWUX89hBfDuOP18arxy6PSzHzBmpeAoY7Po77/ZmY=" crossorigin=anonymous></script>
+</head>
+<body dir=ltr>
+<input type=checkbox class="hidden toggle" id=menu-control>
+<input type=checkbox class="hidden toggle" id=toc-control>
+<main class="container flex">
+<aside class=book-menu>
+<div class=book-menu-content>
+<nav>
+<h2 class=book-brand>
+<a class="flex align-center" href=/doc/><span>软院云平台文档</span>
+</a>
+</h2>
+<div class=book-search>
+<input type=text id=book-search-input placeholder=Search aria-label=Search maxlength=64 data-hotkeys=s/>
+<div class="book-search-spinner hidden"></div>
+<ul id=book-search-results></ul>
+</div>
+<ul>
+<li>
+<a href=https://scs.buaa.edu.cn/doc/01_common/>云平台使用手册</a>
+<ul>
+<li>
+<a href=https://scs.buaa.edu.cn/doc/01_common/virtual_machine_help/ class=active>虚拟机使用说明</a>
+</li>
+</ul>
+</li>
+<li>
+<a href=https://scs.buaa.edu.cn/doc/cloud-labs/>大数据和云计算综合实践</a>
+<ul>
+<li>
+<a href=https://scs.buaa.edu.cn/doc/cloud-labs/cloud/>云计算实验</a>
+<ul>
+<li>
+<a href=https://scs.buaa.edu.cn/doc/cloud-labs/cloud/kube-single-3/>Kubernetes实验（三）</a>
+</li>
+<li>
+<a href=https://scs.buaa.edu.cn/doc/cloud-labs/cloud/appendix_create_kubernetes/>附录：创建Kubernetes集群</a>
+</li>
+<li>
+<a href=https://scs.buaa.edu.cn/doc/cloud-labs/cloud/faq/>FAQ</a>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<a href=https://scs.buaa.edu.cn/doc/ns-labs/>网络存储实验规划</a>
+<ul>
+<li>
+<a href=https://scs.buaa.edu.cn/doc/ns-labs/table-of-contents/>Table of Contents</a>
+<ul>
+<li>
+<a href=https://scs.buaa.edu.cn/doc/ns-labs/table-of-contents/raid/>Lab01 RAID 阵列</a>
+</li>
+</ul>
+</li>
+<li>
+<a href=https://scs.buaa.edu.cn/doc/ns-labs/resources/>Resources</a>
+<ul>
+<li>
+<a href=https://scs.buaa.edu.cn/doc/ns-labs/resources/os/>操作系统</a>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li>
+<a href=https://github.com/bugitt/doc target=_blank rel=noopener>
+Github
+</a>
+</li>
+</ul>
+</nav>
+<script>(function(){var a=document.querySelector("aside .book-menu-content");addEventListener("beforeunload",function(b){localStorage.setItem("menu.scrollTop",a.scrollTop)}),a.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+</div>
+</aside>
+<div class=book-page>
+<header class=book-header>
+<div class="flex align-center justify-between">
+<label for=menu-control>
+<img src=/doc/svg/menu.svg class=book-icon alt=Menu>
+</label>
+<strong>虚拟机使用说明</strong>
+<label for=toc-control>
+<img src=/doc/svg/toc.svg class=book-icon alt="Table of Contents">
+</label>
+</div>
+<aside class="hidden clearfix">
+<nav id=TableOfContents>
+<ul>
+<li><a href=#虚拟机使用说明>虚拟机使用说明</a>
+<ul>
+<li><a href=#连接虚拟机>连接虚拟机</a>
+<ul>
+<li><a href=#linux系统>Linux系统</a></li>
+</ul>
+</li>
+<li><a href=#联网>联网</a>
+<ul>
+<li><a href=#linux系统-1>Linux系统</a></li>
+</ul>
+</li>
+<li><a href=#传输文件>传输文件</a>
+<ul>
+<li><a href=#linux系统-2>Linux系统</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</aside>
+</header>
+<article class=markdown><h1 id=虚拟机使用说明>
+虚拟机使用说明
+<a class=anchor href=#%e8%99%9a%e6%8b%9f%e6%9c%ba%e4%bd%bf%e7%94%a8%e8%af%b4%e6%98%8e>#</a>
+</h1>
+<h2 id=连接虚拟机>
+连接虚拟机
+<a class=anchor href=#%e8%bf%9e%e6%8e%a5%e8%99%9a%e6%8b%9f%e6%9c%ba>#</a>
+</h2>
+<h3 id=linux系统>
+Linux系统
+<a class=anchor href=#linux%e7%b3%bb%e7%bb%9f>#</a>
+</h3>
+<p>首先从云平台中获取虚拟机的IP和登录名，之后即可在本地通过任意ssh客户端登录。</p>
+<div class=book-tabs><input type=radio class=toggle name=tabs-uu1 id=tabs-uu1-0 checked>
+<label for=tabs-uu1-0>MacOS</label>
+<div class="book-tabs-content markdown-inner"><p>使用系统自带的Terminal.app登录即可。</p>
+<p>为了更好的使用体验，推荐使用
+<a href=https://iterm2.com/>iterm2</a>登录。</p>
+<p>当然，你也可以使用
+<a href=https://termius.com/>termius</a>进行多个ssh连接的管理。</p>
+</div><input type=radio class=toggle name=tabs-uu1 id=tabs-uu1-1>
+<label for=tabs-uu1-1>Linux</label>
+<div class="book-tabs-content markdown-inner">如果你是Linux Desktop用户，那么你肯定已经有了自己喜爱的终端模拟器，此处不再赘述。</div><input type=radio class=toggle name=tabs-uu1 id=tabs-uu1-2>
+<label for=tabs-uu1-2>Windows</label>
+<div class="book-tabs-content markdown-inner"><p>一般来讲，Windows 10（及以上）自带的cmd.exe都自带ssh client，打开cmd后直接<code>ssh foo@x.x.x.x</code>即可登录。</p>
+<p>为了更好的使用体验，推荐下载使用
+<a href=https://aka.ms/terminal>Windows Terminal</a>。</p>
+<p>当然，你也可以使用
+<a href=https://termius.com/>termius</a>或者其他工具（如 Xshell等）进行多个ssh连接的管理。</p>
+</div><input type=radio class=toggle name=tabs-uu1 id=tabs-uu1-3>
+<label for=tabs-uu1-3>校外跳板</label>
+<div class="book-tabs-content markdown-inner">通过 d.buaa.edu.cn 跳转登录即可。</div></div>
+<h2 id=联网>
+联网
+<a class=anchor href=#%e8%81%94%e7%bd%91>#</a>
+</h2>
+<h3 id=linux系统-1>
+Linux系统
+<a class=anchor href=#linux%e7%b3%bb%e7%bb%9f-1>#</a>
+</h3>
+<p>登录虚拟机后，可以执行下面命令进行联网，请注意替换学号和密码：</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash>/usr/bin/curl -k -d <span style=color:#e6db74>&#34;action=login&amp;username=学号&amp;password=密码&amp;type=2&amp;n=117&amp;ac_id=1&#34;</span> <span style=color:#e6db74>&#34;https://gw.buaa.edu.cn/cgi-bin/srun_portal&#34;</span>
+</code></pre></div><h2 id=传输文件>
+传输文件
+<a class=anchor href=#%e4%bc%a0%e8%be%93%e6%96%87%e4%bb%b6>#</a>
+</h2>
+<h3 id=linux系统-2>
+Linux系统
+<a class=anchor href=#linux%e7%b3%bb%e7%bb%9f-2>#</a>
+</h3>
+<div class=book-tabs><input type=radio class=toggle name=tabs-uu2 id=tabs-uu2-0 checked>
+<label for=tabs-uu2-0>MacOS & Linux</label>
+<div class="book-tabs-content markdown-inner">可以使用使用SCP命令进行服务器与本地之间的文件交换。</div><input type=radio class=toggle name=tabs-uu2 id=tabs-uu2-1>
+<label for=tabs-uu2-1>Windows</label>
+<div class="book-tabs-content markdown-inner"><p>除了在终端中使用SCP命令外，</p>
+<p>还可以使用
+<a href=https://winscp.net/eng/download.php>WinSCP</a>进行图形化的文件管理。</p>
+</div><input type=radio class=toggle name=tabs-uu2 id=tabs-uu2-2>
+<label for=tabs-uu2-2>校外跳板</label>
+<div class="book-tabs-content markdown-inner">d.buaa.edu.cn 的Linux界面已经提供了比较完善的文件管理工具。</div></div>
+</article>
+<footer class=book-footer>
+<div class="flex flex-wrap justify-between">
+<div><a class="flex align-center" href=https://github.com/alex-shpak/hugo-book/commit/7bdbc20bf44ce4b6f5e5812dd238e0a835dd05a6 title="Last modified by loheagn | October 15, 2021" target=_blank rel=noopener>
+<img src=/doc/svg/calendar.svg class=book-icon alt=Calendar>
+<span>October 15, 2021</span>
+</a>
+</div>
+<div>
+<a class="flex align-center" href=https://github.com/alex-shpak/hugo-book/edit/main/exampleSite/content/01_common/virtual_machine_help.md target=_blank rel=noopener>
+<img src=/doc/svg/edit.svg class=book-icon alt=Edit>
+<span>Edit this page</span>
+</a>
+</div>
+</div>
+<script>(function(){function a(c){const a=window.getSelection(),b=document.createRange();b.selectNodeContents(c),a.removeAllRanges(),a.addRange(b)}document.querySelectorAll("pre code").forEach(b=>{b.addEventListener("click",function(c){a(b.parentElement),navigator.clipboard&&navigator.clipboard.writeText(b.parentElement.textContent)})})})()</script>
+</footer>
+<div class=book-comments>
+</div>
+<label for=menu-control class="hidden book-menu-overlay"></label>
+</div>
+<aside class=book-toc>
+<div class=book-toc-content>
+<nav id=TableOfContents>
+<ul>
+<li><a href=#虚拟机使用说明>虚拟机使用说明</a>
+<ul>
+<li><a href=#连接虚拟机>连接虚拟机</a>
+<ul>
+<li><a href=#linux系统>Linux系统</a></li>
+</ul>
+</li>
+<li><a href=#联网>联网</a>
+<ul>
+<li><a href=#linux系统-1>Linux系统</a></li>
+</ul>
+</li>
+<li><a href=#传输文件>传输文件</a>
+<ul>
+<li><a href=#linux系统-2>Linux系统</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</div>
+</aside>
+</main>
+</body>
+</html>

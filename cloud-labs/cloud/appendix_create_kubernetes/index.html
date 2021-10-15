@@ -1,0 +1,306 @@
+<!doctype html><html lang=en dir=ltr>
+<head>
+<meta charset=utf-8>
+<meta name=viewport content="width=device-width,initial-scale=1">
+<meta name=description content="创建Kubernetes集群 #  Kubernetes生态发展至今已非常完善，部署一个Kubernetes集群已经不再是一件非常繁琐和困难的事情。社区有大量简单可靠的解决方案。
+下面给出几种可选的方案，根据自己的实际情况，选择其一即可。
+kubeadm（不推荐） #  Kubernetes官方推荐使用 kubeadm 来初始化一个Kubernetes集群。通过它，用户可以获得是一个相对“纯净”的Kubernetes集群。但该方法相对繁琐，而且对国内用户非常不友好，因此不推荐这种方式部署。
+有兴趣的同学可以尝试。
+KubeKey（推荐） #   KubeKey 是由 Kubesphere （一个国内公司主导的开源的Kubernetes管理平台）开源的Kubernetes和Kubesphere部署工具。
+KubeKey使用声明式的配置方式，用户只需要通过一个YAML配置文件给出所需集群的相关配置，即可通过KubeKey创建集群或修改集群的状态。更详细内容和使用方式请参考 KubeKey的文档。
+创建集群 #  在本次实验分配的虚拟机中，已经提前完成了KubeKey的部分配置，只需按照下面几步操作即可完成Kubernetes集群的创建。
+注意
+为了减少不必要的麻烦，请直接使用root账户登录虚拟机，并完成相关操作。
+   进入/root/kubesphere目录
+cd /root/kubesphere   修改配置文件中的IP和登录密码。可以按需修改主机的hostname。如果修改了hostname，也需要同步修改roleGroups中的值。
+apiVersion: kubekey.kubesphere.io/v1alpha1 kind: Cluster metadata: name: main-cluster spec: hosts: - {name: node1, address: 1.1.1.1, internalAddress: 1.1.1.1, user: root, password: '&&shieshuyuan21'} - {name: node2, address: 1.1.1.1, internalAddress: 1.1.1.1, user: root, password: '&&shieshuyuan21'} roleGroups: etcd: - node1 master: - node1 worker: - node1 - node2 controlPlaneEndpoint: domain: lb.">
+<meta name=theme-color content="#FFFFFF">
+<meta name=color-scheme content="light dark"><meta property="og:title" content="附录：创建Kubernetes集群">
+<meta property="og:description" content="创建Kubernetes集群 #  Kubernetes生态发展至今已非常完善，部署一个Kubernetes集群已经不再是一件非常繁琐和困难的事情。社区有大量简单可靠的解决方案。
+下面给出几种可选的方案，根据自己的实际情况，选择其一即可。
+kubeadm（不推荐） #  Kubernetes官方推荐使用 kubeadm 来初始化一个Kubernetes集群。通过它，用户可以获得是一个相对“纯净”的Kubernetes集群。但该方法相对繁琐，而且对国内用户非常不友好，因此不推荐这种方式部署。
+有兴趣的同学可以尝试。
+KubeKey（推荐） #   KubeKey 是由 Kubesphere （一个国内公司主导的开源的Kubernetes管理平台）开源的Kubernetes和Kubesphere部署工具。
+KubeKey使用声明式的配置方式，用户只需要通过一个YAML配置文件给出所需集群的相关配置，即可通过KubeKey创建集群或修改集群的状态。更详细内容和使用方式请参考 KubeKey的文档。
+创建集群 #  在本次实验分配的虚拟机中，已经提前完成了KubeKey的部分配置，只需按照下面几步操作即可完成Kubernetes集群的创建。
+注意
+为了减少不必要的麻烦，请直接使用root账户登录虚拟机，并完成相关操作。
+   进入/root/kubesphere目录
+cd /root/kubesphere   修改配置文件中的IP和登录密码。可以按需修改主机的hostname。如果修改了hostname，也需要同步修改roleGroups中的值。
+apiVersion: kubekey.kubesphere.io/v1alpha1 kind: Cluster metadata: name: main-cluster spec: hosts: - {name: node1, address: 1.1.1.1, internalAddress: 1.1.1.1, user: root, password: '&&shieshuyuan21'} - {name: node2, address: 1.1.1.1, internalAddress: 1.1.1.1, user: root, password: '&&shieshuyuan21'} roleGroups: etcd: - node1 master: - node1 worker: - node1 - node2 controlPlaneEndpoint: domain: lb.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://scs.buaa.edu.cn/doc/cloud-labs/cloud/appendix_create_kubernetes/"><meta property="article:section" content="cloud-labs">
+<meta property="article:modified_time" content="2021-10-15T17:13:04+08:00">
+<title>附录：创建Kubernetes集群 | 软院云平台文档</title>
+<link rel=manifest href=/doc/manifest.json>
+<link rel=icon href=/doc/favicon.png type=image/x-icon>
+<link rel=stylesheet href=/doc/book.min.46181bc93375ba932026e753b37c40e6ff8bb16a9ef770c78bcc663e4577b1ba.css integrity="sha256-RhgbyTN1upMgJudTs3xA5v+LsWqe93DHi8xmPkV3sbo=" crossorigin=anonymous>
+<script defer src=/doc/flexsearch.min.js></script>
+<script defer src=/doc/en.search.min.fc216d7470ad48b1265af0c9811a5d689f2ec809f511924d4b2b6a4e41d4ffa0.js integrity="sha256-/CFtdHCtSLEmWvDJgRpdaJ8uyAn1EZJNSytqTkHU/6A=" crossorigin=anonymous></script>
+<script defer src=/doc/sw.min.5b0a96517f3d8417c3b8e3f5f1aaf1cba3d2cc7cc19a9780a18ecfa3beff6666.js integrity="sha256-WwqWUX89hBfDuOP18arxy6PSzHzBmpeAoY7Po77/ZmY=" crossorigin=anonymous></script>
+</head>
+<body dir=ltr>
+<input type=checkbox class="hidden toggle" id=menu-control>
+<input type=checkbox class="hidden toggle" id=toc-control>
+<main class="container flex">
+<aside class=book-menu>
+<div class=book-menu-content>
+<nav>
+<h2 class=book-brand>
+<a class="flex align-center" href=/doc/><span>软院云平台文档</span>
+</a>
+</h2>
+<div class=book-search>
+<input type=text id=book-search-input placeholder=Search aria-label=Search maxlength=64 data-hotkeys=s/>
+<div class="book-search-spinner hidden"></div>
+<ul id=book-search-results></ul>
+</div>
+<ul>
+<li>
+<a href=https://scs.buaa.edu.cn/doc/01_common/>云平台使用手册</a>
+<ul>
+<li>
+<a href=https://scs.buaa.edu.cn/doc/01_common/virtual_machine_help/>虚拟机使用说明</a>
+</li>
+</ul>
+</li>
+<li>
+<a href=https://scs.buaa.edu.cn/doc/cloud-labs/>大数据和云计算综合实践</a>
+<ul>
+<li>
+<a href=https://scs.buaa.edu.cn/doc/cloud-labs/cloud/>云计算实验</a>
+<ul>
+<li>
+<a href=https://scs.buaa.edu.cn/doc/cloud-labs/cloud/kube-single-3/>Kubernetes实验（三）</a>
+</li>
+<li>
+<a href=https://scs.buaa.edu.cn/doc/cloud-labs/cloud/appendix_create_kubernetes/ class=active>附录：创建Kubernetes集群</a>
+</li>
+<li>
+<a href=https://scs.buaa.edu.cn/doc/cloud-labs/cloud/faq/>FAQ</a>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<a href=https://scs.buaa.edu.cn/doc/ns-labs/>网络存储实验规划</a>
+<ul>
+<li>
+<a href=https://scs.buaa.edu.cn/doc/ns-labs/table-of-contents/>Table of Contents</a>
+<ul>
+<li>
+<a href=https://scs.buaa.edu.cn/doc/ns-labs/table-of-contents/raid/>Lab01 RAID 阵列</a>
+</li>
+</ul>
+</li>
+<li>
+<a href=https://scs.buaa.edu.cn/doc/ns-labs/resources/>Resources</a>
+<ul>
+<li>
+<a href=https://scs.buaa.edu.cn/doc/ns-labs/resources/os/>操作系统</a>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li>
+<a href=https://github.com/bugitt/doc target=_blank rel=noopener>
+Github
+</a>
+</li>
+</ul>
+</nav>
+<script>(function(){var a=document.querySelector("aside .book-menu-content");addEventListener("beforeunload",function(b){localStorage.setItem("menu.scrollTop",a.scrollTop)}),a.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+</div>
+</aside>
+<div class=book-page>
+<header class=book-header>
+<div class="flex align-center justify-between">
+<label for=menu-control>
+<img src=/doc/svg/menu.svg class=book-icon alt=Menu>
+</label>
+<strong>附录：创建Kubernetes集群</strong>
+<label for=toc-control>
+<img src=/doc/svg/toc.svg class=book-icon alt="Table of Contents">
+</label>
+</div>
+<aside class="hidden clearfix">
+<nav id=TableOfContents>
+<ul>
+<li><a href=#创建kubernetes集群>创建Kubernetes集群</a>
+<ul>
+<li><a href=#kubeadm不推荐>kubeadm（不推荐）</a></li>
+<li><a href=#kubekey推荐>KubeKey（推荐）</a>
+<ul>
+<li><a href=#创建集群>创建集群</a></li>
+<li><a href=#删除集群>删除集群</a></li>
+</ul>
+</li>
+<li><a href=#rke一般推荐>RKE（一般推荐）</a></li>
+<li><a href=#k3s一般推荐>k3s（一般推荐）</a></li>
+<li><a href=#其他单机推荐>其他（单机推荐）</a></li>
+</ul>
+</li>
+</ul>
+</nav>
+</aside>
+</header>
+<article class=markdown><h1 id=创建kubernetes集群>
+创建Kubernetes集群
+<a class=anchor href=#%e5%88%9b%e5%bb%bakubernetes%e9%9b%86%e7%be%a4>#</a>
+</h1>
+<p>Kubernetes生态发展至今已非常完善，部署一个Kubernetes集群已经不再是一件非常繁琐和困难的事情。社区有大量简单可靠的解决方案。</p>
+<p>下面给出几种可选的方案，根据自己的实际情况，<strong>选择其一即可</strong>。</p>
+<h2 id=kubeadm不推荐>
+kubeadm（不推荐）
+<a class=anchor href=#kubeadm%e4%b8%8d%e6%8e%a8%e8%8d%90>#</a>
+</h2>
+<p>Kubernetes官方推荐使用
+<a href=https://kubernetes.io/zh/docs/reference/setup-tools/kubeadm/>kubeadm</a> 来初始化一个Kubernetes集群。通过它，用户可以获得是一个相对“纯净”的Kubernetes集群。但该方法相对繁琐，而且对国内用户非常不友好，因此不推荐这种方式部署。</p>
+<p>有兴趣的同学可以尝试。</p>
+<h2 id=kubekey推荐>
+KubeKey（推荐）
+<a class=anchor href=#kubekey%e6%8e%a8%e8%8d%90>#</a>
+</h2>
+<p>
+<a href=https://github.com/kubesphere/kubekey>KubeKey</a> 是由
+<a href=https://kubesphere.io/zh/>Kubesphere</a> （一个国内公司主导的开源的Kubernetes管理平台）开源的Kubernetes和Kubesphere部署工具。</p>
+<p>KubeKey使用声明式的配置方式，用户只需要通过一个YAML配置文件给出所需集群的相关配置，即可通过KubeKey创建集群或修改集群的状态。更详细内容和使用方式请参考
+<a href=https://github.com/kubesphere/kubekey/blob/master/README.md>KubeKey的文档</a>。</p>
+<h3 id=创建集群>
+创建集群
+<a class=anchor href=#%e5%88%9b%e5%bb%ba%e9%9b%86%e7%be%a4>#</a>
+</h3>
+<p>在本次实验分配的虚拟机中，已经提前完成了KubeKey的部分配置，只需按照下面几步操作即可完成Kubernetes集群的创建。</p>
+<blockquote class="book-hint danger">
+<p><strong>注意</strong></p>
+<p>为了减少不必要的麻烦，请<strong>直接使用root账户</strong>登录虚拟机，并完成相关操作。</p>
+</blockquote>
+<ol>
+<li>
+<p>进入<code>/root/kubesphere</code>目录</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash>cd /root/kubesphere
+</code></pre></div></li>
+<li>
+<p>修改配置文件中的IP和登录密码。可以按需修改主机的hostname。如果修改了hostname，也需要同步修改<code>roleGroups</code>中的值。</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=color:#f92672>apiVersion</span>: <span style=color:#ae81ff>kubekey.kubesphere.io/v1alpha1</span>
+<span style=color:#f92672>kind</span>: <span style=color:#ae81ff>Cluster</span>
+<span style=color:#f92672>metadata</span>:
+<span style=color:#f92672>name</span>: <span style=color:#ae81ff>main-cluster</span>
+<span style=color:#f92672>spec</span>:
+<span style=color:#f92672>hosts</span>:
+- {<span style=color:#f92672>name: node1, address: 1.1.1.1, internalAddress: 1.1.1.1, user: root, password</span>: <span style=color:#e6db74>&#39;&amp;&amp;shieshuyuan21&#39;</span>}
+- {<span style=color:#f92672>name: node2, address: 1.1.1.1, internalAddress: 1.1.1.1, user: root, password</span>: <span style=color:#e6db74>&#39;&amp;&amp;shieshuyuan21&#39;</span>}
+<span style=color:#f92672>roleGroups</span>:
+    <span style=color:#f92672>etcd</span>:
+    - <span style=color:#ae81ff>node1</span>
+    <span style=color:#f92672>master</span>:
+    - <span style=color:#ae81ff>node1</span>
+    <span style=color:#f92672>worker</span>:
+    - <span style=color:#ae81ff>node1</span>
+    - <span style=color:#ae81ff>node2</span>
+<span style=color:#f92672>controlPlaneEndpoint</span>:
+    <span style=color:#f92672>domain</span>: <span style=color:#ae81ff>lb.kubesphere.local</span>
+    <span style=color:#f92672>address</span>: <span style=color:#e6db74>&#34;&#34;</span>
+    <span style=color:#f92672>port</span>: <span style=color:#ae81ff>6443</span>
+<span style=color:#f92672>kubernetes</span>:
+    <span style=color:#f92672>version</span>: <span style=color:#ae81ff>v1.20.4</span>
+    <span style=color:#f92672>imageRepo</span>: <span style=color:#ae81ff>kubesphere</span>
+    <span style=color:#f92672>clusterName</span>: <span style=color:#ae81ff>cluster.local</span>
+<span style=color:#f92672>network</span>:
+    <span style=color:#f92672>plugin</span>: <span style=color:#ae81ff>calico</span>
+    <span style=color:#f92672>kubePodsCIDR</span>: <span style=color:#ae81ff>172.20.0.0</span><span style=color:#ae81ff>/16</span>
+    <span style=color:#f92672>kubeServiceCIDR</span>: <span style=color:#ae81ff>172.21.0.0</span><span style=color:#ae81ff>/16</span>
+<span style=color:#f92672>registry</span>:
+    <span style=color:#f92672>registryMirrors</span>: []
+    <span style=color:#f92672>insecureRegistries</span>: []
+<span style=color:#f92672>addons</span>: []
+</code></pre></div></li>
+<li>
+<p>保存文件并退出后，执行以下命令即可：</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash>./kk create cluster -f config.yaml
+</code></pre></div></li>
+<li>
+<p>等待完成即可。完成后，可以直接在机器中使用<code>kubectl get node</code>来验证。</p>
+</li>
+</ol>
+<h3 id=删除集群>
+删除集群
+<a class=anchor href=#%e5%88%a0%e9%99%a4%e9%9b%86%e7%be%a4>#</a>
+</h3>
+<p>如果需要删除创建好的集群，只需要执行下述删除命令即可：</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash>cd /root/kubesphere
+./kk delete cluster -f config.yaml
+</code></pre></div><h2 id=rke一般推荐>
+RKE（一般推荐）
+<a class=anchor href=#rke%e4%b8%80%e8%88%ac%e6%8e%a8%e8%8d%90>#</a>
+</h2>
+<blockquote class="book-hint danger">
+<p>使用RKE时，需要向目标机器传递公钥。请<strong>不要</strong>使用虚拟机默认生成的公钥。</p>
+<p>因为所有实验机器密钥对都相同，当你向目标机器传递了公钥后，本次实验的其他同学将可以无障碍登录你的目标机器。</p>
+</blockquote>
+<p>
+<a href=https://rancher.com/products/rke/>RKE（Rancher Kubernetes Engine）</a>是rancher提供的一个Kubernetes管理工具。</p>
+<p>与KubeKey一样，RKE同样提供了声明式的配置方式，你可以在RKE的引导下，创建配置文件，并以此创建集群和管理集群的状态。</p>
+<p>本次实验分配的虚拟机中，提供了rke的可执行文件，可以直接使用。对此感兴趣的同学可以参考
+<a href=https://rancher.com/docs/rke/latest/en/installation/>rke的安装说明文档</a>。</p>
+<h2 id=k3s一般推荐>
+k3s（一般推荐）
+<a class=anchor href=#k3s%e4%b8%80%e8%88%ac%e6%8e%a8%e8%8d%90>#</a>
+</h2>
+<p>k3s是一个非常轻量的Kubernetes发行版。其安装和配置方法在其
+<a href=https://rancher.com/docs/k3s/latest/en/quick-start/>官方文档</a>中写的很详细。</p>
+<h2 id=其他单机推荐>
+其他（单机推荐）
+<a class=anchor href=#%e5%85%b6%e4%bb%96%e5%8d%95%e6%9c%ba%e6%8e%a8%e8%8d%90>#</a>
+</h2>
+<p>如果需要在本地创建Kubernetes集群，可以选择使用Minikube、Docker Desktop等。</p>
+</article>
+<footer class=book-footer>
+<div class="flex flex-wrap justify-between">
+<div><a class="flex align-center" href=https://github.com/alex-shpak/hugo-book/commit/7bdbc20bf44ce4b6f5e5812dd238e0a835dd05a6 title="Last modified by loheagn | October 15, 2021" target=_blank rel=noopener>
+<img src=/doc/svg/calendar.svg class=book-icon alt=Calendar>
+<span>October 15, 2021</span>
+</a>
+</div>
+<div>
+<a class="flex align-center" href=https://github.com/alex-shpak/hugo-book/edit/main/exampleSite/content/cloud-labs/cloud/appendix_create_kubernetes.md target=_blank rel=noopener>
+<img src=/doc/svg/edit.svg class=book-icon alt=Edit>
+<span>Edit this page</span>
+</a>
+</div>
+</div>
+<script>(function(){function a(c){const a=window.getSelection(),b=document.createRange();b.selectNodeContents(c),a.removeAllRanges(),a.addRange(b)}document.querySelectorAll("pre code").forEach(b=>{b.addEventListener("click",function(c){a(b.parentElement),navigator.clipboard&&navigator.clipboard.writeText(b.parentElement.textContent)})})})()</script>
+</footer>
+<div class=book-comments>
+</div>
+<label for=menu-control class="hidden book-menu-overlay"></label>
+</div>
+<aside class=book-toc>
+<div class=book-toc-content>
+<nav id=TableOfContents>
+<ul>
+<li><a href=#创建kubernetes集群>创建Kubernetes集群</a>
+<ul>
+<li><a href=#kubeadm不推荐>kubeadm（不推荐）</a></li>
+<li><a href=#kubekey推荐>KubeKey（推荐）</a>
+<ul>
+<li><a href=#创建集群>创建集群</a></li>
+<li><a href=#删除集群>删除集群</a></li>
+</ul>
+</li>
+<li><a href=#rke一般推荐>RKE（一般推荐）</a></li>
+<li><a href=#k3s一般推荐>k3s（一般推荐）</a></li>
+<li><a href=#其他单机推荐>其他（单机推荐）</a></li>
+</ul>
+</li>
+</ul>
+</nav>
+</div>
+</aside>
+</main>
+</body>
+</html>
