@@ -14,9 +14,18 @@ weight: 1
 
 **注意事项**  
 
-1. 请务必阅读[虚拟机使用说明](../..//01_common/virtual_machine_help.md)
+1. 本次分配的机器的账户和密码为：
 
-2. 分配的虚拟机中，已经安装了Docker，无需重复安装；并设置了Docker镜像地址（该地址指向校内地址），理论上docker.io中的镜像不用联网即可拉取。例如可以直接在虚拟机上`docker pull nginx`。
+  ```
+  buaa: &shieshuyuan21
+  root: &&shieshuyuan21
+  ```
+
+  **务必首先修改机器的root和buaa账户的密码**
+
+2. 请务必阅读[虚拟机使用说明](../..//01_common/virtual_machine_help.md)。
+
+3. 分配的虚拟机中，已经安装了Docker，无需重复安装；并设置了Docker镜像地址（该地址指向校内地址），理论上docker.io中的镜像不用联网即可拉取。例如可以直接在虚拟机上`docker pull nginx`。
 
 {{< /hint >}}
 
