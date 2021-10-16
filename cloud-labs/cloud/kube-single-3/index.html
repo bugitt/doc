@@ -3,7 +3,8 @@
 <meta charset=utf-8>
 <meta name=viewport content="width=device-width,initial-scale=1">
 <meta name=description content="Kubernetes实验（三） Kubernetes的基本使用 #  实验目的 #   了解Kubernetes的各种特性 掌握Kubernetes的常用功能  注意事项
-  请务必阅读 虚拟机使用说明
+ 本次分配的机器的账户和密码为：  buaa: &shieshuyuan21 root: &&shieshuyuan21 务必首先修改机器的root和buaa账户的密码
+ 请务必阅读 虚拟机使用说明。
   分配的虚拟机中，已经安装了Docker，无需重复安装；并设置了Docker镜像地址（该地址指向校内地址），理论上docker.io中的镜像不用联网即可拉取。例如可以直接在虚拟机上docker pull nginx。
    创建Kubernetes集群
 在实验开始前，请利用云平台提供的虚拟机或者自己的本地资源，创建一个至少包含两节点的Kubernetes集群。
@@ -17,7 +18,8 @@ apiVersion: v1 kind: List items: - apiVersion: v1 kind: Namespace metadata: name
 <meta name=theme-color content="#FFFFFF">
 <meta name=color-scheme content="light dark"><meta property="og:title" content="Kubernetes实验（三）">
 <meta property="og:description" content="Kubernetes实验（三） Kubernetes的基本使用 #  实验目的 #   了解Kubernetes的各种特性 掌握Kubernetes的常用功能  注意事项
-  请务必阅读 虚拟机使用说明
+ 本次分配的机器的账户和密码为：  buaa: &shieshuyuan21 root: &&shieshuyuan21 务必首先修改机器的root和buaa账户的密码
+ 请务必阅读 虚拟机使用说明。
   分配的虚拟机中，已经安装了Docker，无需重复安装；并设置了Docker镜像地址（该地址指向校内地址），理论上docker.io中的镜像不用联网即可拉取。例如可以直接在虚拟机上docker pull nginx。
    创建Kubernetes集群
 在实验开始前，请利用云平台提供的虚拟机或者自己的本地资源，创建一个至少包含两节点的Kubernetes集群。
@@ -30,13 +32,13 @@ kubectl apply -f https://git-v1.scs.buaa.edu.cn/iobs/static_files/raw/main/kube/
 apiVersion: v1 kind: List items: - apiVersion: v1 kind: Namespace metadata: name: weave annotations: cloud.">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://scs.buaa.edu.cn/doc/cloud-labs/cloud/kube-single-3/"><meta property="article:section" content="cloud-labs">
-<meta property="article:modified_time" content="2021-10-15T18:23:54+08:00">
+<meta property="article:modified_time" content="2021-10-16T23:58:04+08:00">
 <title>Kubernetes实验（三） | 软院云平台文档</title>
 <link rel=manifest href=/doc/manifest.json>
 <link rel=icon href=/doc/favicon.png type=image/x-icon>
 <link rel=stylesheet href=/doc/book.min.46181bc93375ba932026e753b37c40e6ff8bb16a9ef770c78bcc663e4577b1ba.css integrity="sha256-RhgbyTN1upMgJudTs3xA5v+LsWqe93DHi8xmPkV3sbo=" crossorigin=anonymous>
 <script defer src=/doc/flexsearch.min.js></script>
-<script defer src=/doc/en.search.min.b1b2778791b686a3a266a09272effe5469fa3090b56cb673bb5f122c5d4878da.js integrity="sha256-sbJ3h5G2hqOiZqCScu/+VGn6MJC1bLZzu18SLF1IeNo=" crossorigin=anonymous></script>
+<script defer src=/doc/en.search.min.2c66ca1ec9bb58cc802e542118dd73aab31ef5b9515dd892c6cffd399c0f11d9.js integrity="sha256-LGbKHsm7WMyALlQhGN1zqrMe9blRXdiSxs/9OZwPEdk=" crossorigin=anonymous></script>
 <script defer src=/doc/sw.min.5b0a96517f3d8417c3b8e3f5f1aaf1cba3d2cc7cc19a9780a18ecfa3beff6666.js integrity="sha256-WwqWUX89hBfDuOP18arxy6PSzHzBmpeAoY7Po77/ZmY=" crossorigin=anonymous></script>
 </head>
 <body dir=ltr>
@@ -72,6 +74,9 @@ apiVersion: v1 kind: List items: - apiVersion: v1 kind: Namespace metadata: name
 <ul>
 <li>
 <a href=https://scs.buaa.edu.cn/doc/cloud-labs/cloud/kube-single-3/ class=active>Kubernetes实验（三）</a>
+</li>
+<li>
+<a href=https://scs.buaa.edu.cn/doc/cloud-labs/cloud/cloud_lab/>云PaaS平台开发</a>
 </li>
 <li>
 <a href=https://scs.buaa.edu.cn/doc/cloud-labs/cloud/appendix_create_kubernetes/>附录：创建Kubernetes集群</a>
@@ -185,9 +190,15 @@ Kubernetes实验（三） Kubernetes的基本使用
 <blockquote class="book-hint danger">
 <p><strong>注意事项</strong></p>
 <ol>
+<li>本次分配的机器的账户和密码为：</li>
+</ol>
+<pre tabindex=0><code>buaa: &amp;shieshuyuan21
+root: &amp;&amp;shieshuyuan21
+</code></pre><p><strong>务必首先修改机器的root和buaa账户的密码</strong></p>
+<ol start=2>
 <li>
 <p>请务必阅读
-<a href=/doc/01_common/virtual_machine_help/>虚拟机使用说明</a></p>
+<a href=/doc/01_common/virtual_machine_help/>虚拟机使用说明</a>。</p>
 </li>
 <li>
 <p>分配的虚拟机中，已经安装了Docker，无需重复安装；并设置了Docker镜像地址（该地址指向校内地址），理论上docker.io中的镜像不用联网即可拉取。例如可以直接在虚拟机上<code>docker pull nginx</code>。</p>
@@ -1278,9 +1289,9 @@ EOF
 </article>
 <footer class=book-footer>
 <div class="flex flex-wrap justify-between">
-<div><a class="flex align-center" href=https://github.com/alex-shpak/hugo-book/commit/f3b0ba7cadd2c535f653c6549912ad1a9c7104f6 title="Last modified by loheagn | October 15, 2021" target=_blank rel=noopener>
+<div><a class="flex align-center" href=https://github.com/alex-shpak/hugo-book/commit/20bb0ee9e7ad8ac823761bfaa079a1cb247e550d title="Last modified by loheagn | October 16, 2021" target=_blank rel=noopener>
 <img src=/doc/svg/calendar.svg class=book-icon alt=Calendar>
-<span>October 15, 2021</span>
+<span>October 16, 2021</span>
 </a>
 </div>
 <div>

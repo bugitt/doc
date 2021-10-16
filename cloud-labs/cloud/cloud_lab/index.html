@@ -1,0 +1,220 @@
+<!doctype html><html lang=en dir=ltr>
+<head>
+<meta charset=utf-8>
+<meta name=viewport content="width=device-width,initial-scale=1">
+<meta name=description content="云PaaS平台开发 #  实验要求 #  基于Kubernetes，设计并实现一PaaS平台，可以考虑实现如下功能（不限于）：
+ 镜像管理 容器管理（用户可创建和修改容器，并监控容器状态） 应用部署（用户可以直观地将若干个逻辑上统一的容器编排成完成的应用，并发布）  希望同学们在实现上述功能的过程中加深对Kubernetes各项概念的理解，并体会云计算为应用的发布和运维带来的便利。
+实验代码管理与部署 #  实验代码请托管到软院代码托管平台 BuGit上。
+首次使用代码托管平台时需要激活账户。激活账户时，请注意邮箱的正确性，并牢记密码。  系统开发将分小组进行，需要小组在 BuGit上创建项目，并邀请所有小组成员加入。
+可以使用的资源 #     KubeSphere，该平台的初始账号密码与BuGit相同，并且其上的项目与BuGit同步。在BiGit上创建项目后，可在KubeSphere对应的项目中部署容器。
+   Harbor，该平台的初始账号密码与BuGit相同，并且其上的项目与BuGit同步。在BiGit上创建进行代码仓库的构建后，可在Harbor对应的项目中查看到创建的镜像。
+  校内的Docker Hub镜像地址：10.251.0.37:5000。
+  ">
+<meta name=theme-color content="#FFFFFF">
+<meta name=color-scheme content="light dark"><meta property="og:title" content="云PaaS平台开发">
+<meta property="og:description" content="云PaaS平台开发 #  实验要求 #  基于Kubernetes，设计并实现一PaaS平台，可以考虑实现如下功能（不限于）：
+ 镜像管理 容器管理（用户可创建和修改容器，并监控容器状态） 应用部署（用户可以直观地将若干个逻辑上统一的容器编排成完成的应用，并发布）  希望同学们在实现上述功能的过程中加深对Kubernetes各项概念的理解，并体会云计算为应用的发布和运维带来的便利。
+实验代码管理与部署 #  实验代码请托管到软院代码托管平台 BuGit上。
+首次使用代码托管平台时需要激活账户。激活账户时，请注意邮箱的正确性，并牢记密码。  系统开发将分小组进行，需要小组在 BuGit上创建项目，并邀请所有小组成员加入。
+可以使用的资源 #     KubeSphere，该平台的初始账号密码与BuGit相同，并且其上的项目与BuGit同步。在BiGit上创建项目后，可在KubeSphere对应的项目中部署容器。
+   Harbor，该平台的初始账号密码与BuGit相同，并且其上的项目与BuGit同步。在BiGit上创建进行代码仓库的构建后，可在Harbor对应的项目中查看到创建的镜像。
+  校内的Docker Hub镜像地址：10.251.0.37:5000。
+  ">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://scs.buaa.edu.cn/doc/cloud-labs/cloud/cloud_lab/"><meta property="article:section" content="cloud-labs">
+<meta property="article:modified_time" content="2021-10-16T23:58:04+08:00">
+<title>云PaaS平台开发 | 软院云平台文档</title>
+<link rel=manifest href=/doc/manifest.json>
+<link rel=icon href=/doc/favicon.png type=image/x-icon>
+<link rel=stylesheet href=/doc/book.min.46181bc93375ba932026e753b37c40e6ff8bb16a9ef770c78bcc663e4577b1ba.css integrity="sha256-RhgbyTN1upMgJudTs3xA5v+LsWqe93DHi8xmPkV3sbo=" crossorigin=anonymous>
+<script defer src=/doc/flexsearch.min.js></script>
+<script defer src=/doc/en.search.min.2c66ca1ec9bb58cc802e542118dd73aab31ef5b9515dd892c6cffd399c0f11d9.js integrity="sha256-LGbKHsm7WMyALlQhGN1zqrMe9blRXdiSxs/9OZwPEdk=" crossorigin=anonymous></script>
+<script defer src=/doc/sw.min.5b0a96517f3d8417c3b8e3f5f1aaf1cba3d2cc7cc19a9780a18ecfa3beff6666.js integrity="sha256-WwqWUX89hBfDuOP18arxy6PSzHzBmpeAoY7Po77/ZmY=" crossorigin=anonymous></script>
+</head>
+<body dir=ltr>
+<input type=checkbox class="hidden toggle" id=menu-control>
+<input type=checkbox class="hidden toggle" id=toc-control>
+<main class="container flex">
+<aside class=book-menu>
+<div class=book-menu-content>
+<nav>
+<h2 class=book-brand>
+<a class="flex align-center" href=/doc/><span>软院云平台文档</span>
+</a>
+</h2>
+<div class=book-search>
+<input type=text id=book-search-input placeholder=Search aria-label=Search maxlength=64 data-hotkeys=s/>
+<div class="book-search-spinner hidden"></div>
+<ul id=book-search-results></ul>
+</div>
+<ul>
+<li>
+<a href=https://scs.buaa.edu.cn/doc/01_common/>云平台使用手册</a>
+<ul>
+<li>
+<a href=https://scs.buaa.edu.cn/doc/01_common/virtual_machine_help/>虚拟机使用说明</a>
+</li>
+</ul>
+</li>
+<li>
+<a href=https://scs.buaa.edu.cn/doc/cloud-labs/>大数据和云计算综合实践</a>
+<ul>
+<li>
+<a href=https://scs.buaa.edu.cn/doc/cloud-labs/cloud/>云计算实验</a>
+<ul>
+<li>
+<a href=https://scs.buaa.edu.cn/doc/cloud-labs/cloud/kube-single-3/>Kubernetes实验（三）</a>
+</li>
+<li>
+<a href=https://scs.buaa.edu.cn/doc/cloud-labs/cloud/cloud_lab/ class=active>云PaaS平台开发</a>
+</li>
+<li>
+<a href=https://scs.buaa.edu.cn/doc/cloud-labs/cloud/appendix_create_kubernetes/>附录：创建Kubernetes集群</a>
+</li>
+<li>
+<a href=https://scs.buaa.edu.cn/doc/cloud-labs/cloud/faq/>FAQ</a>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<a href=https://scs.buaa.edu.cn/doc/ns-labs/>网络存储实验规划</a>
+<ul>
+<li>
+<a href=https://scs.buaa.edu.cn/doc/ns-labs/table-of-contents/>Table of Contents</a>
+<ul>
+<li>
+<a href=https://scs.buaa.edu.cn/doc/ns-labs/table-of-contents/raid/>Lab01 RAID 阵列</a>
+</li>
+</ul>
+</li>
+<li>
+<a href=https://scs.buaa.edu.cn/doc/ns-labs/resources/>Resources</a>
+<ul>
+<li>
+<a href=https://scs.buaa.edu.cn/doc/ns-labs/resources/os/>操作系统</a>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li>
+<a href=https://github.com/bugitt/doc target=_blank rel=noopener>
+Github
+</a>
+</li>
+</ul>
+</nav>
+<script>(function(){var a=document.querySelector("aside .book-menu-content");addEventListener("beforeunload",function(b){localStorage.setItem("menu.scrollTop",a.scrollTop)}),a.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+</div>
+</aside>
+<div class=book-page>
+<header class=book-header>
+<div class="flex align-center justify-between">
+<label for=menu-control>
+<img src=/doc/svg/menu.svg class=book-icon alt=Menu>
+</label>
+<strong>云PaaS平台开发</strong>
+<label for=toc-control>
+<img src=/doc/svg/toc.svg class=book-icon alt="Table of Contents">
+</label>
+</div>
+<aside class="hidden clearfix">
+<nav id=TableOfContents>
+<ul>
+<li><a href=#云paas平台开发>云PaaS平台开发</a>
+<ul>
+<li><a href=#实验要求>实验要求</a></li>
+<li><a href=#实验代码管理与部署>实验代码管理与部署</a></li>
+<li><a href=#可以使用的资源>可以使用的资源</a></li>
+</ul>
+</li>
+</ul>
+</nav>
+</aside>
+</header>
+<article class=markdown><h1 id=云paas平台开发>
+云PaaS平台开发
+<a class=anchor href=#%e4%ba%91paas%e5%b9%b3%e5%8f%b0%e5%bc%80%e5%8f%91>#</a>
+</h1>
+<h2 id=实验要求>
+实验要求
+<a class=anchor href=#%e5%ae%9e%e9%aa%8c%e8%a6%81%e6%b1%82>#</a>
+</h2>
+<p>基于Kubernetes，设计并实现一PaaS平台，可以考虑实现如下功能（不限于）：</p>
+<ul>
+<li>镜像管理</li>
+<li>容器管理（用户可创建和修改容器，并监控容器状态）</li>
+<li>应用部署（用户可以直观地将若干个逻辑上统一的容器编排成完成的应用，并发布）</li>
+</ul>
+<p>希望同学们在实现上述功能的过程中加深对Kubernetes各项概念的理解，并体会云计算为应用的发布和运维带来的便利。</p>
+<h2 id=实验代码管理与部署>
+实验代码管理与部署
+<a class=anchor href=#%e5%ae%9e%e9%aa%8c%e4%bb%a3%e7%a0%81%e7%ae%a1%e7%90%86%e4%b8%8e%e9%83%a8%e7%bd%b2>#</a>
+</h2>
+<p>实验代码请托管到软院代码托管平台
+<a href=https://git.scs.buaa.edu.cn>BuGit</a>上。</p>
+<blockquote class="book-hint warning">
+首次使用代码托管平台时需要激活账户。激活账户时，请注意邮箱的正确性，并牢记密码。
+</blockquote>
+<p>系统开发将分小组进行，需要小组在
+<a href=https://git.scs.buaa.edu.cn>BuGit</a>上创建项目，并邀请所有小组成员加入。</p>
+<h2 id=可以使用的资源>
+可以使用的资源
+<a class=anchor href=#%e5%8f%af%e4%bb%a5%e4%bd%bf%e7%94%a8%e7%9a%84%e8%b5%84%e6%ba%90>#</a>
+</h2>
+<ol>
+<li>
+<p>
+<a href=https://kube.scs.buaa.edu.cn>KubeSphere</a>，该平台的初始账号密码与BuGit相同，并且其上的项目与BuGit同步。在BiGit上创建项目后，可在KubeSphere对应的项目中部署容器。</p>
+</li>
+<li>
+<p>
+<a href=https://harbor.scs.buaa.edu.cn>Harbor</a>，该平台的初始账号密码与BuGit相同，并且其上的项目与BuGit同步。在BiGit上创建进行代码仓库的构建后，可在Harbor对应的项目中查看到创建的镜像。</p>
+</li>
+<li>
+<p>校内的Docker Hub镜像地址：<code>10.251.0.37:5000</code>。</p>
+</li>
+</ol>
+</article>
+<footer class=book-footer>
+<div class="flex flex-wrap justify-between">
+<div><a class="flex align-center" href=https://github.com/alex-shpak/hugo-book/commit/20bb0ee9e7ad8ac823761bfaa079a1cb247e550d title="Last modified by loheagn | October 16, 2021" target=_blank rel=noopener>
+<img src=/doc/svg/calendar.svg class=book-icon alt=Calendar>
+<span>October 16, 2021</span>
+</a>
+</div>
+<div>
+<a class="flex align-center" href=https://github.com/alex-shpak/hugo-book/edit/main/exampleSite/content/cloud-labs/cloud/cloud_lab.md target=_blank rel=noopener>
+<img src=/doc/svg/edit.svg class=book-icon alt=Edit>
+<span>Edit this page</span>
+</a>
+</div>
+</div>
+<script>(function(){function a(c){const a=window.getSelection(),b=document.createRange();b.selectNodeContents(c),a.removeAllRanges(),a.addRange(b)}document.querySelectorAll("pre code").forEach(b=>{b.addEventListener("click",function(c){a(b.parentElement),navigator.clipboard&&navigator.clipboard.writeText(b.parentElement.textContent)})})})()</script>
+</footer>
+<div class=book-comments>
+</div>
+<label for=menu-control class="hidden book-menu-overlay"></label>
+</div>
+<aside class=book-toc>
+<div class=book-toc-content>
+<nav id=TableOfContents>
+<ul>
+<li><a href=#云paas平台开发>云PaaS平台开发</a>
+<ul>
+<li><a href=#实验要求>实验要求</a></li>
+<li><a href=#实验代码管理与部署>实验代码管理与部署</a></li>
+<li><a href=#可以使用的资源>可以使用的资源</a></li>
+</ul>
+</li>
+</ul>
+</nav>
+</div>
+</aside>
+</main>
+</body>
+</html>
