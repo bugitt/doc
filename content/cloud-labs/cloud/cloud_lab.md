@@ -29,8 +29,8 @@ weight: 2
 
 ## 可以使用的资源
 
-1. [KubeSphere](https://kube.scs.buaa.edu.cn)，该平台的初始账号密码与BuGit相同，并且其上的项目与BuGit同步。在BiGit上创建项目后，可在KubeSphere对应的项目中部署容器。
+1. [KubeSphere](https://kube.scs.buaa.edu.cn)，该平台的初始账号密码与BuGit相同，并且其上的项目与BuGit同步。在BuGit上创建项目后，可在KubeSphere对应的项目中部署容器。
 
-2. [Harbor](https://harbor.scs.buaa.edu.cn)，该平台的初始账号密码与BuGit相同，并且其上的项目与BuGit同步。在BiGit上创建进行代码仓库的构建后，可在Harbor对应的项目中查看到创建的镜像。
+2. [Harbor](https://harbor.scs.buaa.edu.cn)，该平台的初始账号密码与BuGit相同，并且其上的项目与BuGit同步。在BuGit上创建进行代码仓库的构建后，可在Harbor对应的项目中查看到创建的镜像。
 
 3. 校内的Docker Hub镜像地址：`10.251.0.37:5000`。
