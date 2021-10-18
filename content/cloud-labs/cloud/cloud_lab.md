@@ -15,6 +15,12 @@ weight: 2
 
 希望同学们在实现上述功能的过程中加深对Kubernetes各项概念的理解，并体会云计算为应用的发布和运维带来的便利。
 
+开发过程中，需要使用到Kubernetes和Docker Engine对外提供的API，可以直接调用他们的OpenAPI，也可以使用官方或第三方封装好的Client SDK。
+
+[Kubernetes的OpenAPI](https://kubernetes.io/zh/docs/concepts/overview/kubernetes-api/)描述文件可以在[这里](https://github.com/kubernetes/kubernetes/blob/master/api/openapi-spec/swagger.json)找到，这里列出了比较流行的一些Kubernetes[客户端库](https://kubernetes.io/zh/docs/reference/using-api/client-libraries/)。
+
+Docker的OpenAPI描述文件可以在[这里](https://docs.docker.com/engine/api/v1.41/#)找到，这里列出了比较流行的一些Docker[客户端库](https://docs.docker.com/engine/api/sdk/)。
+
 ## 实验代码管理与部署
 
 实验代码请托管到软院代码托管平台[BuGit](https://git.scs.buaa.edu.cn)上。
