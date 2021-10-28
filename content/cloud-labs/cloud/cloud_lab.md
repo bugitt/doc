@@ -48,7 +48,7 @@ Docker的OpenAPI描述文件可以在[这里](https://docs.docker.com/engine/api
 
 ## 可以使用的资源
 
-1. [KubeSphere](https://kube.scs.buaa.edu.cn)，该平台的初始账号密码与BuGit相同，并且其上的项目与BuGit同步。在BiGit上创建项目后，可在KubeSphere对应的项目中部署容器。
+1. [KubeSphere](https://kube.scs.buaa.edu.cn)，该平台的初始账号密码与BuGit相同（如果登录失败，可以尝试使用密码`Newpass@2021`登录），并且其上的项目与BuGit同步。在BiGit上创建项目后，可在KubeSphere对应的项目中部署容器。
 
 2. [Harbor](https://harbor.scs.buaa.edu.cn)，该平台的初始账号密码与BuGit相同，并且其上的项目与BuGit同步。在BiGit上创建进行代码仓库的构建后，可在Harbor对应的项目中查看到创建的镜像。
 
