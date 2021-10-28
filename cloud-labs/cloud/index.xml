@@ -10,14 +10,19 @@ kubectl create deployment nginx-test --image=harbor.scs.buaa.edu.cn/library/ngin
 直接使用kubectl创建资源简单、直观、快捷，很适合临时测试或者试验。但实际上，创建资源时通常需要一系列的配置，如果单纯使用kubectl命令会比较麻烦，因此通常在配置资源会使用yaml配置文件。
 使用配置文件 # 在之前的实验中，我们使用了这个命令来安装Weave Scope
 kubectl apply -f https://git-v1.scs.buaa.edu.cn/iobs/static_files/raw/main/kube/weave_scope/scope.yml 这个命令实际上从后面的地址读取了一个yaml配置文件，并根据这个文件来配置资源。如果你将这个文件打开，你会看到这样的内容（省略了很多内容）：
-apiVersion: v1 kind: List items: - apiVersion: v1 kind: Namespace metadata: name: weave annotations: cloud.</description></item><item><title>云PaaS平台开发</title><link>https://scs.buaa.edu.cn/doc/cloud-labs/cloud/cloud_lab/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://scs.buaa.edu.cn/doc/cloud-labs/cloud/cloud_lab/</guid><description>云PaaS平台开发 # 实验要求 # 基于Kubernetes，设计并实现一PaaS平台，可以考虑实现如下功能（不限于）：
-镜像管理 容器管理（用户可创建和修改容器，并监控容器状态） 应用部署（用户可以直观地将若干个逻辑上统一的容器编排成完成的应用，并发布） 希望同学们在实现上述功能的过程中加深对Kubernetes各项概念的理解，并体会云计算为应用的发布和运维带来的便利。
+apiVersion: v1 kind: List items: - apiVersion: v1 kind: Namespace metadata: name: weave annotations: cloud.</description></item><item><title>云PaaS平台开发</title><link>https://scs.buaa.edu.cn/doc/cloud-labs/cloud/cloud_lab/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://scs.buaa.edu.cn/doc/cloud-labs/cloud/cloud_lab/</guid><description>云PaaS平台开发 # 实验要求 # 基于Kubernetes，设计并实现一PaaS平台。该平台的终极目标，用户可以通过该平台，实现从源代码到可访问的服务之间的整个自动化流程。
+比如，在传统方式下，用户编写了一个React应用，为了能让其他人通过互联网访问到他的应用，他需要首先在云厂商购买服务器，然后在服务器上安装操作系统和NodeJS，然后手动拉取依赖和编译，然后手动将编译好的静态文件放到合适的地方（配置Nginx等）。
+而在通过这个PaaS平台，用户只需要提供自己的源代码，并按照平台的需求，编写一个配置文件（可能会包含一个Dockerfile，也可能是某种模板的形式），剩下的工作可以放心地交给PaaS平台来完成。
+那么PaaS平台是如何实现这个功能的呢？首先，它根据用户提供的源代码和配置文件，将源代码编译成一个OCI镜像；然后将该镜像交给一个容器管理平台部署为一个容器组（一般是Kubernetes中的Deployment或StatefulSet）；然后根据用户提供的配置文件，将容器组的特定端口暴露到互联网上（例如使用Service的NodePort或LoadBalancer）。
+进一步地，一个真正的生产级别的应用不可能由一个容器组提供的功能支撑（最简单的一个前后端分离的应用，就要包含一个前端、一个后端，可能还有数据库和缓存服务等），为了完成整个应用的部署，用户一般会通过配置文件来指定多个不同的容器。这些容器之间的逻辑是相互联系，平台需要能够将它们在逻辑上与其他的应用容器区分开。
+因此，可以看到，一个完整的PaaS平台可以包含：
+镜像管理 用户可以向平台添加自己需要的镜像，可以直接提供一个Dockerfile，也可以直接提供镜像的压缩包，也可以提供源代码（可以是代码的压缩包，也可以是一个代码仓库地址等等），也可以直接让平台去拉公共的镜像仓库 用户可以浏览、更改和删除自己添加的镜像 在镜像管理部分，可以自己在本地通过Docker Image管理，也可以考虑搭建一个私有的 Docker Registry 容器管理 用户可创建和修改容器，并监控容器状态 （考虑使用Kubernetes进行部署和管理） 应用部署 用户可以直观地将若干个逻辑上统一的容器编排成完成的应用，并发布。这里这个“应用”的概念是Kubernetes本身没有的，需要你自己去抽象。比如，可以把不同应用的容器组使用namespace隔离等等。在KubeSphere上，这个概念其实就是一个“项目”） 希望同学们在实现上述功能的过程中加深对Kubernetes各项概念的理解，并体会云计算为应用的发布和运维带来的便利。
 开发过程中，需要使用到Kubernetes和Docker Engine对外提供的API，可以直接调用他们的OpenAPI，也可以使用官方或第三方封装好的Client SDK。
 Kubernetes的OpenAPI描述文件可以在 这里找到，这里列出了比较流行的一些Kubernetes 客户端库。
 Docker的OpenAPI描述文件可以在 这里找到，这里列出了比较流行的一些Docker 客户端库。
 实验代码管理与部署 # 实验代码请托管到软院代码托管平台 BuGit上。
 首次使用代码托管平台时需要激活账户。激活账户时，请注意邮箱的正确性，并牢记密码。 系统开发将分小组进行，需要小组在 BuGit上创建项目，并邀请所有小组成员加入。
-可以使用的资源 # KubeSphere，该平台的初始账号密码与BuGit相同，并且其上的项目与BuGit同步。在BiGit上创建项目后，可在KubeSphere对应的项目中部署容器。
+可以使用的资源 # KubeSphere，该平台的初始账号密码与BuGit相同（如果登录失败，可以尝试使用密码Newpass@2021登录），并且其上的项目与BuGit同步。在BiGit上创建项目后，可在KubeSphere对应的项目中部署容器。
 Harbor，该平台的初始账号密码与BuGit相同，并且其上的项目与BuGit同步。在BiGit上创建进行代码仓库的构建后，可在Harbor对应的项目中查看到创建的镜像。
 校内的Docker Hub镜像地址：10.251.0.37:5000。</description></item><item><title>附录：创建Kubernetes集群</title><link>https://scs.buaa.edu.cn/doc/cloud-labs/cloud/appendix_create_kubernetes/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://scs.buaa.edu.cn/doc/cloud-labs/cloud/appendix_create_kubernetes/</guid><description>创建Kubernetes集群 # Kubernetes生态发展至今已非常完善，部署一个Kubernetes集群已经不再是一件非常繁琐和困难的事情。社区有大量简单可靠的解决方案。
 下面给出几种可选的方案，根据自己的实际情况，选择其一即可。
