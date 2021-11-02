@@ -43,7 +43,18 @@ KubeKey使用声明式的配置方式，用户只需要通过一个YAML配置文
 为了减少不必要的麻烦，请直接使用root账户登录虚拟机，并完成相关操作。
 进入/root/kubesphere目录
 cd /root/kubesphere 修改配置文件中的IP和登录密码。可以按需修改主机的hostname。如果修改了hostname，也需要同步修改roleGroups中的值。
-apiVersion: kubekey.kubesphere.io/v1alpha1 kind: Cluster metadata: name: main-cluster spec: hosts: - {name: node1, address: 1.1.1.1, internalAddress: 1.1.1.1, user: root, password: &amp;#39;&amp;amp;&amp;amp;shieshuyuan21&amp;#39;} - {name: node2, address: 1.1.1.1, internalAddress: 1.1.1.1, user: root, password: &amp;#39;&amp;amp;&amp;amp;shieshuyuan21&amp;#39;} roleGroups: etcd: - node1 master: - node1 worker: - node1 - node2 controlPlaneEndpoint: domain: lb.</description></item><item><title>虚拟机使用说明</title><link>https://scs.buaa.edu.cn/doc/01_common/virtual_machine_help/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://scs.buaa.edu.cn/doc/01_common/virtual_machine_help/</guid><description>虚拟机使用说明 # 连接虚拟机 # Linux系统 # 首先从云平台中获取虚拟机的IP和登录名，之后即可在本地通过任意ssh客户端登录。
+apiVersion: kubekey.kubesphere.io/v1alpha1 kind: Cluster metadata: name: main-cluster spec: hosts: - {name: node1, address: 1.1.1.1, internalAddress: 1.1.1.1, user: root, password: &amp;#39;&amp;amp;&amp;amp;shieshuyuan21&amp;#39;} - {name: node2, address: 1.1.1.1, internalAddress: 1.1.1.1, user: root, password: &amp;#39;&amp;amp;&amp;amp;shieshuyuan21&amp;#39;} roleGroups: etcd: - node1 master: - node1 worker: - node1 - node2 controlPlaneEndpoint: domain: lb.</description></item><item><title>自动构建与部署</title><link>https://scs.buaa.edu.cn/doc/02_bugit/build_deploy/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://scs.buaa.edu.cn/doc/02_bugit/build_deploy/</guid><description>自动构建与部署 # 原理 # 本质上，自动构建与部署的过程是，系统根据用户提供的包含在代码仓库中的配置文件，将代码编译成一个OCI规范的镜像，然后上传到镜像中心，最后通知Kubernetes集群拉取镜像运行，以对外提供可用服务。
+自动构建与部署的几个步骤：
+用户编写配置合法的配置文件，并包含在代码仓库的根目录中。
+用户触发自动构建与部署。目前支持自动监听代码推送（git push）动作，和在前端手动点击按钮触发。
+系统拉取用户指定的仓库的指定的某次提交的代码，并根据指定的Dockerfile进行镜像构建。
+系统将构建完成的镜像将推送到镜像中心（harbor.scs.buaa.edu.cn）。
+系统通知Kubernetes拉取镜像，并部署之。
+配置文件 # 配置文件一共包含两个：Dockerfile 和 .bugit.yaml。
+Dockerfile # Dockerfile用来描述该代码仓库希望被如何编译和打包成一个OCI镜像。具体的编写规则可以参考 Dockerfile Reference。
+.bugit.yaml # .bugit.yaml是一个YAML文件（名称.bugit.yml也是合法的，并且请注意文件名最前面那个.）。它是对整个构建和部署过程的描述。
+下面是一个.bugit.yaml文件支持的全部指令的示例（请注意缩进）。
+下方示例中，提到的非必需字段，都可以在.bugit.yaml省略不写。 # 必需字段。表示当前的.bugit.yaml 所适用的构建与部署流程的版本号，目前仅支持 0.0.1 version: 0.0.1 # on 字段中的内容用来表示在哪个分支发生什么事件时，自动启动构建与部署流程 # 该字段中可以包含若干组内容，每一组的 key （比如，下方示例中的 main 和 master） 都是分支名称，其 value （比如下方示例中的 [push]）是一个数组，表示希望系统监听哪些事件的发生 # 比如下面的示例就表示，希望系统在远程仓库的 main 分支和 master 分支发生代码推送事件（git push）时，自动启动构建与部署流程 # 如果希望开启“自动”构建与部署的功能，那么该字段是必需的 on: main: [&amp;#34;push&amp;#34;] master: [&amp;#34;push&amp;#34;] # 必需字段。build 字段用来描述如何系统如何构建OCI镜像 build: name: build-1 # 必需。名称标识，目前没有太大意义。可以是任意字符串，但请不要带空格 type: docker # 必需。构建的类型，目前仅支持docker docker_tag: simple # 非必需。表示希望给构建好的字段加的额外tag dockerfile: .</description></item><item><title>虚拟机使用说明</title><link>https://scs.buaa.edu.cn/doc/01_common/virtual_machine_help/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://scs.buaa.edu.cn/doc/01_common/virtual_machine_help/</guid><description>虚拟机使用说明 # 连接虚拟机 # Linux系统 # 首先从云平台中获取虚拟机的IP和登录名，之后即可在本地通过任意ssh客户端登录。
 MacOS 使用系统自带的Terminal.app登录即可。
 为了更好的使用体验，推荐使用 iterm2登录。
 当然，你也可以使用 termius进行多个ssh连接的管理。
