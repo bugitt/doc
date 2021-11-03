@@ -30,13 +30,13 @@ Dockerfile #  Dockerfile用来描述该代码仓库希望被如何编译和打�
 下方示例中，提到的非必需字段，都可以在.bugit.yaml省略不写。  # 必需字段。表示当前的.bugit.yaml 所适用的构建与部署流程的版本号，目前仅支持 0.0.1 version: 0.0.1 # on 字段中的内容用来表示在哪个分支发生什么事件时，自动启动构建与部署流程 # 该字段中可以包含若干组内容，每一组的 key （比如，下方示例中的 main 和 master） 都是分支名称，其 value （比如下方示例中的 [push]）是一个数组，表示希望系统监听哪些事件的发生 # 比如下面的示例就表示，希望系统在远程仓库的 main 分支和 master 分支发生代码推送事件（git push）时，自动启动构建与部署流程 # 如果希望开启“自动”构建与部署的功能，那么该字段是必需的 on: main: [&#34;push&#34;] master: [&#34;push&#34;] # 必需字段。build 字段用来描述如何系统如何构建OCI镜像 build: name: build-1  # 必需。名称标识，目前没有太大意义。可以是任意字符串，但请不要带空格 type: docker  # 必需。构建的类型，目前仅支持docker docker_tag: simple  # 非必需。表示希望给构建好的字段加的额外tag dockerfile: .">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://scs.buaa.edu.cn/doc/02_bugit/build_deploy/"><meta property="article:section" content="02_bugit">
-<meta property="article:modified_time" content="2021-11-03T17:00:05+08:00">
+<meta property="article:modified_time" content="2021-11-03T17:00:57+08:00">
 <title>自动构建与部署 | 软院云平台文档</title>
 <link rel=manifest href=/doc/manifest.json>
 <link rel=icon href=/doc/favicon.png type=image/x-icon>
 <link rel=stylesheet href=/doc/book.min.46181bc93375ba932026e753b37c40e6ff8bb16a9ef770c78bcc663e4577b1ba.css integrity="sha256-RhgbyTN1upMgJudTs3xA5v+LsWqe93DHi8xmPkV3sbo=" crossorigin=anonymous>
 <script defer src=/doc/flexsearch.min.js></script>
-<script defer src=/doc/en.search.min.000e2348a3c4c3f1b168ff1449c3161ef5fb979d8a46d262cb4d26000d456886.js integrity="sha256-AA4jSKPEw/GxaP8UScMWHvX7l52KRtJiy00mAA1FaIY=" crossorigin=anonymous></script>
+<script defer src=/doc/en.search.min.c8d845d6c024599a826cda21f18552dc5fa35c6611bba65e04e12e588ad78885.js integrity="sha256-yNhF1sAkWZqCbNoh8YVS3F+jXGYRu6ZeBOEuWIrXiIU=" crossorigin=anonymous></script>
 <script defer src=/doc/sw.min.5b0a96517f3d8417c3b8e3f5f1aaf1cba3d2cc7cc19a9780a18ecfa3beff6666.js integrity="sha256-WwqWUX89hBfDuOP18arxy6PSzHzBmpeAoY7Po77/ZmY=" crossorigin=anonymous></script>
 </head>
 <body dir=ltr>
@@ -261,7 +261,7 @@ Dockerfile
 BuGit平台的每个个人和项目的资源配额为2核4G。所以请合理调配每个代码仓库的资源配额。
 </blockquote>
 <blockquote class="book-hint warning">
-对于典型的资源消耗大户（如Java应用对内存的消耗），需要注意在容器的启动命令中手动限制资源配额（如手动指定是jvm的内存参数等），防止容器因为资源有限而使服务启动失败。
+对于典型的资源消耗大户（如Java应用对内存的消耗），需要注意在容器的启动命令中手动限制资源配额（如手动指定jvm的内存参数等），防止容器因为资源有限而使服务启动失败。
 </blockquote>
 <h2 id=示例>
 示例
@@ -311,7 +311,7 @@ Dockerfile
 </code></pre></div></article>
 <footer class=book-footer>
 <div class="flex flex-wrap justify-between">
-<div><a class="flex align-center" href=https://github.com/alex-shpak/hugo-book/commit/71f6b9ab94ab922bda7bb4fb807334ef2a007711 title="Last modified by loheagn | November 3, 2021" target=_blank rel=noopener>
+<div><a class="flex align-center" href=https://github.com/alex-shpak/hugo-book/commit/9e32207d0fb356efd53203643634b9515f7690fc title="Last modified by loheagn | November 3, 2021" target=_blank rel=noopener>
 <img src=/doc/svg/calendar.svg class=book-icon alt=Calendar>
 <span>November 3, 2021</span>
 </a>
