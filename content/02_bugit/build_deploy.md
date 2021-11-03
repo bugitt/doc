@@ -104,3 +104,44 @@ BuGit平台的每个个人和项目的资源配额为2核4G。所以请合理调
 ## 示例
 
 BuGit平台中的[test-project项目](https://git.scs.buaa.edu.cn/test-project)包含的每个项目都进行了自动构建和部署的配置，都可以作为参考。
+
+特别地，下面给出了一些典型的示例。
+
+### Static Web
+
+适用于纯静态文件的网站部署（如，仅包含html，css，js等文件）。
+
+可参考项目 [static-web](https://git.scs.buaa.edu.cn/test-project/static-web)。
+
+#### Dockerfile
+
+```dockerfile
+FROM nginx
+
+# 下面的 . 表示使用的是当前这个Dockerfile所在的目录作为网站的根目录
+# 如果你的 index.html 所在的位置与此不同，请根据实际情况修改
+COPY . /usr/share/nginx/html
+```
+
+#### .bugit.yaml
+
+```yaml
+version: 0.0.1
+
+on:
+  master: [push]
+  main: [push]
+
+build:
+  name: build-static-nginx
+  type: docker
+  docker_tag: web
+  dockerfile: ./Dockerfile
+
+deploy:
+  on: [main, master]
+  ports:
+    - name: web
+      protocol: tcp
+      port: 80
+```
