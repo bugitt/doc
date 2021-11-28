@@ -50,10 +50,35 @@ weight: 100
 
 ### Linux系统
 
-登录虚拟机后，可以执行下面命令进行联网，请注意替换学号和密码：
+推荐使用[Dr-Bluemond/srun](https://github.com/Dr-Bluemond/srun)提供的工具。云平台提供已经编译好的Linux64位版本。可以这样获取：
 
 ```bash
-/usr/bin/curl -k -d "action=login&username=学号&password=密码&type=2&n=117&ac_id=1" "https://gw.buaa.edu.cn/cgi-bin/srun_portal"
+wget http://10.251.253.10/scsos/tools/linux/buaalogin
+chmod +x ./buaalogin
+```
+
+使用前请使用`config`命令配置一下校园网用户名和密码（注意，如果用户名中有英文的话，请大小写都尝试一下）：
+
+```bash
+./buaalogin config
+```
+
+配置完成后，使用`login`命令登录即可：
+
+```bash
+./buaalogin login
+```
+
+或，直接：
+
+```bash
+./buaaloign
+```
+
+如果想作为系统命令使用的话（注意替换合适的安装路径）：
+
+```bash
+sudo install ./buaalogin /usr/local/bin
 ```
 
 ## 传输文件
