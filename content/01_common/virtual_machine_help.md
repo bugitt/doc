@@ -53,7 +53,7 @@ weight: 100
 推荐使用[Dr-Bluemond/srun](https://github.com/Dr-Bluemond/srun)提供的工具。云平台提供已经编译好的Linux64位版本。可以这样获取：
 
 ```bash
-wget http://10.251.253.10/scsos/tools/linux/buaalogin
+wget https://scs.buaa.edu.cn/scsos/tools/linux/buaalogin
 chmod +x ./buaalogin
 ```
 
