@@ -9,5 +9,5 @@ Linux 如果你是Linux Desktop用户，那么你肯定已经有了自己喜爱�
 wget https://scs.buaa.edu.cn/scsos/tools/linux/buaalogin chmod +x ./buaalogin 使用前请使用config命令配置一下校园网用户名和密码（注意，如果用户名中有英文的话，请大小写都尝试一下）：
 ./buaalogin config 配置完成后，使用login命令登录即可：
 ./buaalogin login 或，直接：
-./buaaloign 如果想作为系统命令使用的话（注意替换合适的安装路径）：
+./buaalogin 如果想作为系统命令使用的话（注意替换合适的安装路径）：
 sudo install ./buaalogin /usr/local/bin 传输文件 # Linux系统 # MacOS &amp;amp; Linux 可以使用使用SCP命令进行服务器与本地之间的文件交换。Windows 除了在终端中使用SCP命令外，</description></item></channel></rss>
