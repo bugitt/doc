@@ -72,7 +72,7 @@ chmod +x ./buaalogin
 或，直接：
 
 ```bash
-./buaaloign
+./buaalogin
 ```
 
 如果想作为系统命令使用的话（注意替换合适的安装路径）：
