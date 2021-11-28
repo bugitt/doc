@@ -62,7 +62,7 @@ Linux 如果你是Linux Desktop用户，那么你肯定已经有了自己喜爱�
 为了更好的使用体验，推荐下载使用 Windows Terminal。
 当然，你也可以使用 termius或者其他工具（如 Xshell等）进行多个ssh连接的管理。
 校外跳板 通过 d.buaa.edu.cn 跳转登录即可。 联网 # Linux系统 # 推荐使用 Dr-Bluemond/srun提供的工具。云平台提供已经编译好的Linux64位版本。可以这样获取：
-wget http://10.251.253.10/scsos/tools/linux/buaalogin chmod +x ./buaalogin 使用前请使用config命令配置一下校园网用户名和密码（注意，如果用户名中有英文的话，请大小写都尝试一下）：
+wget https://scs.buaa.edu.cn/scsos/tools/linux/buaalogin chmod +x ./buaalogin 使用前请使用config命令配置一下校园网用户名和密码（注意，如果用户名中有英文的话，请大小写都尝试一下）：
 ./buaalogin config 配置完成后，使用login命令登录即可：
 ./buaalogin login 或，直接：
 ./buaaloign 如果想作为系统命令使用的话（注意替换合适的安装路径）：

@@ -10,7 +10,7 @@ Linux 如果你是Linux Desktop用户，那么你肯定已经有了自己喜爱�
 为了更好的使用体验，推荐下载使用 Windows Terminal。
 当然，你也可以使用 termius或者其他工具（如 Xshell等）进行多个ssh连接的管理。
 校外跳板 通过 d.buaa.edu.cn 跳转登录即可。 联网 #  Linux系统 #  推荐使用 Dr-Bluemond/srun提供的工具。云平台提供已经编译好的Linux64位版本。可以这样获取：
-wget http://10.251.253.10/scsos/tools/linux/buaalogin chmod +x ./buaalogin 使用前请使用config命令配置一下校园网用户名和密码（注意，如果用户名中有英文的话，请大小写都尝试一下）：
+wget https://scs.buaa.edu.cn/scsos/tools/linux/buaalogin chmod +x ./buaalogin 使用前请使用config命令配置一下校园网用户名和密码（注意，如果用户名中有英文的话，请大小写都尝试一下）：
 ./buaalogin config 配置完成后，使用login命令登录即可：
 ./buaalogin login 或，直接：
 ./buaaloign 如果想作为系统命令使用的话（注意替换合适的安装路径）：
@@ -25,20 +25,20 @@ Linux 如果你是Linux Desktop用户，那么你肯定已经有了自己喜爱�
 为了更好的使用体验，推荐下载使用 Windows Terminal。
 当然，你也可以使用 termius或者其他工具（如 Xshell等）进行多个ssh连接的管理。
 校外跳板 通过 d.buaa.edu.cn 跳转登录即可。 联网 #  Linux系统 #  推荐使用 Dr-Bluemond/srun提供的工具。云平台提供已经编译好的Linux64位版本。可以这样获取：
-wget http://10.251.253.10/scsos/tools/linux/buaalogin chmod +x ./buaalogin 使用前请使用config命令配置一下校园网用户名和密码（注意，如果用户名中有英文的话，请大小写都尝试一下）：
+wget https://scs.buaa.edu.cn/scsos/tools/linux/buaalogin chmod +x ./buaalogin 使用前请使用config命令配置一下校园网用户名和密码（注意，如果用户名中有英文的话，请大小写都尝试一下）：
 ./buaalogin config 配置完成后，使用login命令登录即可：
 ./buaalogin login 或，直接：
 ./buaaloign 如果想作为系统命令使用的话（注意替换合适的安装路径）：
 sudo install ./buaalogin /usr/local/bin 传输文件 #  Linux系统 #  MacOS & Linux 可以使用使用SCP命令进行服务器与本地之间的文件交换。Windows 除了在终端中使用SCP命令外，">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://scs.buaa.edu.cn/doc/01_common/virtual_machine_help/"><meta property="article:section" content="01_common">
-<meta property="article:modified_time" content="2021-11-28T14:19:24+08:00">
+<meta property="article:modified_time" content="2021-11-28T14:20:39+08:00">
 <title>虚拟机使用说明 | 软院云平台文档</title>
 <link rel=manifest href=/doc/manifest.json>
 <link rel=icon href=/doc/favicon.png type=image/x-icon>
 <link rel=stylesheet href=/doc/book.min.46181bc93375ba932026e753b37c40e6ff8bb16a9ef770c78bcc663e4577b1ba.css integrity="sha256-RhgbyTN1upMgJudTs3xA5v+LsWqe93DHi8xmPkV3sbo=" crossorigin=anonymous>
 <script defer src=/doc/flexsearch.min.js></script>
-<script defer src=/doc/en.search.min.8a12e85716ce08a70372f4f9798be6f22ac5348ff008d345346635d842014a32.js integrity="sha256-ihLoVxbOCKcDcvT5eYvm8irFNI/wCNNFNGY12EIBSjI=" crossorigin=anonymous></script>
+<script defer src=/doc/en.search.min.2ccee870d35fd2f230e704e48d28677eed7d1eabe9bc1490c8f8c019e77ffb42.js integrity="sha256-LM7ocNNf0vIw5wTkjShnfu19HqvpvBSQyPjAGed/+0I=" crossorigin=anonymous></script>
 <script defer src=/doc/sw.min.5b0a96517f3d8417c3b8e3f5f1aaf1cba3d2cc7cc19a9780a18ecfa3beff6666.js integrity="sha256-WwqWUX89hBfDuOP18arxy6PSzHzBmpeAoY7Po77/ZmY=" crossorigin=anonymous></script>
 </head>
 <body dir=ltr>
@@ -208,7 +208,7 @@ Linux系统
 </h3>
 <p>推荐使用
 <a href=https://github.com/Dr-Bluemond/srun>Dr-Bluemond/srun</a>提供的工具。云平台提供已经编译好的Linux64位版本。可以这样获取：</p>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash>wget http://10.251.253.10/scsos/tools/linux/buaalogin
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash>wget https://scs.buaa.edu.cn/scsos/tools/linux/buaalogin
 chmod +x ./buaalogin
 </code></pre></div><p>使用前请使用<code>config</code>命令配置一下校园网用户名和密码（注意，如果用户名中有英文的话，请大小写都尝试一下）：</p>
 <div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash>./buaalogin config
@@ -239,7 +239,7 @@ Linux系统
 </article>
 <footer class=book-footer>
 <div class="flex flex-wrap justify-between">
-<div><a class="flex align-center" href=https://github.com/alex-shpak/hugo-book/commit/59f1c868cd0104b3772b3cc7ee36b12930908a03 title="Last modified by loheagn | November 28, 2021" target=_blank rel=noopener>
+<div><a class="flex align-center" href=https://github.com/alex-shpak/hugo-book/commit/25454b2a48993c8e39dde26bf34c35cad5d30278 title="Last modified by loheagn | November 28, 2021" target=_blank rel=noopener>
 <img src=/doc/svg/calendar.svg class=book-icon alt=Calendar>
 <span>November 28, 2021</span>
 </a>
