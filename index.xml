@@ -61,7 +61,9 @@ MacOS 使用系统自带的Terminal.app登录即可。
 Linux 如果你是Linux Desktop用户，那么你肯定已经有了自己喜爱的终端模拟器，此处不再赘述。Windows 一般来讲，Windows 10（及以上）自带的cmd.exe都自带ssh client，打开cmd后直接ssh foo@x.x.x.x即可登录。
 为了更好的使用体验，推荐下载使用 Windows Terminal。
 当然，你也可以使用 termius或者其他工具（如 Xshell等）进行多个ssh连接的管理。
-校外跳板 通过 d.buaa.edu.cn 跳转登录即可。 联网 # Linux系统 # 登录虚拟机后，可以执行下面命令进行联网，请注意替换学号和密码：
-/usr/bin/curl -k -d &amp;#34;action=login&amp;amp;username=学号&amp;amp;password=密码&amp;amp;type=2&amp;amp;n=117&amp;amp;ac_id=1&amp;#34; &amp;#34;https://gw.buaa.edu.cn/cgi-bin/srun_portal&amp;#34; 传输文件 # Linux系统 # MacOS &amp;amp; Linux 可以使用使用SCP命令进行服务器与本地之间的文件交换。Windows 除了在终端中使用SCP命令外，
-还可以使用 WinSCP进行图形化的文件管理。
-校外跳板 d.buaa.edu.cn 的Linux界面已经提供了比较完善的文件管理工具。</description></item><item><title>FAQ</title><link>https://scs.buaa.edu.cn/doc/cloud-labs/cloud/faq/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://scs.buaa.edu.cn/doc/cloud-labs/cloud/faq/</guid><description>FAQ #</description></item></channel></rss>
+校外跳板 通过 d.buaa.edu.cn 跳转登录即可。 联网 # Linux系统 # 推荐使用 Dr-Bluemond/srun提供的工具。云平台提供已经编译好的Linux64位版本。可以这样获取：
+wget http://10.251.253.10/scsos/tools/linux/buaalogin chmod +x ./buaalogin 使用前请使用config命令配置一下校园网用户名和密码（注意，如果用户名中有英文的话，请大小写都尝试一下）：
+./buaalogin config 配置完成后，使用login命令登录即可：
+./buaalogin login 或，直接：
+./buaaloign 如果想作为系统命令使用的话（注意替换合适的安装路径）：
+sudo install ./buaalogin /usr/local/bin 传输文件 # Linux系统 # MacOS &amp;amp; Linux 可以使用使用SCP命令进行服务器与本地之间的文件交换。Windows 除了在终端中使用SCP命令外，</description></item><item><title>FAQ</title><link>https://scs.buaa.edu.cn/doc/cloud-labs/cloud/faq/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://scs.buaa.edu.cn/doc/cloud-labs/cloud/faq/</guid><description>FAQ #</description></item></channel></rss>
