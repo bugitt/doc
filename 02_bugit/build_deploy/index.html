@@ -1,8 +1,4 @@
-<!doctype html><html lang=en dir=ltr>
-<head>
-<meta charset=utf-8>
-<meta name=viewport content="width=device-width,initial-scale=1">
-<meta name=description content="自动构建与部署 #  原理 #  本质上，自动构建与部署的过程是，系统根据用户提供的包含在代码仓库中的配置文件，将代码编译成一个OCI规范的镜像，然后上传到镜像中心，最后通知Kubernetes集群拉取镜像运行，以对外提供可用服务。
+<!doctype html><html lang=en dir=ltr><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="自动构建与部署 #  原理 #  本质上，自动构建与部署的过程是，系统根据用户提供的包含在代码仓库中的配置文件，将代码编译成一个OCI规范的镜像，然后上传到镜像中心，最后通知Kubernetes集群拉取镜像运行，以对外提供可用服务。
 自动构建与部署的几个步骤：
   用户编写配置合法的配置文件，并包含在代码仓库的根目录中。
   用户触发自动构建与部署。目前支持自动监听代码推送（git push）动作，和在前端手动点击按钮触发。
@@ -13,10 +9,7 @@
 Dockerfile #  Dockerfile用来描述该代码仓库希望被如何编译和打包成一个OCI镜像。具体的编写规则可以参考 Dockerfile Reference。
 .bugit.yaml #  .bugit.yaml是一个YAML文件（名称.bugit.yml也是合法的，并且请注意文件名最前面那个.）。它是对整个构建和部署过程的描述。
 下面是一个.bugit.yaml文件支持的全部指令的示例（请注意缩进）。
-下方示例中，提到的非必需字段，都可以在.bugit.yaml省略不写。  # 必需字段。表示当前的.bugit.yaml 所适用的构建与部署流程的版本号，目前仅支持 0.0.1 version: 0.0.1 # on 字段中的内容用来表示在哪个分支发生什么事件时，自动启动构建与部署流程 # 该字段中可以包含若干组内容，每一组的 key （比如，下方示例中的 main 和 master） 都是分支名称，其 value （比如下方示例中的 [push]）是一个数组，表示希望系统监听哪些事件的发生 # 比如下面的示例就表示，希望系统在远程仓库的 main 分支和 master 分支发生代码推送事件（git push）时，自动启动构建与部署流程 # 如果希望开启“自动”构建与部署的功能，那么该字段是必需的 on: main: [&#34;push&#34;] master: [&#34;push&#34;] # 必需字段。build 字段用来描述如何系统如何构建OCI镜像 build: name: build-1  # 必需。名称标识，目前没有太大意义。可以是任意字符串，但请不要带空格 type: docker  # 必需。构建的类型，目前仅支持docker docker_tag: simple  # 非必需。表示希望给构建好的字段加的额外tag dockerfile: .">
-<meta name=theme-color content="#FFFFFF">
-<meta name=color-scheme content="light dark"><meta property="og:title" content="自动构建与部署">
-<meta property="og:description" content="自动构建与部署 #  原理 #  本质上，自动构建与部署的过程是，系统根据用户提供的包含在代码仓库中的配置文件，将代码编译成一个OCI规范的镜像，然后上传到镜像中心，最后通知Kubernetes集群拉取镜像运行，以对外提供可用服务。
+下方示例中，提到的非必需字段，都可以在.bugit.yaml省略不写。  # 必需字段。表示当前的.bugit.yaml 所适用的构建与部署流程的版本号，目前仅支持 0.0.1 version: 0.0.1  # on 字段中的内容用来表示在哪个分支发生什么事件时，自动启动构建与部署流程 # 该字段中可以包含若干组内容，每一组的 key （比如，下方示例中的 main 和 master） 都是分支名称，其 value （比如下方示例中的 [push]）是一个数组，表示希望系统监听哪些事件的发生 # 比如下面的示例就表示，希望系统在远程仓库的 main 分支和 master 分支发生代码推送事件（git push）时，自动启动构建与部署流程 # 如果希望开启“自动”构建与部署的功能，那么该字段是必需的 on:  main: [&#34;push&#34;]  master: [&#34;push&#34;]  # 必需字段。build 字段用来描述如何系统如何构建OCI镜像 build:  name: build-1  # 必需。名称标识，目前没有太大意义。可以是任意字符串，但请不要带空格  type: docker  # 必需。构建的类型，目前仅支持docker  docker_tag: simple  # 非必需。表示希望给构建好的字段加的额外tag  dockerfile: ."><meta name=theme-color content="#FFFFFF"><meta name=color-scheme content="light dark"><meta property="og:title" content="自动构建与部署"><meta property="og:description" content="自动构建与部署 #  原理 #  本质上，自动构建与部署的过程是，系统根据用户提供的包含在代码仓库中的配置文件，将代码编译成一个OCI规范的镜像，然后上传到镜像中心，最后通知Kubernetes集群拉取镜像运行，以对外提供可用服务。
 自动构建与部署的几个步骤：
   用户编写配置合法的配置文件，并包含在代码仓库的根目录中。
   用户触发自动构建与部署。目前支持自动监听代码推送（git push）动作，和在前端手动点击按钮触发。
@@ -27,332 +20,94 @@ Dockerfile #  Dockerfile用来描述该代码仓库希望被如何编译和打�
 Dockerfile #  Dockerfile用来描述该代码仓库希望被如何编译和打包成一个OCI镜像。具体的编写规则可以参考 Dockerfile Reference。
 .bugit.yaml #  .bugit.yaml是一个YAML文件（名称.bugit.yml也是合法的，并且请注意文件名最前面那个.）。它是对整个构建和部署过程的描述。
 下面是一个.bugit.yaml文件支持的全部指令的示例（请注意缩进）。
-下方示例中，提到的非必需字段，都可以在.bugit.yaml省略不写。  # 必需字段。表示当前的.bugit.yaml 所适用的构建与部署流程的版本号，目前仅支持 0.0.1 version: 0.0.1 # on 字段中的内容用来表示在哪个分支发生什么事件时，自动启动构建与部署流程 # 该字段中可以包含若干组内容，每一组的 key （比如，下方示例中的 main 和 master） 都是分支名称，其 value （比如下方示例中的 [push]）是一个数组，表示希望系统监听哪些事件的发生 # 比如下面的示例就表示，希望系统在远程仓库的 main 分支和 master 分支发生代码推送事件（git push）时，自动启动构建与部署流程 # 如果希望开启“自动”构建与部署的功能，那么该字段是必需的 on: main: [&#34;push&#34;] master: [&#34;push&#34;] # 必需字段。build 字段用来描述如何系统如何构建OCI镜像 build: name: build-1  # 必需。名称标识，目前没有太大意义。可以是任意字符串，但请不要带空格 type: docker  # 必需。构建的类型，目前仅支持docker docker_tag: simple  # 非必需。表示希望给构建好的字段加的额外tag dockerfile: .">
-<meta property="og:type" content="article">
-<meta property="og:url" content="https://scs.buaa.edu.cn/doc/02_bugit/build_deploy/"><meta property="article:section" content="02_bugit">
-<meta property="article:modified_time" content="2021-11-03T17:00:57+08:00">
-<title>自动构建与部署 | 软院云平台文档</title>
-<link rel=manifest href=/doc/manifest.json>
-<link rel=icon href=/doc/favicon.png type=image/x-icon>
-<link rel=stylesheet href=/doc/book.min.46181bc93375ba932026e753b37c40e6ff8bb16a9ef770c78bcc663e4577b1ba.css integrity="sha256-RhgbyTN1upMgJudTs3xA5v+LsWqe93DHi8xmPkV3sbo=" crossorigin=anonymous>
-<script defer src=/doc/flexsearch.min.js></script>
-<script defer src=/doc/en.search.min.fb61b232ed62bef0dbcef9abb2a10a760ed04eab8283bf44c5be9428c1b0331b.js integrity="sha256-+2GyMu1ivvDbzvmrsqEKdg7QTquCg79Exb6UKMGwMxs=" crossorigin=anonymous></script>
-<script defer src=/doc/sw.min.5b0a96517f3d8417c3b8e3f5f1aaf1cba3d2cc7cc19a9780a18ecfa3beff6666.js integrity="sha256-WwqWUX89hBfDuOP18arxy6PSzHzBmpeAoY7Po77/ZmY=" crossorigin=anonymous></script>
-</head>
-<body dir=ltr>
-<input type=checkbox class="hidden toggle" id=menu-control>
-<input type=checkbox class="hidden toggle" id=toc-control>
-<main class="container flex">
-<aside class=book-menu>
-<div class=book-menu-content>
-<nav>
-<h2 class=book-brand>
-<a class="flex align-center" href=/doc/><span>软院云平台文档</span>
-</a>
-</h2>
-<div class=book-search>
-<input type=text id=book-search-input placeholder=Search aria-label=Search maxlength=64 data-hotkeys=s/>
-<div class="book-search-spinner hidden"></div>
-<ul id=book-search-results></ul>
-</div>
-<ul>
-<li>
-<a href=https://scs.buaa.edu.cn/doc/02_bugit/>BuGit代码托管与自动部署平台</a>
-<ul>
-<li>
-<a href=https://scs.buaa.edu.cn/doc/02_bugit/build_deploy/ class=active>自动构建与部署</a>
-</li>
-</ul>
-</li>
-<li>
-<a href=https://scs.buaa.edu.cn/doc/01_common/>云平台使用手册</a>
-<ul>
-<li>
-<a href=https://scs.buaa.edu.cn/doc/01_common/virtual_machine_help/>虚拟机使用说明</a>
-</li>
-</ul>
-</li>
-<li>
-<a href=https://scs.buaa.edu.cn/doc/cloud-labs/>大数据和云计算综合实践</a>
-<ul>
-<li>
-<a href=https://scs.buaa.edu.cn/doc/cloud-labs/cloud/>云计算实验</a>
-<ul>
-<li>
-<a href=https://scs.buaa.edu.cn/doc/cloud-labs/cloud/kube-single-3/>Kubernetes实验（三）</a>
-</li>
-<li>
-<a href=https://scs.buaa.edu.cn/doc/cloud-labs/cloud/cloud_lab/>云PaaS平台开发</a>
-</li>
-<li>
-<a href=https://scs.buaa.edu.cn/doc/cloud-labs/cloud/appendix_create_kubernetes/>附录：创建Kubernetes集群</a>
-</li>
-<li>
-<a href=https://scs.buaa.edu.cn/doc/cloud-labs/cloud/faq/>FAQ</a>
-</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>
-<a href=https://scs.buaa.edu.cn/doc/ns-labs/>网络存储实验规划</a>
-<ul>
-<li>
-<a href=https://scs.buaa.edu.cn/doc/ns-labs/table-of-contents/>Table of Contents</a>
-<ul>
-<li>
-<a href=https://scs.buaa.edu.cn/doc/ns-labs/table-of-contents/raid/>Lab01 RAID 阵列</a>
-</li>
-</ul>
-</li>
-<li>
-<a href=https://scs.buaa.edu.cn/doc/ns-labs/resources/>Resources</a>
-<ul>
-<li>
-<a href=https://scs.buaa.edu.cn/doc/ns-labs/resources/os/>操作系统</a>
-</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-<ul>
-<li>
-<a href=https://github.com/bugitt/doc target=_blank rel=noopener>
-Github
-</a>
-</li>
-</ul>
-</nav>
-<script>(function(){var a=document.querySelector("aside .book-menu-content");addEventListener("beforeunload",function(b){localStorage.setItem("menu.scrollTop",a.scrollTop)}),a.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
-</div>
-</aside>
-<div class=book-page>
-<header class=book-header>
-<div class="flex align-center justify-between">
-<label for=menu-control>
-<img src=/doc/svg/menu.svg class=book-icon alt=Menu>
-</label>
+下方示例中，提到的非必需字段，都可以在.bugit.yaml省略不写。  # 必需字段。表示当前的.bugit.yaml 所适用的构建与部署流程的版本号，目前仅支持 0.0.1 version: 0.0.1  # on 字段中的内容用来表示在哪个分支发生什么事件时，自动启动构建与部署流程 # 该字段中可以包含若干组内容，每一组的 key （比如，下方示例中的 main 和 master） 都是分支名称，其 value （比如下方示例中的 [push]）是一个数组，表示希望系统监听哪些事件的发生 # 比如下面的示例就表示，希望系统在远程仓库的 main 分支和 master 分支发生代码推送事件（git push）时，自动启动构建与部署流程 # 如果希望开启“自动”构建与部署的功能，那么该字段是必需的 on:  main: [&#34;push&#34;]  master: [&#34;push&#34;]  # 必需字段。build 字段用来描述如何系统如何构建OCI镜像 build:  name: build-1  # 必需。名称标识，目前没有太大意义。可以是任意字符串，但请不要带空格  type: docker  # 必需。构建的类型，目前仅支持docker  docker_tag: simple  # 非必需。表示希望给构建好的字段加的额外tag  dockerfile: ."><meta property="og:type" content="article"><meta property="og:url" content="https://scs.buaa.edu.cn/doc/02_bugit/build_deploy/"><meta property="article:section" content="02_bugit"><meta property="article:modified_time" content="2021-11-03T17:00:57+08:00"><title>自动构建与部署 | 软院云平台文档</title><link rel=manifest href=/doc/manifest.json><link rel=icon href=/doc/favicon.png type=image/x-icon><link rel=stylesheet href=/doc/book.min.46181bc93375ba932026e753b37c40e6ff8bb16a9ef770c78bcc663e4577b1ba.css integrity="sha256-RhgbyTN1upMgJudTs3xA5v+LsWqe93DHi8xmPkV3sbo=" crossorigin=anonymous><script defer src=/doc/flexsearch.min.js></script>
+<script defer src=/doc/en.search.min.5a6dc797a668fc441eea1360bc03bd26691d88772a6b3270db5530b1ae19e2df.js integrity="sha256-Wm3Hl6Zo/EQe6hNgvAO9JmkdiHcqazJw21Uwsa4Z4t8=" crossorigin=anonymous></script>
+<script defer src=/doc/sw.min.5b0a96517f3d8417c3b8e3f5f1aaf1cba3d2cc7cc19a9780a18ecfa3beff6666.js integrity="sha256-WwqWUX89hBfDuOP18arxy6PSzHzBmpeAoY7Po77/ZmY=" crossorigin=anonymous></script></head><body dir=ltr><input type=checkbox class="hidden toggle" id=menu-control>
+<input type=checkbox class="hidden toggle" id=toc-control><main class="container flex"><aside class=book-menu><div class=book-menu-content><nav><h2 class=book-brand><a class="flex align-center" href=/doc/><span>软院云平台文档</span></a></h2><div class=book-search><input type=text id=book-search-input placeholder=Search aria-label=Search maxlength=64 data-hotkeys=s/><div class="book-search-spinner hidden"></div><ul id=book-search-results></ul></div><ul><li><a href=https://scs.buaa.edu.cn/doc/02_bugit/>BuGit代码托管与自动部署平台</a><ul><li><a href=https://scs.buaa.edu.cn/doc/02_bugit/build_deploy/ class=active>自动构建与部署</a></li></ul></li><li><a href=https://scs.buaa.edu.cn/doc/01_common/>云平台使用手册</a><ul><li><a href=https://scs.buaa.edu.cn/doc/01_common/virtual_machine_help/>虚拟机使用说明</a></li></ul></li><li><a href=https://scs.buaa.edu.cn/doc/cloud-labs/>大数据和云计算综合实践</a><ul><li><a href=https://scs.buaa.edu.cn/doc/cloud-labs/cloud/>云计算实验</a><ul><li><a href=https://scs.buaa.edu.cn/doc/cloud-labs/cloud/container_docker/>容器与Docker综合实验</a></li><li><a href=https://scs.buaa.edu.cn/doc/cloud-labs/cloud/kube-single-3/>Kubernetes实验（三）</a></li><li><a href=https://scs.buaa.edu.cn/doc/cloud-labs/cloud/cloud_lab/>云PaaS平台开发</a></li><li><a href=https://scs.buaa.edu.cn/doc/cloud-labs/cloud/appendix_create_kubernetes/>附录：创建Kubernetes集群</a></li><li><a href=https://scs.buaa.edu.cn/doc/cloud-labs/cloud/faq/>FAQ</a></li></ul></li></ul></li><li><a href=https://scs.buaa.edu.cn/doc/ns-labs/>网络存储实验规划</a><ul><li><a href=https://scs.buaa.edu.cn/doc/ns-labs/table-of-contents/>Table of Contents</a><ul><li><a href=https://scs.buaa.edu.cn/doc/ns-labs/table-of-contents/raid/>Lab01 RAID 阵列</a></li></ul></li><li><a href=https://scs.buaa.edu.cn/doc/ns-labs/resources/>Resources</a><ul><li><a href=https://scs.buaa.edu.cn/doc/ns-labs/resources/os/>操作系统</a></li></ul></li></ul></li></ul><ul><li><a href=https://github.com/bugitt/doc target=_blank rel=noopener>Github</a></li></ul></nav><script>(function(){var e=document.querySelector("aside .book-menu-content");addEventListener("beforeunload",function(){localStorage.setItem("menu.scrollTop",e.scrollTop)}),e.scrollTop=localStorage.getItem("menu.scrollTop")})()</script></div></aside><div class=book-page><header class=book-header><div class="flex align-center justify-between"><label for=menu-control><img src=/doc/svg/menu.svg class=book-icon alt=Menu></label>
 <strong>自动构建与部署</strong>
-<label for=toc-control>
-<img src=/doc/svg/toc.svg class=book-icon alt="Table of Contents">
-</label>
-</div>
-<aside class="hidden clearfix">
-<nav id=TableOfContents>
-<ul>
-<li><a href=#自动构建与部署>自动构建与部署</a>
-<ul>
-<li><a href=#原理>原理</a></li>
-<li><a href=#配置文件>配置文件</a>
-<ul>
-<li><a href=#dockerfile>Dockerfile</a></li>
-<li><a href=#bugityaml>.bugit.yaml</a></li>
-</ul>
-</li>
-<li><a href=#示例>示例</a>
-<ul>
-<li><a href=#static-web>Static Web</a></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-</nav>
-</aside>
-</header>
-<article class=markdown><h1 id=自动构建与部署>
-自动构建与部署
-<a class=anchor href=#%e8%87%aa%e5%8a%a8%e6%9e%84%e5%bb%ba%e4%b8%8e%e9%83%a8%e7%bd%b2>#</a>
-</h1>
-<h2 id=原理>
-原理
-<a class=anchor href=#%e5%8e%9f%e7%90%86>#</a>
-</h2>
-<p>本质上，自动构建与部署的过程是，系统根据用户提供的包含在代码仓库中的配置文件，将代码编译成一个OCI规范的镜像，然后上传到镜像中心，最后通知Kubernetes集群拉取镜像运行，以对外提供可用服务。</p>
-<p>自动构建与部署的几个步骤：</p>
-<ol>
-<li>
-<p>用户编写配置合法的配置文件，并包含在代码仓库的根目录中。</p>
-</li>
-<li>
-<p>用户触发自动构建与部署。目前支持自动监听代码推送（git push）动作，和在前端手动点击按钮触发。</p>
-</li>
-<li>
-<p>系统拉取用户指定的仓库的指定的某次提交的代码，并根据指定的Dockerfile进行镜像构建。</p>
-</li>
-<li>
-<p>系统将构建完成的镜像将推送到镜像中心（harbor.scs.buaa.edu.cn）。</p>
-</li>
-<li>
-<p>系统通知Kubernetes拉取镜像，并部署之。</p>
-</li>
-</ol>
-<h2 id=配置文件>
-配置文件
-<a class=anchor href=#%e9%85%8d%e7%bd%ae%e6%96%87%e4%bb%b6>#</a>
-</h2>
-<p>配置文件一共包含两个：<code>Dockerfile</code> 和 <code>.bugit.yaml</code>。</p>
-<h3 id=dockerfile>
-Dockerfile
-<a class=anchor href=#dockerfile>#</a>
-</h3>
-<p>Dockerfile用来描述该代码仓库希望被如何编译和打包成一个OCI镜像。具体的编写规则可以参考
-<a href=https://docs.docker.com/engine/reference/builder/>Dockerfile Reference</a>。</p>
-<h3 id=bugityaml>
-.bugit.yaml
-<a class=anchor href=#bugityaml>#</a>
-</h3>
-<p><code>.bugit.yaml</code>是一个YAML文件（名称<code>.bugit.yml</code>也是合法的，并且请注意文件名最前面那个<code>.</code>）。它是对整个构建和部署过程的描述。</p>
-<p>下面是一个<code>.bugit.yaml</code>文件支持的全部指令的示例（请注意缩进）。</p>
-<blockquote class="book-hint danger">
-下方示例中，提到的非必需字段，都可以在<code>.bugit.yaml</code>省略不写。
-</blockquote>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=color:#75715e># 必需字段。表示当前的.bugit.yaml 所适用的构建与部署流程的版本号，目前仅支持 0.0.1</span>
-<span style=color:#f92672>version</span>: <span style=color:#ae81ff>0.0.1</span>
-
-<span style=color:#75715e># on 字段中的内容用来表示在哪个分支发生什么事件时，自动启动构建与部署流程</span>
-<span style=color:#75715e># 该字段中可以包含若干组内容，每一组的 key （比如，下方示例中的 main 和 master） 都是分支名称，其 value （比如下方示例中的 [push]）是一个数组，表示希望系统监听哪些事件的发生</span>
-<span style=color:#75715e># 比如下面的示例就表示，希望系统在远程仓库的 main 分支和 master 分支发生代码推送事件（git push）时，自动启动构建与部署流程</span>
-<span style=color:#75715e># 如果希望开启“自动”构建与部署的功能，那么该字段是必需的</span>
-<span style=color:#f92672>on</span>: 
-  <span style=color:#f92672>main</span>: [<span style=color:#e6db74>&#34;push&#34;</span>]
-  <span style=color:#f92672>master</span>: [<span style=color:#e6db74>&#34;push&#34;</span>]
-
-<span style=color:#75715e># 必需字段。build 字段用来描述如何系统如何构建OCI镜像</span>
-<span style=color:#f92672>build</span>:
-  <span style=color:#f92672>name</span>: <span style=color:#ae81ff>build-1 </span> <span style=color:#75715e># 必需。名称标识，目前没有太大意义。可以是任意字符串，但请不要带空格</span>
-  <span style=color:#f92672>type</span>: <span style=color:#ae81ff>docker  </span> <span style=color:#75715e># 必需。构建的类型，目前仅支持docker</span>
-  <span style=color:#f92672>docker_tag</span>: <span style=color:#ae81ff>simple       </span> <span style=color:#75715e># 非必需。表示希望给构建好的字段加的额外tag</span>
-  <span style=color:#f92672>dockerfile</span>: <span style=color:#ae81ff>./Dockerfile </span> <span style=color:#75715e># 必需。表示使用的 Dockerfile 与代码仓库根目录的相对路径</span>
-
-<span style=color:#75715e># 非必需字段。build 字段用来描述如何构建好的镜像将会被如何部署。如果不希望使用部署功能的话，该字段可以忽略。</span>
-<span style=color:#f92672>deploy</span>:
-  <span style=color:#75715e># 必需。其值为一个列表。表示希望在哪几个分支的代码中开启部署功能。（“部署”是一个非常重的操作，需要用户明确确认）</span>
-  <span style=color:#f92672>on</span>: [<span style=color:#e6db74>&#34;main&#34;</span>, <span style=color:#e6db74>&#34;master&#34;</span>]
-  <span style=color:#75715e># 必需(至少包含一个端口）。表示运行起来的容器将向外暴露哪些端口</span>
-  <span style=color:#f92672>ports</span>:
-    - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>name-1   </span> <span style=color:#75715e># 名称，该端口的一个标识。必须为小写的英文字母和数字组合，可以包含短横线。但数字不能作为开头，短横线不能作为结尾。</span>
-      <span style=color:#f92672>protocol</span>: <span style=color:#ae81ff>tcp  </span> <span style=color:#75715e># 使用的协议，支持tcp和udp，默认是tcp</span>
-      <span style=color:#f92672>port</span>: <span style=color:#ae81ff>80</span>        <span style=color:#75715e># 容器向外暴露的端口</span>
-    - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>name-2</span>
-      <span style=color:#f92672>protocol</span>: <span style=color:#ae81ff>udp</span>
-      <span style=color:#f92672>port</span>: <span style=color:#ae81ff>9934</span>
-     
-  <span style=color:#75715e># 非必需。envs 表示服务部署时需要使用的环境变量。key 和 value 一一对应。</span>
-  <span style=color:#f92672>envs</span>:         
-    <span style=color:#f92672>SOME_ENV_1</span>: <span style=color:#e6db74>&#34;some_env_1&#34;</span>
-    <span style=color:#f92672>SOME_ENV_2</span>: <span style=color:#e6db74>&#34;some_env_2&#34;</span>
-  <span style=color:#75715e># 非必需。stateful 表示该服务是有状态的还是无状态的。该字段默认为false，即默认无状态。</span>
-  <span style=color:#f92672>stateful</span>: <span style=color:#66d9ef>false</span>
-  <span style=color:#75715e># 非必需。work_dir 表示容器开始运行时，执行的命令所在的目录。如果该字段为空，默认使用镜像中指定的 workDir</span>
-  <span style=color:#f92672>work_dir</span>: <span style=color:#ae81ff>/path/to/work_dir</span>
-  <span style=color:#75715e># 非必需。cmd表示容器启动时指定的命令。其又分为两部分（两个列表），其中，command用来指定命令， args 用来指定命令需要使用的参数</span>
-  <span style=color:#75715e># 如下方的示例，对应我们常见的命令形式就是 java -jar awesome.jar，表示使用java命令运行一个jar</span>
-  <span style=color:#f92672>cmd</span>:
-    <span style=color:#f92672>command</span>: [<span style=color:#e6db74>&#34;java&#34;</span>]
-    <span style=color:#f92672>args</span>: [<span style=color:#e6db74>&#34;-jar&#34;</span>, <span style=color:#e6db74>&#34;awesome.jar&#34;</span>]
-  <span style=color:#75715e># 非必需。cpu限额，表示该服务最多使用多少CPU资源。默认为250m（四分之一个CPU核心）</span>
-  <span style=color:#f92672>cpu</span>: <span style=color:#ae81ff>250m    </span> <span style=color:#75715e># 可以直接使用数字，如 3、100，分别表示使用3个CPU核心、100个CPU核心；也可以使用m作为单位，一个CPU核心是1000m，那么250m就表示使用四分之一个CPU核心</span>
-  <span style=color:#75715e># 非必需。内存限额，表示该服务最多使用多少内存资源。默认为0.5G</span>
-  <span style=color:#f92672>memory</span>: <span style=color:#ae81ff>512Mi</span> <span style=color:#75715e># 请使用单位 Mi，Gi，或 M，G，如 0.5G，512Mi 等</span>
-
-</code></pre></div><blockquote class="book-hint warning">
-BuGit平台的每个个人和项目的资源配额为2核4G。所以请合理调配每个代码仓库的资源配额。
-</blockquote>
-<blockquote class="book-hint warning">
-对于典型的资源消耗大户（如Java应用对内存的消耗），需要注意在容器的启动命令中手动限制资源配额（如手动指定jvm的内存参数等），防止容器因为资源有限而使服务启动失败。
-</blockquote>
-<h2 id=示例>
-示例
-<a class=anchor href=#%e7%a4%ba%e4%be%8b>#</a>
-</h2>
-<p>BuGit平台中的
-<a href=https://git.scs.buaa.edu.cn/test-project>test-project项目</a>包含的每个项目都进行了自动构建和部署的配置，都可以作为参考。</p>
-<p>特别地，下面给出了一些典型的示例。</p>
-<h3 id=static-web>
-Static Web
-<a class=anchor href=#static-web>#</a>
-</h3>
-<p>适用于纯静态文件的网站部署（如，仅包含html，css，js等文件）。</p>
-<p>可参考项目
-<a href=https://git.scs.buaa.edu.cn/test-project/static-web>static-web</a>。</p>
-<h4 id=dockerfile-1>
-Dockerfile
-<a class=anchor href=#dockerfile-1>#</a>
-</h4>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-dockerfile data-lang=dockerfile><span style=color:#66d9ef>FROM</span><span style=color:#e6db74> nginx</span><span style=color:#960050;background-color:#1e0010>
-</span><span style=color:#960050;background-color:#1e0010>
-</span><span style=color:#960050;background-color:#1e0010></span><span style=color:#75715e># 下面的 . 表示使用的是当前这个Dockerfile所在的目录作为网站的根目录</span><span style=color:#960050;background-color:#1e0010>
-</span><span style=color:#960050;background-color:#1e0010></span><span style=color:#75715e># 如果你的 index.html 所在的位置与此不同，请根据实际情况修改</span><span style=color:#960050;background-color:#1e0010>
-</span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>COPY</span> . /usr/share/nginx/html<span style=color:#960050;background-color:#1e0010>
-</span></code></pre></div><h4 id=bugityaml-1>
-.bugit.yaml
-<a class=anchor href=#bugityaml-1>#</a>
-</h4>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=color:#f92672>version</span>: <span style=color:#ae81ff>0.0.1</span>
-
-<span style=color:#f92672>on</span>:
-  <span style=color:#f92672>master</span>: [<span style=color:#ae81ff>push]</span>
-  <span style=color:#f92672>main</span>: [<span style=color:#ae81ff>push]</span>
-
-<span style=color:#f92672>build</span>:
-  <span style=color:#f92672>name</span>: <span style=color:#ae81ff>build-static-nginx</span>
-  <span style=color:#f92672>type</span>: <span style=color:#ae81ff>docker</span>
-  <span style=color:#f92672>docker_tag</span>: <span style=color:#ae81ff>web</span>
-  <span style=color:#f92672>dockerfile</span>: <span style=color:#ae81ff>./Dockerfile</span>
-
-<span style=color:#f92672>deploy</span>:
-  <span style=color:#f92672>on</span>: [<span style=color:#ae81ff>main, master]</span>
-  <span style=color:#f92672>ports</span>:
-    - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>web</span>
-      <span style=color:#f92672>protocol</span>: <span style=color:#ae81ff>tcp</span>
-      <span style=color:#f92672>port</span>: <span style=color:#ae81ff>80</span>
-</code></pre></div></article>
-<footer class=book-footer>
-<div class="flex flex-wrap justify-between">
-<div><a class="flex align-center" href=https://github.com/alex-shpak/hugo-book/commit/9e32207d0fb356efd53203643634b9515f7690fc title="Last modified by loheagn | November 3, 2021" target=_blank rel=noopener>
-<img src=/doc/svg/calendar.svg class=book-icon alt=Calendar>
-<span>November 3, 2021</span>
-</a>
-</div>
-<div>
-<a class="flex align-center" href=https://github.com/alex-shpak/hugo-book/edit/main/exampleSite/content/02_bugit/build_deploy.md target=_blank rel=noopener>
-<img src=/doc/svg/edit.svg class=book-icon alt=Edit>
-<span>Edit this page</span>
-</a>
-</div>
-</div>
-<script>(function(){function a(c){const a=window.getSelection(),b=document.createRange();b.selectNodeContents(c),a.removeAllRanges(),a.addRange(b)}document.querySelectorAll("pre code").forEach(b=>{b.addEventListener("click",function(c){a(b.parentElement),navigator.clipboard&&navigator.clipboard.writeText(b.parentElement.textContent)})})})()</script>
-</footer>
-<div class=book-comments>
-</div>
-<label for=menu-control class="hidden book-menu-overlay"></label>
-</div>
-<aside class=book-toc>
-<div class=book-toc-content>
-<nav id=TableOfContents>
-<ul>
-<li><a href=#自动构建与部署>自动构建与部署</a>
-<ul>
-<li><a href=#原理>原理</a></li>
-<li><a href=#配置文件>配置文件</a>
-<ul>
-<li><a href=#dockerfile>Dockerfile</a></li>
-<li><a href=#bugityaml>.bugit.yaml</a></li>
-</ul>
-</li>
-<li><a href=#示例>示例</a>
-<ul>
-<li><a href=#static-web>Static Web</a></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-</nav>
-</div>
-</aside>
-</main>
-</body>
-</html>
+<label for=toc-control><img src=/doc/svg/toc.svg class=book-icon alt="Table of Contents"></label></div><aside class="hidden clearfix"><nav id=TableOfContents><ul><li><a href=#自动构建与部署>自动构建与部署</a><ul><li><a href=#原理>原理</a></li><li><a href=#配置文件>配置文件</a><ul><li><a href=#dockerfile>Dockerfile</a></li><li><a href=#bugityaml>.bugit.yaml</a></li></ul></li><li><a href=#示例>示例</a><ul><li><a href=#static-web>Static Web</a></li></ul></li></ul></li></ul></nav></aside></header><article class=markdown><h1 id=自动构建与部署>自动构建与部署
+<a class=anchor href=#%e8%87%aa%e5%8a%a8%e6%9e%84%e5%bb%ba%e4%b8%8e%e9%83%a8%e7%bd%b2>#</a></h1><h2 id=原理>原理
+<a class=anchor href=#%e5%8e%9f%e7%90%86>#</a></h2><p>本质上，自动构建与部署的过程是，系统根据用户提供的包含在代码仓库中的配置文件，将代码编译成一个OCI规范的镜像，然后上传到镜像中心，最后通知Kubernetes集群拉取镜像运行，以对外提供可用服务。</p><p>自动构建与部署的几个步骤：</p><ol><li><p>用户编写配置合法的配置文件，并包含在代码仓库的根目录中。</p></li><li><p>用户触发自动构建与部署。目前支持自动监听代码推送（git push）动作，和在前端手动点击按钮触发。</p></li><li><p>系统拉取用户指定的仓库的指定的某次提交的代码，并根据指定的Dockerfile进行镜像构建。</p></li><li><p>系统将构建完成的镜像将推送到镜像中心（harbor.scs.buaa.edu.cn）。</p></li><li><p>系统通知Kubernetes拉取镜像，并部署之。</p></li></ol><h2 id=配置文件>配置文件
+<a class=anchor href=#%e9%85%8d%e7%bd%ae%e6%96%87%e4%bb%b6>#</a></h2><p>配置文件一共包含两个：<code>Dockerfile</code> 和 <code>.bugit.yaml</code>。</p><h3 id=dockerfile>Dockerfile
+<a class=anchor href=#dockerfile>#</a></h3><p>Dockerfile用来描述该代码仓库希望被如何编译和打包成一个OCI镜像。具体的编写规则可以参考
+<a href=https://docs.docker.com/engine/reference/builder/>Dockerfile Reference</a>。</p><h3 id=bugityaml>.bugit.yaml
+<a class=anchor href=#bugityaml>#</a></h3><p><code>.bugit.yaml</code>是一个YAML文件（名称<code>.bugit.yml</code>也是合法的，并且请注意文件名最前面那个<code>.</code>）。它是对整个构建和部署过程的描述。</p><p>下面是一个<code>.bugit.yaml</code>文件支持的全部指令的示例（请注意缩进）。</p><blockquote class="book-hint danger">下方示例中，提到的非必需字段，都可以在<code>.bugit.yaml</code>省略不写。</blockquote><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#75715e># 必需字段。表示当前的.bugit.yaml 所适用的构建与部署流程的版本号，目前仅支持 0.0.1</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>version</span>: <span style=color:#ae81ff>0.0.1</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># on 字段中的内容用来表示在哪个分支发生什么事件时，自动启动构建与部署流程</span>
+</span></span><span style=display:flex><span><span style=color:#75715e># 该字段中可以包含若干组内容，每一组的 key （比如，下方示例中的 main 和 master） 都是分支名称，其 value （比如下方示例中的 [push]）是一个数组，表示希望系统监听哪些事件的发生</span>
+</span></span><span style=display:flex><span><span style=color:#75715e># 比如下面的示例就表示，希望系统在远程仓库的 main 分支和 master 分支发生代码推送事件（git push）时，自动启动构建与部署流程</span>
+</span></span><span style=display:flex><span><span style=color:#75715e># 如果希望开启“自动”构建与部署的功能，那么该字段是必需的</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>on</span>: 
+</span></span><span style=display:flex><span>  <span style=color:#f92672>main</span>: [<span style=color:#e6db74>&#34;push&#34;</span>]
+</span></span><span style=display:flex><span>  <span style=color:#f92672>master</span>: [<span style=color:#e6db74>&#34;push&#34;</span>]
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># 必需字段。build 字段用来描述如何系统如何构建OCI镜像</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>build</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>name</span>: <span style=color:#ae81ff>build-1 </span> <span style=color:#75715e># 必需。名称标识，目前没有太大意义。可以是任意字符串，但请不要带空格</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>type</span>: <span style=color:#ae81ff>docker  </span> <span style=color:#75715e># 必需。构建的类型，目前仅支持docker</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>docker_tag</span>: <span style=color:#ae81ff>simple       </span> <span style=color:#75715e># 非必需。表示希望给构建好的字段加的额外tag</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>dockerfile</span>: <span style=color:#ae81ff>./Dockerfile </span> <span style=color:#75715e># 必需。表示使用的 Dockerfile 与代码仓库根目录的相对路径</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># 非必需字段。build 字段用来描述如何构建好的镜像将会被如何部署。如果不希望使用部署功能的话，该字段可以忽略。</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>deploy</span>:
+</span></span><span style=display:flex><span>  <span style=color:#75715e># 必需。其值为一个列表。表示希望在哪几个分支的代码中开启部署功能。（“部署”是一个非常重的操作，需要用户明确确认）</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>on</span>: [<span style=color:#e6db74>&#34;main&#34;</span>, <span style=color:#e6db74>&#34;master&#34;</span>]
+</span></span><span style=display:flex><span>  <span style=color:#75715e># 必需(至少包含一个端口）。表示运行起来的容器将向外暴露哪些端口</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>ports</span>:
+</span></span><span style=display:flex><span>    - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>name-1   </span> <span style=color:#75715e># 名称，该端口的一个标识。必须为小写的英文字母和数字组合，可以包含短横线。但数字不能作为开头，短横线不能作为结尾。</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>protocol</span>: <span style=color:#ae81ff>tcp  </span> <span style=color:#75715e># 使用的协议，支持tcp和udp，默认是tcp</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>port</span>: <span style=color:#ae81ff>80</span>        <span style=color:#75715e># 容器向外暴露的端口</span>
+</span></span><span style=display:flex><span>    - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>name-2</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>protocol</span>: <span style=color:#ae81ff>udp</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>port</span>: <span style=color:#ae81ff>9934</span>
+</span></span><span style=display:flex><span>     
+</span></span><span style=display:flex><span>  <span style=color:#75715e># 非必需。envs 表示服务部署时需要使用的环境变量。key 和 value 一一对应。</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>envs</span>:         
+</span></span><span style=display:flex><span>    <span style=color:#f92672>SOME_ENV_1</span>: <span style=color:#e6db74>&#34;some_env_1&#34;</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>SOME_ENV_2</span>: <span style=color:#e6db74>&#34;some_env_2&#34;</span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e># 非必需。stateful 表示该服务是有状态的还是无状态的。该字段默认为false，即默认无状态。</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>stateful</span>: <span style=color:#66d9ef>false</span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e># 非必需。work_dir 表示容器开始运行时，执行的命令所在的目录。如果该字段为空，默认使用镜像中指定的 workDir</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>work_dir</span>: <span style=color:#ae81ff>/path/to/work_dir</span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e># 非必需。cmd表示容器启动时指定的命令。其又分为两部分（两个列表），其中，command用来指定命令， args 用来指定命令需要使用的参数</span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e># 如下方的示例，对应我们常见的命令形式就是 java -jar awesome.jar，表示使用java命令运行一个jar</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>cmd</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>command</span>: [<span style=color:#e6db74>&#34;java&#34;</span>]
+</span></span><span style=display:flex><span>    <span style=color:#f92672>args</span>: [<span style=color:#e6db74>&#34;-jar&#34;</span>, <span style=color:#e6db74>&#34;awesome.jar&#34;</span>]
+</span></span><span style=display:flex><span>  <span style=color:#75715e># 非必需。cpu限额，表示该服务最多使用多少CPU资源。默认为250m（四分之一个CPU核心）</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>cpu</span>: <span style=color:#ae81ff>250m    </span> <span style=color:#75715e># 可以直接使用数字，如 3、100，分别表示使用3个CPU核心、100个CPU核心；也可以使用m作为单位，一个CPU核心是1000m，那么250m就表示使用四分之一个CPU核心</span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e># 非必需。内存限额，表示该服务最多使用多少内存资源。默认为0.5G</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>memory</span>: <span style=color:#ae81ff>512Mi</span> <span style=color:#75715e># 请使用单位 Mi，Gi，或 M，G，如 0.5G，512Mi 等</span>
+</span></span></code></pre></div><blockquote class="book-hint warning">BuGit平台的每个个人和项目的资源配额为2核4G。所以请合理调配每个代码仓库的资源配额。</blockquote><blockquote class="book-hint warning">对于典型的资源消耗大户（如Java应用对内存的消耗），需要注意在容器的启动命令中手动限制资源配额（如手动指定jvm的内存参数等），防止容器因为资源有限而使服务启动失败。</blockquote><h2 id=示例>示例
+<a class=anchor href=#%e7%a4%ba%e4%be%8b>#</a></h2><p>BuGit平台中的
+<a href=https://git.scs.buaa.edu.cn/test-project>test-project项目</a>包含的每个项目都进行了自动构建和部署的配置，都可以作为参考。</p><p>特别地，下面给出了一些典型的示例。</p><h3 id=static-web>Static Web
+<a class=anchor href=#static-web>#</a></h3><p>适用于纯静态文件的网站部署（如，仅包含html，css，js等文件）。</p><p>可参考项目
+<a href=https://git.scs.buaa.edu.cn/test-project/static-web>static-web</a>。</p><h4 id=dockerfile-1>Dockerfile
+<a class=anchor href=#dockerfile-1>#</a></h4><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-dockerfile data-lang=dockerfile><span style=display:flex><span><span style=color:#66d9ef>FROM</span><span style=color:#e6db74> nginx</span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#75715e># 下面的 . 表示使用的是当前这个Dockerfile所在的目录作为网站的根目录</span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#75715e># 如果你的 index.html 所在的位置与此不同，请根据实际情况修改</span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>COPY</span> . /usr/share/nginx/html<span style=color:#960050;background-color:#1e0010>
+</span></span></span></code></pre></div><h4 id=bugityaml-1>.bugit.yaml
+<a class=anchor href=#bugityaml-1>#</a></h4><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>version</span>: <span style=color:#ae81ff>0.0.1</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>on</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>master</span>: [<span style=color:#ae81ff>push]</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>main</span>: [<span style=color:#ae81ff>push]</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>build</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>name</span>: <span style=color:#ae81ff>build-static-nginx</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>type</span>: <span style=color:#ae81ff>docker</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>docker_tag</span>: <span style=color:#ae81ff>web</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>dockerfile</span>: <span style=color:#ae81ff>./Dockerfile</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>deploy</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>on</span>: [<span style=color:#ae81ff>main, master]</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>ports</span>:
+</span></span><span style=display:flex><span>    - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>web</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>protocol</span>: <span style=color:#ae81ff>tcp</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>port</span>: <span style=color:#ae81ff>80</span>
+</span></span></code></pre></div></article><footer class=book-footer><div class="flex flex-wrap justify-between"><div><a class="flex align-center" href=https://github.com/alex-shpak/hugo-book/commit/9e32207d0fb356efd53203643634b9515f7690fc title="Last modified by loheagn | November 3, 2021" target=_blank rel=noopener><img src=/doc/svg/calendar.svg class=book-icon alt=Calendar>
+<span>November 3, 2021</span></a></div><div><a class="flex align-center" href=https://github.com/alex-shpak/hugo-book/edit/main/exampleSite/content/02_bugit/build_deploy.md target=_blank rel=noopener><img src=/doc/svg/edit.svg class=book-icon alt=Edit>
+<span>Edit this page</span></a></div></div><script>(function(){function e(n){const e=window.getSelection(),t=document.createRange();t.selectNodeContents(n),e.removeAllRanges(),e.addRange(t)}document.querySelectorAll("pre code").forEach(t=>{t.addEventListener("click",function(){e(t.parentElement),navigator.clipboard&&navigator.clipboard.writeText(t.parentElement.textContent)})})})()</script></footer><div class=book-comments></div><label for=menu-control class="hidden book-menu-overlay"></label></div><aside class=book-toc><div class=book-toc-content><nav id=TableOfContents><ul><li><a href=#自动构建与部署>自动构建与部署</a><ul><li><a href=#原理>原理</a></li><li><a href=#配置文件>配置文件</a><ul><li><a href=#dockerfile>Dockerfile</a></li><li><a href=#bugityaml>.bugit.yaml</a></li></ul></li><li><a href=#示例>示例</a><ul><li><a href=#static-web>Static Web</a></li></ul></li></ul></li></ul></nav></div></aside></main></body></html>
