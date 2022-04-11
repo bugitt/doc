@@ -50,35 +50,56 @@ weight: 100
 
 ### Linux系统
 
-推荐使用[Dr-Bluemond/srun](https://github.com/Dr-Bluemond/srun)提供的工具。云平台提供已经编译好的Linux64位版本。可以这样获取：
+鉴于校网络中心的某些限制，你能在GitHub上找到的所有校园网登录脚本在虚拟机上的使用都是无效的。这里特别给出软院信息化小组的基于[Wireguard](https://www.wireguard.com/)的曲线救国方案。其本质上是将虚拟机加入一个[wireguard](https://www.wireguard.com/)虚拟内网，然后覆盖默认路由指向一个可以联网的内网机器，从而实现虚拟机本身与互联网的联通。
+
+{{< hint warning >}}
+
+请注意，以下步骤是针对Debian系发行版（包括Debian、Ubuntu等）给出的，其他发行版请自行对照着修改命令。
+
+{{< /hint >}}
+
+首先需要安装wireguard-tools（这里需要短暂联网，但完整整个步骤之后就不需要了）：
 
 ```bash
-wget https://scs.buaa.edu.cn/scsos/tools/linux/buaalogin
-chmod +x ./buaalogin
+export http_proxy=http://10.251.0.37:3128;export https_proxy=http://10.251.0.37:3128
+sudo apt update && sudo apt install wireguard-tools -y
 ```
 
-使用前请使用`config`命令配置一下校园网用户名和密码（注意，如果用户名中有英文的话，请大小写都尝试一下）：
+{{< hint danger >}}
 
-```bash
-./buaalogin config
+如果上述命令执行中，apt没有命中http_proxy，可以手动配置apt的proxy:
+创建文件`/etc/apt/apt.conf.d/proxy.conf`，并在其中写入以下内容
+
+```
+Acquire::http::Proxy "http://10.251.0.37:3128";
+Acquire::https::Proxy "http://10.251.0.37:3128";
 ```
 
-配置完成后，使用`login`命令登录即可：
+然后重新执行 `apt update && apt install wireguard-tools -y`
+
+**注意：完成所有配置后，请将该文件删除。**
+
+{{< /hint >}}
+
+
+然后安装[wukuard](https://github.com/loheagn/wukuard)（作为wireguard管理工具）
 
 ```bash
-./buaalogin login
+sudo wget https://scs.buaa.edu.cn/scsos/tools/linux/wukuard -O /usr/local/bin/wukuard
+sudo chmod +x /usr/local/bin/wukuard
 ```
 
-或，直接：
+然后配置wukuard-client服务
 
 ```bash
-./buaalogin
+sudo wget https://scs.buaa.edu.cn/scsos/tools/linux/wukuard-client.service -O /etc/systemd/system/wukuard-client.service
+sudo systemctl enable --now wukuard-client
 ```
 
-如果想作为系统命令使用的话（注意替换合适的安装路径）：
+然后找管理员所要虚拟机应该使用的hostname，然后配置机器的hostname：
 
 ```bash
-sudo install ./buaalogin /usr/local/bin
+sudo hostnamectl set-hostname ${your_hostname}   # hostname的值找管理员要
 ```
 
 ## 传输文件

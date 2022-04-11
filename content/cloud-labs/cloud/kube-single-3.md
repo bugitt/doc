@@ -1,6 +1,6 @@
 ---
 title: Kubernetes实验（三）
-weight: 1
+weight: 2
 ---
 
 # Kubernetes实验（三） Kubernetes的基本使用

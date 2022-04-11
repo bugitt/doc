@@ -1,6 +1,6 @@
 ---
 title: 云PaaS平台开发
-weight: 2
+weight: 3
 ---
 
 # 云PaaS平台开发
