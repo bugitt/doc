@@ -50,7 +50,40 @@ weight: 100
 
 ### Linux系统
 
-鉴于校网络中心的某些限制，你能在GitHub上找到的所有校园网登录脚本在虚拟机上的使用都是无效的。这里特别给出软院信息化小组的基于[Wireguard](https://www.wireguard.com/)的曲线救国方案。其本质上是将虚拟机加入一个[wireguard](https://www.wireguard.com/)虚拟内网，然后覆盖默认路由指向一个可以联网的内网机器，从而实现虚拟机本身与互联网的联通。
+可以依次尝试以下两种方式。
+
+#### 校园网登录脚本
+
+这里推荐使用[srun](https://github.com/Dr-Bluemond/srun)工具。
+
+下载并安装登录工具：
+
+```bash
+sudo wget https://scs.buaa.edu.cn/scsos/tools/linux/buaalogin -O /usr/local/bin/buaalogin
+sudo chmod +x /usr/local/bin/buaalogin
+```
+
+配置校园网登录使用的用户名和密码：
+
+```bash
+buaalogin config
+```
+
+登录校园网：
+
+```bash
+buaalogin login
+```
+
+登出校园网：
+
+```bash
+buaalogin logout
+```
+
+#### wukuard 服务
+
+鉴于校网络中心的某些限制，上述联网方式可能在某短时间内无法使用，这里特别给出软院信息化小组的基于[Wireguard](https://www.wireguard.com/)的曲线救国方案。其本质上是将虚拟机加入一个[wireguard](https://www.wireguard.com/)虚拟内网，然后覆盖默认路由指向一个可以联网的内网机器，从而实现虚拟机本身与互联网的联通。
 
 {{< hint warning >}}
 
