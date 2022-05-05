@@ -5,7 +5,10 @@ MacOS 使用系统自带的Terminal.app登录即可。
 Linux 如果你是Linux Desktop用户，那么你肯定已经有了自己喜爱的终端模拟器，此处不再赘述。Windows 一般来讲，Windows 10（及以上）自带的cmd.exe都自带ssh client，打开cmd后直接ssh foo@x.x.x.x即可登录。
 为了更好的使用体验，推荐下载使用 Windows Terminal。
 当然，你也可以使用 termius或者其他工具（如 Xshell等）进行多个ssh连接的管理。
-校外跳板 通过 d.buaa.edu.cn 跳转登录即可。 联网 # Linux系统 # 鉴于校网络中心的某些限制，你能在GitHub上找到的所有校园网登录脚本在虚拟机上的使用都是无效的。这里特别给出软院信息化小组的基于 Wireguard的曲线救国方案。其本质上是将虚拟机加入一个 wireguard虚拟内网，然后覆盖默认路由指向一个可以联网的内网机器，从而实现虚拟机本身与互联网的联通。
-请注意，以下步骤是针对Debian系发行版（包括Debian、Ubuntu等）给出的，其他发行版请自行对照着修改命令。 首先需要安装wireguard-tools（这里需要短暂联网，但完整整个步骤之后就不需要了）：
-export http_proxy=http://10.251.0.37:3128;export https_proxy=http://10.251.0.37:3128 sudo apt update &amp;amp;&amp;amp; sudo apt install wireguard-tools -y 如果上述命令执行中，apt没有命中http_proxy，可以手动配置apt的proxy: 创建文件/etc/apt/apt.conf.d/proxy.conf，并在其中写入以下内容
-Acquire::http::Proxy &amp;#34;http://10.251.0.37:3128&amp;#34;; Acquire::https::Proxy &amp;#34;http://10.251.0.37:3128&amp;#34;; 然后重新执行 apt update &amp;amp;&amp;amp; apt install wireguard-tools -y</description></item></channel></rss>
+校外跳板 通过 d.buaa.edu.cn 跳转登录即可。 联网 # Linux系统 # 可以依次尝试以下两种方式。
+校园网登录脚本 # 这里推荐使用 srun工具。
+下载并安装登录工具：
+sudo wget https://scs.buaa.edu.cn/scsos/tools/linux/buaalogin -O /usr/local/bin/buaalogin sudo chmod +x /usr/local/bin/buaalogin 配置校园网登录使用的用户名和密码：
+buaalogin config 登录校园网：
+buaalogin login 登出校园网：
+buaalogin logout wukuard 服务 # 鉴于校网络中心的某些限制，上述联网方式可能在某短时间内无法使用，这里特别给出软院信息化小组的基于 Wireguard的曲线救国方案。其本质上是将虚拟机加入一个 wireguard虚拟内网，然后覆盖默认路由指向一个可以联网的内网机器，从而实现虚拟机本身与互联网的联通。</description></item></channel></rss>
