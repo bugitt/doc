@@ -1,14 +1,14 @@
 {
   "name": "软院云平台文档",
   "short_name": "软院云平台文档",
-  "start_url": "/doc/",
-  "scope": "/doc/",
+  "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#000000",
   "theme_color": "#000000",
   "icons": [
     {
-      "src": "/doc/favicon.svg",
+      "src": "/favicon.svg",
       "sizes": "512x512"
     }
   ]

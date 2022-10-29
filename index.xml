@@ -1,9 +1,34 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>软院云平台文档</title><link>https://scs.buaa.edu.cn/doc/</link><description>Recent content on 软院云平台文档</description><generator>Hugo -- gohugo.io</generator><atom:link href="https://scs.buaa.edu.cn/doc/index.xml" rel="self" type="application/rss+xml"/><item><title>Lab01 RAID 阵列</title><link>https://scs.buaa.edu.cn/doc/ns-labs/table-of-contents/raid/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://scs.buaa.edu.cn/doc/ns-labs/table-of-contents/raid/</guid><description>Lab01 RAID 阵列 # 实验目的 # 通过 RAID 原理实践理解阵列相关知识
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>软院云平台文档</title><link>https://scs.buaa.edu.cn/doc/</link><description>Recent content on 软院云平台文档</description><generator>Hugo -- gohugo.io</generator><atom:link href="https://scs.buaa.edu.cn/doc/index.xml" rel="self" type="application/rss+xml"/><item><title>Lab01 RAID 阵列</title><link>https://scs.buaa.edu.cn/doc/ns-labs/table-of-contents/raid/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://scs.buaa.edu.cn/doc/ns-labs/table-of-contents/raid/</guid><description>Lab01 RAID阵列 # 本指导书是实验过程的一个示例，供不熟悉实验环境的同学参考，无需严格按照指导书中的步骤来进行实验 :)
 实验内容 # 本实验通过软件 RAID 管理磁盘：
-打开“管理工具-计算机管理-存储-磁盘管理”，体验“磁盘管理工具” C 盘扩展卷 检查其它磁盘是否联机，联机并初始化磁盘 尝试创建跨区卷并存储部分数据 尝试创建镜像卷并存储部分数据 尝试创建 RAID5 卷并存储部分数据 通过设备管理禁用其中一块磁盘，模拟磁盘损坏。观察有什么情况发生，数据是否损坏或者丢失 [选做] 自行设计与扩展，体会 RAID 0 1 5 10 等方案下，在遇到磁盘损坏故障、冗余备份的效果等 [选做] 思考题： 为什么及在什么条件下选择用 RAID RAID &amp;amp; 分布式存储 &amp;amp; 集中存储的区别 请在 10 月 11 日中午 12：00 前提交至云平台，命名为：lab01-学号-姓名.pdf，如 lab01-18373722-朱英豪.pdf。
-实验指南 # 通过实验平台获取虚拟机，通过远程桌面访问获取的虚拟机的 IP 地址（ipv4），用户名密码通过实验平台获取。
-按要求完成实验，撰写实验报告（每种配置都做一遍），以下为样例的 IP 和云平台默认分配的用户名、密码。
-登录IP：10.200.200.155 # 请到云平台上查看自己所分配到的虚拟机的 IP 地址 登录用户名：Administrator # 注意在连接虚拟机时需要指定用户名，不是 admin 登录密码：@buaa21 # 记得改密码，防止被别人登 分配磁盘时不宜过大，1 G 足矣，可选择使用“快速格式化”，提高实验速度。</description></item><item><title>容器与Docker综合实验</title><link>https://scs.buaa.edu.cn/doc/cloud-labs/cloud/container_docker/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://scs.buaa.edu.cn/doc/cloud-labs/cloud/container_docker/</guid><description>容器与Docker综合实验 # 💡 文档中对各个概念的定义和阐述并不是严谨的，文档中用语尽量通俗易懂，大多数只是为了让同学们明白这个概念大致在说什么东西，能在头脑中有个感性的认识（这对知识的掌握和学习非常重要）。概念的严格定义还请参考对应的官方文档。 💡 容器和Docker的内容非常繁杂，实验文档不可能面面俱到，因此很多内容以链接的形式给出。请同学们在阅读文档本身的同时，不要忘记学习链接中指出的内容。 💡 同学们在执行命令时，一定要认真阅读命令的输出和log，通过阅读这些输出，你很容易了解你所执行的命令具体执行了哪些操作，这非常有助于理解其背后的运行原理。 💡 目前流行的绝大多数容器运行时都是用Go语言编写，著名的容器编排工具Kubernetes也是用Go语言编写的，基于Docker和Kubernetes建立起来的整个云计算生态中的绝大部分项目也都是用Go语言实现的。因此，如果想深入了解和学习云计算相关内容的话，建议同学们学习和掌握Go语言。当然，这并不是本次实验和这门课的要求:) 注意事项
+通过工具查看磁盘列表 [仅Windows] C 盘扩展卷，检查其它磁盘是否联机，联机并初始化磁盘 [仅Ubuntu] 使用LVM扩展根目录/的容量 创建RAID阵列，测试读写文件并模拟磁盘损坏，观察有什么情况发生，数据是否损坏或者丢失？ 尝试RAID 0 尝试RAID 1 尝试RAID 5 [选做] 控制变量，测试RAID阵列的读写速率，并结合理论分析实验结果 [选做] 自行设计与扩展，体会 RAID 0 1 5 10 等方案下，在遇到磁盘损坏故障、冗余备份的效果等 [选做] 思考题： 为什么及在什么条件下选择用 RAID RAID &amp;amp; 分布式存储 &amp;amp; 集中存储的区别 其中，选做的题目不计入本实验的总得分，仅额外加分
+实验报告模板分别是lab01_win.md和lab01_ubuntu.md，供参考使用，最后请将实验报告按 lab01-学号-姓名.pdf 的命名格式提交
+实验准备 # Windows下连接Windows 10虚拟机 # 使用系统自带的“远程桌面连接”即可
+MacOS下连接Windows 10虚拟机 # 使用Microsoft Remote Desktop连接，云平台课程资源页提供该软件的下载
+Windows下连接Ubuntu虚拟机 # 一般来讲，Windows 10（及以上）自带的cmd.exe都自带ssh client，打开cmd后直接ssh foo@x.x.x.x即可登录
+为了更好的使用体验，推荐下载使用 Windows Terminal
+当然，你也可以使用 termius 或者其他工具（如 Xshell等）进行多个ssh连接的管理</description></item><item><title>Lab02 虚拟化实验</title><link>https://scs.buaa.edu.cn/doc/ns-labs/table-of-contents/virtualization/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://scs.buaa.edu.cn/doc/ns-labs/table-of-contents/virtualization/</guid><description>Lab02 虚拟化实验 # 实验目标 # 实施计算虚拟化，安装配置环境，熟悉计算虚拟化的概念，理解基本操作，掌握基础知识。 理解集中管理对于虚拟化的作用，通过部署集中vCenter体验集群的设置，分布式交换机的设置，了解主机从不同网络进行迁移的实际需求。 实验内容 # 按照实验指南的指导，完成实验。 按照实验报告模板，撰写实验报告，将重要的实验步骤截图，填入实验报告中，并回答相应问题。 本次实验以小组形式进行，虚拟机已分发至每组第一位同学的账户中，每组一台虚拟机，实验报告每个人都需要提交，同组的实验报告内容可以一致
+请在云平台作业提交截止时间之前，将作业提交到云平台，命名为：lab02-学号-姓名.pdf的格式。
+Hypervisor # 我们知道，一台计算机一般有以下的结构：
+操作系统负责管理硬件资源（CPU，内存，硬盘等），并向上提供相应的系统调用，供具体的应用程序使用。
+而我们平常提到的操作系统的虚拟化，本质上就是要模拟出一套硬件（包括虚拟CPU，虚拟内存，虚拟硬盘等），然后在这一套虚拟的硬件的基础上部署客户操作系统。客户操作系统完全不需要做任何修改，即可在这个“虚拟的机器”中顺利执行。但客户操作系统的运行结果（比如接收键盘输入，输出图像和声音等），最终都是要靠原始的“实实在在”的硬件（物理机）来完成的。也就是说，需要有那么一个结构，能够将这个“虚拟的机器”的行为翻译到物理机的行为（比如将虚拟CPU的指令翻译到物理机的CPU指令）。负责做这件事情的结构被称为Hypervisor，又称为虚拟机监控器（virtual machine monitor，缩写为 VMM）。
+根据工作方式的不同，Hypervisor分为以下两种。
+第一种是我们比较熟悉的情况，本质上就是在主操作系统（Host Operating System）上安装了一个虚拟化软件，它来负责充当虚拟机的管理者，并通过主操作系统的系统调用来完成对物理机硬件的使用。VMware Workstation、Virtual Box、Qemu等都属这类虚拟化软件。除了这个虚拟化软件之外，主操作系统上还会运行其他“正常”的应用程序，比如，你在用VMware Workstation的同时还能听歌聊天等。
+第二种Hypervisor则直接舍弃了主操作系统（因为毕竟隔着一层，性能会有损失），而是直接把Hypervisor部署在硬件上。在这种情况下，物理机变成了更纯粹的“为虚拟化而生”的机器。Hypervisor能够直接与硬件沟通，其实在某种程度上也承担了主操作系统的角色（管理硬件），因此，我们也可以把这种Hypervisor看作是一种为虚拟化特制的操作系统。这其中典型的就是VMware ESXi。
+因为我们不可能要求每位同学都制备一套硬件来安装学习VMware ESXi，所以需要首先使用VMware Workstation来模拟出一套硬件。但VMware Workstation仅仅起一个前置作用，在实际的实验中并不会涉及到。请大家首先理清这层关系。
+实验指南 # 0. 安装VMware Workstation # 使用分配的虚拟机的桌面上的安装包安装即可。
+安装完成后需重启机器。
+打开VMware Workstation时， 选择试用即可。
+1. 安装VMware ESXi # 使用桌面上的ESXi镜像VMware-VMvisor-Installer-6.7.0.update03-19898906.x86_64-DellEMC_Customized-A18.iso创建虚拟机。
+注意选择客户操作系统的类型。
+虚拟机创建完成后，直接打开电源即可启动ESXi操作系统的安装流程，这一过程可能需要等待较长时间。
+安装流程中总是保持默认选项即可，其中设置的root密码应至少包含字母、数字和特殊符号，并且请务必牢记设置的root密码。
+在此流程中，可能需要使用使用到某些快捷键，这些快捷键可能会首先被你本机的操作系统捕获，在本机的系统设置中暂时屏蔽该快捷键即可。
+安装完成后，可以看到如下界面。
+可以看到，ESXi系统获得了一个IPv4地址192.168.80.128，并且这个地址是通过DHCP的方式获得的。这里用到的DHCP服务器其实是VMware Workstation内置的。也就是说，192.168.80.128这个地址只有在安装VMware Workstation的机器上才是有效的。
+2. 访问ESXi # 可以直接使用浏览器访问ESXi。访问的地址就是ESXi的地址，用户名和密码与vSphere Client的相同。
+如下图所示，可以为ESXi分配许可证。
+可用的KEY：
+0A65P-00HD0-3Z5M1-M097M-22P7H 3. 观察和体验vSphere Client提供的功能 # Client侧界面主要包含导航器、主体内容和任务事件这三部分。</description></item><item><title>容器与Docker综合实验</title><link>https://scs.buaa.edu.cn/doc/cloud-labs/cloud/container_docker/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://scs.buaa.edu.cn/doc/cloud-labs/cloud/container_docker/</guid><description>容器与Docker综合实验 # 💡 文档中对各个概念的定义和阐述并不是严谨的，文档中用语尽量通俗易懂，大多数只是为了让同学们明白这个概念大致在说什么东西，能在头脑中有个感性的认识（这对知识的掌握和学习非常重要）。概念的严格定义还请参考对应的官方文档。 💡 容器和Docker的内容非常繁杂，实验文档不可能面面俱到，因此很多内容以链接的形式给出。请同学们在阅读文档本身的同时，不要忘记学习链接中指出的内容。 💡 同学们在执行命令时，一定要认真阅读命令的输出和log，通过阅读这些输出，你很容易了解你所执行的命令具体执行了哪些操作，这非常有助于理解其背后的运行原理。 💡 目前流行的绝大多数容器运行时都是用Go语言编写，著名的容器编排工具Kubernetes也是用Go语言编写的，基于Docker和Kubernetes建立起来的整个云计算生态中的绝大部分项目也都是用Go语言实现的。因此，如果想深入了解和学习云计算相关内容的话，建议同学们学习和掌握Go语言。当然，这并不是本次实验和这门课的要求:) 注意事项
 本次分配的机器的账户和密码为： buaa: &amp;amp;shieshuyuan21 务必首先修改机器的root和buaa账户的密码
 请务必阅读 虚拟机使用说明。
 分配的虚拟机中，已经安装了Docker，无需重复安装；并设置了Docker镜像地址（该地址指向校内地址），理论上docker.io中的镜像不用联网即可拉取。例如可以直接在虚拟机上docker pull nginx。
@@ -13,7 +38,12 @@
 实验要求 # 请参考本实验文档，并查阅相关资料，回答以下问题并完整记录实验过程：
 数据持久化。容器是 “一次性的” 和 “脆弱的”（请大家务必牢记容器这一特性），容器很容易因为各种原因被kill（如资源不足等等）。而容器产生的数据文件是和容器绑定在一起的，当容器被删除时，这些数据文件也会被删除，这是我们不想看到的。
 比如，我们在机器上启动了一个mysql容器，在写入了一些重要数据后，因为某种原因该容器被意外删除了。此时即使重新启动一个mysql容器也找不会之前的数据了。请结合实验文档中的内容和查阅相关资料，讨论应该通过何种方式启动容器来避免出现这一问题？你能得出几种方案？每种方案的优劣如何？并请分别使用这些方案模拟mysql容器 创建 - 写入数据 - 销毁 - 重新创建 - 重新读到之前写入的数据 的场景，以证明方案的有效性。
-请从ubuntu镜像开始，构建一个新的包含Nginx服务的ubuntu镜像，并修改Nginx主页内容为你的学号，请分别使用docker commit 和 Dockerfile两种方式完成， 并将这个新构建的镜像推送到软院的image registry中。这个镜像推送的地址应该是 harbor.</description></item><item><title>操作系统</title><link>https://scs.buaa.edu.cn/doc/ns-labs/resources/os/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://scs.buaa.edu.cn/doc/ns-labs/resources/os/</guid><description>操作系统 # 常见操作系统 ISO 镜像可至官网、 MSDN，我告诉你、 Next, ITELLYOU 等网站上去下载。
+请从ubuntu镜像开始，构建一个新的包含Nginx服务的ubuntu镜像，并修改Nginx主页内容为你的学号，请分别使用docker commit 和 Dockerfile两种方式完成， 并将这个新构建的镜像推送到软院的image registry中。这个镜像推送的地址应该是 harbor.scs.buaa.edu.cn/&amp;lt;你的学号&amp;gt;/ubuntu-nginx:${TAG}，其中，使用docker commit构建的镜像的TAG为dockercommit；使用Dockerfile构建的镜像的TAG为 dockerfile。
+在测评时，助教会分别对你push的两个镜像执行以下命令（假设镜像名称为example_image_name）：
+docker run -d -p 8899:80 example_image_name; sleep 5; curl localhost:8899 请保证上述命令的输出中包含你的学号。
+Hint:
+harbor.scs.buaa.edu.cn 这个网页可以打开
+harbor.scs.buaa.edu.cn 的用户名为你的学号，默认密码为Newpass@2021</description></item><item><title>操作系统</title><link>https://scs.buaa.edu.cn/doc/ns-labs/resources/os/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://scs.buaa.edu.cn/doc/ns-labs/resources/os/</guid><description> 操作系统 # 常见操作系统 ISO 镜像可至官网、 MSDN，我告诉你、 Next, ITELLYOU 等网站上去下载。
 Windows Server 2019 # ED2K 下载：ed2k://|file|cn_windows_server_2019_updated_july_2020_x64_dvd_2c9b67da.iso|5675251712|19AE348F0D321785007D95B7D2FAF320|/
 使用 KMS 激活方式如下：
 # 使用管理员身份打开PowerShell DISM /online /Set-Edition:ServerDatacenter /ProductKey:WMDGN-G9PQG-XVVXX-R3X43-63DFG /AcceptEula # 打开 CMD (管理员) slmgr.vbs /ipk WMDGN-G9PQG-XVVXX-R3X43-63DFG slmgr.vbs /skms kms.teevee.asia slmgr.vbs /ato</description></item><item><title>Kubernetes实验（三）</title><link>https://scs.buaa.edu.cn/doc/cloud-labs/cloud/kube-single-3/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://scs.buaa.edu.cn/doc/cloud-labs/cloud/kube-single-3/</guid><description>Kubernetes实验（三） Kubernetes的基本使用 # 实验目的 # 了解Kubernetes的各种特性 掌握Kubernetes的常用功能 注意事项
@@ -28,7 +58,7 @@ kubectl create deployment nginx-test --image=harbor.scs.buaa.edu.cn/library/ngin
 直接使用kubectl创建资源简单、直观、快捷，很适合临时测试或者试验。但实际上，创建资源时通常需要一系列的配置，如果单纯使用kubectl命令会比较麻烦，因此通常在配置资源会使用yaml配置文件。
 使用配置文件 # 在之前的实验中，我们使用了这个命令来安装Weave Scope
 kubectl apply -f https://git-v1.scs.buaa.edu.cn/iobs/static_files/raw/main/kube/weave_scope/scope.yml 这个命令实际上从后面的地址读取了一个yaml配置文件，并根据这个文件来配置资源。如果你将这个文件打开，你会看到这样的内容（省略了很多内容）：
-apiVersion: v1 kind: List items: - apiVersion: v1 kind: Namespace metadata: name: weave annotations: cloud.</description></item><item><title>云PaaS平台开发</title><link>https://scs.buaa.edu.cn/doc/cloud-labs/cloud/cloud_lab/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://scs.buaa.edu.cn/doc/cloud-labs/cloud/cloud_lab/</guid><description>云PaaS平台开发 # 实验要求 # 基于Kubernetes，设计并实现一PaaS平台。该平台的终极目标，用户可以通过该平台，实现从源代码到可访问的服务之间的整个自动化流程。
+apiVersion: v1 kind: List items: - apiVersion: v1 kind: Namespace metadata: name: weave annotations: cloud.weave.works/version: v1.0.0-302-g76376bb - apiVersion: v1 kind: ServiceAccount metadata: name: weave-scope labels: name: weave-scope namespace: weave YAML # YAML是一种可读性高、用来表达数据序列化的格式。YAML使用空白字符和分行来分隔数据，使用一些符号来标记清单、散列表、标量等资料形态。</description></item><item><title>云PaaS平台开发</title><link>https://scs.buaa.edu.cn/doc/cloud-labs/cloud/cloud_lab/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://scs.buaa.edu.cn/doc/cloud-labs/cloud/cloud_lab/</guid><description>云PaaS平台开发 # 实验要求 # 基于Kubernetes，设计并实现一PaaS平台。该平台的终极目标，用户可以通过该平台，实现从源代码到可访问的服务之间的整个自动化流程。
 比如，在传统方式下，用户编写了一个React应用，为了能让其他人通过互联网访问到他的应用，他需要首先在云厂商购买服务器，然后在服务器上安装操作系统和NodeJS，然后手动拉取依赖和编译，然后手动将编译好的静态文件放到合适的地方（配置Nginx等）。
 而在通过这个PaaS平台，用户只需要提供自己的源代码，并按照平台的需求，编写一个配置文件（可能会包含一个Dockerfile，也可能是某种模板的形式），剩下的工作可以放心地交给PaaS平台来完成。
 那么PaaS平台是如何实现这个功能的呢？首先，它根据用户提供的源代码和配置文件，将源代码编译成一个OCI镜像；然后将该镜像交给一个容器管理平台部署为一个容器组（一般是Kubernetes中的Deployment或StatefulSet）；然后根据用户提供的配置文件，将容器组的特定端口暴露到互联网上（例如使用Service的NodePort或LoadBalancer）。
@@ -68,7 +98,7 @@ Dockerfile # Dockerfile用来描述该代码仓库希望被如何编译和打包
 MacOS 使用系统自带的Terminal.app登录即可。
 为了更好的使用体验，推荐使用 iterm2登录。
 当然，你也可以使用 termius进行多个ssh连接的管理。
-Linux 如果你是Linux Desktop用户，那么你肯定已经有了自己喜爱的终端模拟器，此处不再赘述。Windows 一般来讲，Windows 10（及以上）自带的cmd.exe都自带ssh client，打开cmd后直接ssh foo@x.x.x.x即可登录。
+Linux 如果你是Linux Desktop用户，那么你肯定已经有了自己喜爱的终端模拟器，此处不再赘述。 Windows 一般来讲，Windows 10（及以上）自带的cmd.exe都自带ssh client，打开cmd后直接ssh foo@x.x.x.x即可登录。
 为了更好的使用体验，推荐下载使用 Windows Terminal。
 当然，你也可以使用 termius或者其他工具（如 Xshell等）进行多个ssh连接的管理。
 校外跳板 通过 d.buaa.edu.cn 跳转登录即可。 联网 # Linux系统 # 可以依次尝试以下两种方式。
@@ -77,4 +107,6 @@ Linux 如果你是Linux Desktop用户，那么你肯定已经有了自己喜爱�
 sudo wget https://scs.buaa.edu.cn/scsos/tools/linux/buaalogin -O /usr/local/bin/buaalogin sudo chmod +x /usr/local/bin/buaalogin 配置校园网登录使用的用户名和密码：
 buaalogin config 登录校园网：
 buaalogin login 登出校园网：
-buaalogin logout wukuard 服务 # 鉴于校网络中心的某些限制，上述联网方式可能在某短时间内无法使用，这里特别给出软院信息化小组的基于 Wireguard的曲线救国方案。其本质上是将虚拟机加入一个 wireguard虚拟内网，然后覆盖默认路由指向一个可以联网的内网机器，从而实现虚拟机本身与互联网的联通。</description></item><item><title>FAQ</title><link>https://scs.buaa.edu.cn/doc/cloud-labs/cloud/faq/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://scs.buaa.edu.cn/doc/cloud-labs/cloud/faq/</guid><description>FAQ #</description></item></channel></rss>
+buaalogin logout wukuard 服务 # 鉴于校网络中心的某些限制，上述联网方式可能在某短时间内无法使用，这里特别给出软院信息化小组的基于 Wireguard的曲线救国方案。其本质上是将虚拟机加入一个 wireguard虚拟内网，然后覆盖默认路由指向一个可以联网的内网机器，从而实现虚拟机本身与互联网的联通。
+请注意，以下步骤是针对Debian系发行版（包括Debian、Ubuntu等）给出的，其他发行版请自行对照着修改命令。 首先需要安装wireguard-tools（这里需要短暂联网，但完整整个步骤之后就不需要了）：
+export http_proxy=http://10.251.0.37:3128;export https_proxy=http://10.</description></item><item><title>FAQ</title><link>https://scs.buaa.edu.cn/doc/cloud-labs/cloud/faq/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://scs.buaa.edu.cn/doc/cloud-labs/cloud/faq/</guid><description> FAQ #</description></item></channel></rss>

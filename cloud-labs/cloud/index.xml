@@ -8,7 +8,12 @@
 实验要求 # 请参考本实验文档，并查阅相关资料，回答以下问题并完整记录实验过程：
 数据持久化。容器是 “一次性的” 和 “脆弱的”（请大家务必牢记容器这一特性），容器很容易因为各种原因被kill（如资源不足等等）。而容器产生的数据文件是和容器绑定在一起的，当容器被删除时，这些数据文件也会被删除，这是我们不想看到的。
 比如，我们在机器上启动了一个mysql容器，在写入了一些重要数据后，因为某种原因该容器被意外删除了。此时即使重新启动一个mysql容器也找不会之前的数据了。请结合实验文档中的内容和查阅相关资料，讨论应该通过何种方式启动容器来避免出现这一问题？你能得出几种方案？每种方案的优劣如何？并请分别使用这些方案模拟mysql容器 创建 - 写入数据 - 销毁 - 重新创建 - 重新读到之前写入的数据 的场景，以证明方案的有效性。
-请从ubuntu镜像开始，构建一个新的包含Nginx服务的ubuntu镜像，并修改Nginx主页内容为你的学号，请分别使用docker commit 和 Dockerfile两种方式完成， 并将这个新构建的镜像推送到软院的image registry中。这个镜像推送的地址应该是 harbor.</description></item><item><title>Kubernetes实验（三）</title><link>https://scs.buaa.edu.cn/doc/cloud-labs/cloud/kube-single-3/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://scs.buaa.edu.cn/doc/cloud-labs/cloud/kube-single-3/</guid><description>Kubernetes实验（三） Kubernetes的基本使用 # 实验目的 # 了解Kubernetes的各种特性 掌握Kubernetes的常用功能 注意事项
+请从ubuntu镜像开始，构建一个新的包含Nginx服务的ubuntu镜像，并修改Nginx主页内容为你的学号，请分别使用docker commit 和 Dockerfile两种方式完成， 并将这个新构建的镜像推送到软院的image registry中。这个镜像推送的地址应该是 harbor.scs.buaa.edu.cn/&amp;lt;你的学号&amp;gt;/ubuntu-nginx:${TAG}，其中，使用docker commit构建的镜像的TAG为dockercommit；使用Dockerfile构建的镜像的TAG为 dockerfile。
+在测评时，助教会分别对你push的两个镜像执行以下命令（假设镜像名称为example_image_name）：
+docker run -d -p 8899:80 example_image_name; sleep 5; curl localhost:8899 请保证上述命令的输出中包含你的学号。
+Hint:
+harbor.scs.buaa.edu.cn 这个网页可以打开
+harbor.scs.buaa.edu.cn 的用户名为你的学号，默认密码为Newpass@2021</description></item><item><title>Kubernetes实验（三）</title><link>https://scs.buaa.edu.cn/doc/cloud-labs/cloud/kube-single-3/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://scs.buaa.edu.cn/doc/cloud-labs/cloud/kube-single-3/</guid><description>Kubernetes实验（三） Kubernetes的基本使用 # 实验目的 # 了解Kubernetes的各种特性 掌握Kubernetes的常用功能 注意事项
 本次分配的机器的账户和密码为： buaa: &amp;amp;shieshuyuan21 root: &amp;amp;&amp;amp;shieshuyuan21 务必首先修改机器的root和buaa账户的密码
 请务必阅读 虚拟机使用说明。
 分配的虚拟机中，已经安装了Docker，无需重复安装；并设置了Docker镜像地址（该地址指向校内地址），理论上docker.io中的镜像不用联网即可拉取。例如可以直接在虚拟机上docker pull nginx。
@@ -20,7 +25,7 @@ kubectl create deployment nginx-test --image=harbor.scs.buaa.edu.cn/library/ngin
 直接使用kubectl创建资源简单、直观、快捷，很适合临时测试或者试验。但实际上，创建资源时通常需要一系列的配置，如果单纯使用kubectl命令会比较麻烦，因此通常在配置资源会使用yaml配置文件。
 使用配置文件 # 在之前的实验中，我们使用了这个命令来安装Weave Scope
 kubectl apply -f https://git-v1.scs.buaa.edu.cn/iobs/static_files/raw/main/kube/weave_scope/scope.yml 这个命令实际上从后面的地址读取了一个yaml配置文件，并根据这个文件来配置资源。如果你将这个文件打开，你会看到这样的内容（省略了很多内容）：
-apiVersion: v1 kind: List items: - apiVersion: v1 kind: Namespace metadata: name: weave annotations: cloud.</description></item><item><title>云PaaS平台开发</title><link>https://scs.buaa.edu.cn/doc/cloud-labs/cloud/cloud_lab/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://scs.buaa.edu.cn/doc/cloud-labs/cloud/cloud_lab/</guid><description>云PaaS平台开发 # 实验要求 # 基于Kubernetes，设计并实现一PaaS平台。该平台的终极目标，用户可以通过该平台，实现从源代码到可访问的服务之间的整个自动化流程。
+apiVersion: v1 kind: List items: - apiVersion: v1 kind: Namespace metadata: name: weave annotations: cloud.weave.works/version: v1.0.0-302-g76376bb - apiVersion: v1 kind: ServiceAccount metadata: name: weave-scope labels: name: weave-scope namespace: weave YAML # YAML是一种可读性高、用来表达数据序列化的格式。YAML使用空白字符和分行来分隔数据，使用一些符号来标记清单、散列表、标量等资料形态。</description></item><item><title>云PaaS平台开发</title><link>https://scs.buaa.edu.cn/doc/cloud-labs/cloud/cloud_lab/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://scs.buaa.edu.cn/doc/cloud-labs/cloud/cloud_lab/</guid><description>云PaaS平台开发 # 实验要求 # 基于Kubernetes，设计并实现一PaaS平台。该平台的终极目标，用户可以通过该平台，实现从源代码到可访问的服务之间的整个自动化流程。
 比如，在传统方式下，用户编写了一个React应用，为了能让其他人通过互联网访问到他的应用，他需要首先在云厂商购买服务器，然后在服务器上安装操作系统和NodeJS，然后手动拉取依赖和编译，然后手动将编译好的静态文件放到合适的地方（配置Nginx等）。
 而在通过这个PaaS平台，用户只需要提供自己的源代码，并按照平台的需求，编写一个配置文件（可能会包含一个Dockerfile，也可能是某种模板的形式），剩下的工作可以放心地交给PaaS平台来完成。
 那么PaaS平台是如何实现这个功能的呢？首先，它根据用户提供的源代码和配置文件，将源代码编译成一个OCI镜像；然后将该镜像交给一个容器管理平台部署为一个容器组（一般是Kubernetes中的Deployment或StatefulSet）；然后根据用户提供的配置文件，将容器组的特定端口暴露到互联网上（例如使用Service的NodePort或LoadBalancer）。
@@ -45,4 +50,4 @@ KubeKey使用声明式的配置方式，用户只需要通过一个YAML配置文
 为了减少不必要的麻烦，请直接使用root账户登录虚拟机，并完成相关操作。
 进入/root/kubesphere目录
 cd /root/kubesphere 修改配置文件中的IP和登录密码。可以按需修改主机的hostname。如果修改了hostname，也需要同步修改roleGroups中的值。
-apiVersion: kubekey.kubesphere.io/v1alpha1 kind: Cluster metadata: name: main-cluster spec: hosts: - {name: node1, address: 1.1.1.1, internalAddress: 1.1.1.1, user: root, password: &amp;#39;&amp;amp;&amp;amp;shieshuyuan21&amp;#39;} - {name: node2, address: 1.1.1.1, internalAddress: 1.1.1.1, user: root, password: &amp;#39;&amp;amp;&amp;amp;shieshuyuan21&amp;#39;} roleGroups: etcd: - node1 master: - node1 worker: - node1 - node2 controlPlaneEndpoint: domain: lb.</description></item><item><title>FAQ</title><link>https://scs.buaa.edu.cn/doc/cloud-labs/cloud/faq/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://scs.buaa.edu.cn/doc/cloud-labs/cloud/faq/</guid><description>FAQ #</description></item></channel></rss>
+apiVersion: kubekey.kubesphere.io/v1alpha1 kind: Cluster metadata: name: main-cluster spec: hosts: - {name: node1, address: 1.1.1.1, internalAddress: 1.1.1.1, user: root, password: &amp;#39;&amp;amp;&amp;amp;shieshuyuan21&amp;#39;} - {name: node2, address: 1.1.1.1, internalAddress: 1.1.1.1, user: root, password: &amp;#39;&amp;amp;&amp;amp;shieshuyuan21&amp;#39;} roleGroups: etcd: - node1 master: - node1 worker: - node1 - node2 controlPlaneEndpoint: domain: lb.</description></item><item><title>FAQ</title><link>https://scs.buaa.edu.cn/doc/cloud-labs/cloud/faq/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://scs.buaa.edu.cn/doc/cloud-labs/cloud/faq/</guid><description> FAQ #</description></item></channel></rss>

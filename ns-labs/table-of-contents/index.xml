@@ -1,6 +1,31 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>软院云平台文档</title><link>https://scs.buaa.edu.cn/doc/ns-labs/table-of-contents/</link><description>Recent content on 软院云平台文档</description><generator>Hugo -- gohugo.io</generator><atom:link href="https://scs.buaa.edu.cn/doc/ns-labs/table-of-contents/index.xml" rel="self" type="application/rss+xml"/><item><title>Lab01 RAID 阵列</title><link>https://scs.buaa.edu.cn/doc/ns-labs/table-of-contents/raid/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://scs.buaa.edu.cn/doc/ns-labs/table-of-contents/raid/</guid><description>Lab01 RAID 阵列 # 实验目的 # 通过 RAID 原理实践理解阵列相关知识
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>软院云平台文档</title><link>https://scs.buaa.edu.cn/doc/ns-labs/table-of-contents/</link><description>Recent content on 软院云平台文档</description><generator>Hugo -- gohugo.io</generator><atom:link href="https://scs.buaa.edu.cn/doc/ns-labs/table-of-contents/index.xml" rel="self" type="application/rss+xml"/><item><title>Lab01 RAID 阵列</title><link>https://scs.buaa.edu.cn/doc/ns-labs/table-of-contents/raid/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://scs.buaa.edu.cn/doc/ns-labs/table-of-contents/raid/</guid><description>Lab01 RAID阵列 # 本指导书是实验过程的一个示例，供不熟悉实验环境的同学参考，无需严格按照指导书中的步骤来进行实验 :)
 实验内容 # 本实验通过软件 RAID 管理磁盘：
-打开“管理工具-计算机管理-存储-磁盘管理”，体验“磁盘管理工具” C 盘扩展卷 检查其它磁盘是否联机，联机并初始化磁盘 尝试创建跨区卷并存储部分数据 尝试创建镜像卷并存储部分数据 尝试创建 RAID5 卷并存储部分数据 通过设备管理禁用其中一块磁盘，模拟磁盘损坏。观察有什么情况发生，数据是否损坏或者丢失 [选做] 自行设计与扩展，体会 RAID 0 1 5 10 等方案下，在遇到磁盘损坏故障、冗余备份的效果等 [选做] 思考题： 为什么及在什么条件下选择用 RAID RAID &amp;amp; 分布式存储 &amp;amp; 集中存储的区别 请在 10 月 11 日中午 12：00 前提交至云平台，命名为：lab01-学号-姓名.pdf，如 lab01-18373722-朱英豪.pdf。
-实验指南 # 通过实验平台获取虚拟机，通过远程桌面访问获取的虚拟机的 IP 地址（ipv4），用户名密码通过实验平台获取。
-按要求完成实验，撰写实验报告（每种配置都做一遍），以下为样例的 IP 和云平台默认分配的用户名、密码。
-登录IP：10.200.200.155 # 请到云平台上查看自己所分配到的虚拟机的 IP 地址 登录用户名：Administrator # 注意在连接虚拟机时需要指定用户名，不是 admin 登录密码：@buaa21 # 记得改密码，防止被别人登 分配磁盘时不宜过大，1 G 足矣，可选择使用“快速格式化”，提高实验速度。</description></item></channel></rss>
+通过工具查看磁盘列表 [仅Windows] C 盘扩展卷，检查其它磁盘是否联机，联机并初始化磁盘 [仅Ubuntu] 使用LVM扩展根目录/的容量 创建RAID阵列，测试读写文件并模拟磁盘损坏，观察有什么情况发生，数据是否损坏或者丢失？ 尝试RAID 0 尝试RAID 1 尝试RAID 5 [选做] 控制变量，测试RAID阵列的读写速率，并结合理论分析实验结果 [选做] 自行设计与扩展，体会 RAID 0 1 5 10 等方案下，在遇到磁盘损坏故障、冗余备份的效果等 [选做] 思考题： 为什么及在什么条件下选择用 RAID RAID &amp;amp; 分布式存储 &amp;amp; 集中存储的区别 其中，选做的题目不计入本实验的总得分，仅额外加分
+实验报告模板分别是lab01_win.md和lab01_ubuntu.md，供参考使用，最后请将实验报告按 lab01-学号-姓名.pdf 的命名格式提交
+实验准备 # Windows下连接Windows 10虚拟机 # 使用系统自带的“远程桌面连接”即可
+MacOS下连接Windows 10虚拟机 # 使用Microsoft Remote Desktop连接，云平台课程资源页提供该软件的下载
+Windows下连接Ubuntu虚拟机 # 一般来讲，Windows 10（及以上）自带的cmd.exe都自带ssh client，打开cmd后直接ssh foo@x.x.x.x即可登录
+为了更好的使用体验，推荐下载使用 Windows Terminal
+当然，你也可以使用 termius 或者其他工具（如 Xshell等）进行多个ssh连接的管理</description></item><item><title>Lab02 虚拟化实验</title><link>https://scs.buaa.edu.cn/doc/ns-labs/table-of-contents/virtualization/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://scs.buaa.edu.cn/doc/ns-labs/table-of-contents/virtualization/</guid><description>Lab02 虚拟化实验 # 实验目标 # 实施计算虚拟化，安装配置环境，熟悉计算虚拟化的概念，理解基本操作，掌握基础知识。 理解集中管理对于虚拟化的作用，通过部署集中vCenter体验集群的设置，分布式交换机的设置，了解主机从不同网络进行迁移的实际需求。 实验内容 # 按照实验指南的指导，完成实验。 按照实验报告模板，撰写实验报告，将重要的实验步骤截图，填入实验报告中，并回答相应问题。 本次实验以小组形式进行，虚拟机已分发至每组第一位同学的账户中，每组一台虚拟机，实验报告每个人都需要提交，同组的实验报告内容可以一致
+请在云平台作业提交截止时间之前，将作业提交到云平台，命名为：lab02-学号-姓名.pdf的格式。
+Hypervisor # 我们知道，一台计算机一般有以下的结构：
+操作系统负责管理硬件资源（CPU，内存，硬盘等），并向上提供相应的系统调用，供具体的应用程序使用。
+而我们平常提到的操作系统的虚拟化，本质上就是要模拟出一套硬件（包括虚拟CPU，虚拟内存，虚拟硬盘等），然后在这一套虚拟的硬件的基础上部署客户操作系统。客户操作系统完全不需要做任何修改，即可在这个“虚拟的机器”中顺利执行。但客户操作系统的运行结果（比如接收键盘输入，输出图像和声音等），最终都是要靠原始的“实实在在”的硬件（物理机）来完成的。也就是说，需要有那么一个结构，能够将这个“虚拟的机器”的行为翻译到物理机的行为（比如将虚拟CPU的指令翻译到物理机的CPU指令）。负责做这件事情的结构被称为Hypervisor，又称为虚拟机监控器（virtual machine monitor，缩写为 VMM）。
+根据工作方式的不同，Hypervisor分为以下两种。
+第一种是我们比较熟悉的情况，本质上就是在主操作系统（Host Operating System）上安装了一个虚拟化软件，它来负责充当虚拟机的管理者，并通过主操作系统的系统调用来完成对物理机硬件的使用。VMware Workstation、Virtual Box、Qemu等都属这类虚拟化软件。除了这个虚拟化软件之外，主操作系统上还会运行其他“正常”的应用程序，比如，你在用VMware Workstation的同时还能听歌聊天等。
+第二种Hypervisor则直接舍弃了主操作系统（因为毕竟隔着一层，性能会有损失），而是直接把Hypervisor部署在硬件上。在这种情况下，物理机变成了更纯粹的“为虚拟化而生”的机器。Hypervisor能够直接与硬件沟通，其实在某种程度上也承担了主操作系统的角色（管理硬件），因此，我们也可以把这种Hypervisor看作是一种为虚拟化特制的操作系统。这其中典型的就是VMware ESXi。
+因为我们不可能要求每位同学都制备一套硬件来安装学习VMware ESXi，所以需要首先使用VMware Workstation来模拟出一套硬件。但VMware Workstation仅仅起一个前置作用，在实际的实验中并不会涉及到。请大家首先理清这层关系。
+实验指南 # 0. 安装VMware Workstation # 使用分配的虚拟机的桌面上的安装包安装即可。
+安装完成后需重启机器。
+打开VMware Workstation时， 选择试用即可。
+1. 安装VMware ESXi # 使用桌面上的ESXi镜像VMware-VMvisor-Installer-6.7.0.update03-19898906.x86_64-DellEMC_Customized-A18.iso创建虚拟机。
+注意选择客户操作系统的类型。
+虚拟机创建完成后，直接打开电源即可启动ESXi操作系统的安装流程，这一过程可能需要等待较长时间。
+安装流程中总是保持默认选项即可，其中设置的root密码应至少包含字母、数字和特殊符号，并且请务必牢记设置的root密码。
+在此流程中，可能需要使用使用到某些快捷键，这些快捷键可能会首先被你本机的操作系统捕获，在本机的系统设置中暂时屏蔽该快捷键即可。
+安装完成后，可以看到如下界面。
+可以看到，ESXi系统获得了一个IPv4地址192.168.80.128，并且这个地址是通过DHCP的方式获得的。这里用到的DHCP服务器其实是VMware Workstation内置的。也就是说，192.168.80.128这个地址只有在安装VMware Workstation的机器上才是有效的。
+2. 访问ESXi # 可以直接使用浏览器访问ESXi。访问的地址就是ESXi的地址，用户名和密码与vSphere Client的相同。
+如下图所示，可以为ESXi分配许可证。
+可用的KEY：
+0A65P-00HD0-3Z5M1-M097M-22P7H 3. 观察和体验vSphere Client提供的功能 # Client侧界面主要包含导航器、主体内容和任务事件这三部分。</description></item></channel></rss>
