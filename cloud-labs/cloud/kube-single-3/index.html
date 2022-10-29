@@ -1,644 +1,256 @@
-<!doctype html><html lang=en dir=ltr><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="Kubernetes实验（三） Kubernetes的基本使用 # 实验目的 # 了解Kubernetes的各种特性 掌握Kubernetes的常用功能 注意事项
-本次分配的机器的账户和密码为： buaa: &shieshuyuan21 root: &&shieshuyuan21 务必首先修改机器的root和buaa账户的密码
+<!doctype html><html lang=en dir=ltr><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="Kubernetes综合实验 # 实验目的 # 了解Kubernetes的各种特性 掌握Kubernetes的常用功能 注意事项
+本次分配的机器的账户和密码为： buaa: &shieshuyuan21 为了避免权限问题，建议切换到root账户操作：
+首先使用sudo passwd root为root账户设置密码 然后使用sudo su命令切换到root账户 务必首先修改机器的root和buaa账户的密码
 请务必阅读 虚拟机使用说明。
-分配的虚拟机中，已经安装了Docker，无需重复安装；并设置了Docker镜像地址（该地址指向校内地址），理论上docker.io中的镜像不用联网即可拉取。例如可以直接在虚拟机上docker pull nginx。
-创建Kubernetes集群
-在实验开始前，请利用云平台提供的虚拟机或者自己的本地资源，创建一个至少包含两节点的Kubernetes集群。
-详情请参考： 附录：创建Kubernetes集群
-配置资源的两种方式 # 使用命令 # 回想之前我们之前初始化Kubernetes集群后，执行过的命令：
-kubectl create deployment nginx-test --image=harbor.scs.buaa.edu.cn/library/nginx --replicas=2 --port=80 使用kubectl命令创建资源时，会将Pod的配置都写入命令参数中。以我们执行过的kubectl create命令（在集群中使用指定镜像启动容器）为例，命令中包含了镜像名（--image）、伸缩情况（--replicas）。当然，kubectl命令还有许多其他的功能，详情可以在 Kubernetes文档-kubectl命令看到。
-直接使用kubectl创建资源简单、直观、快捷，很适合临时测试或者试验。但实际上，创建资源时通常需要一系列的配置，如果单纯使用kubectl命令会比较麻烦，因此通常在配置资源会使用yaml配置文件。
-使用配置文件 # 在之前的实验中，我们使用了这个命令来安装Weave Scope
-kubectl apply -f https://git-v1.scs.buaa.edu.cn/iobs/static_files/raw/main/kube/weave_scope/scope.yml 这个命令实际上从后面的地址读取了一个yaml配置文件，并根据这个文件来配置资源。如果你将这个文件打开，你会看到这样的内容（省略了很多内容）：
-apiVersion: v1 kind: List items: - apiVersion: v1 kind: Namespace metadata: name: weave annotations: cloud.weave.works/version: v1.0.0-302-g76376bb - apiVersion: v1 kind: ServiceAccount metadata: name: weave-scope labels: name: weave-scope namespace: weave YAML # YAML是一种可读性高、用来表达数据序列化的格式。YAML使用空白字符和分行来分隔数据，使用一些符号来标记清单、散列表、标量等资料形态。"><meta name=theme-color content="#FFFFFF"><meta name=color-scheme content="light dark"><meta property="og:title" content="Kubernetes实验（三）"><meta property="og:description" content="Kubernetes实验（三） Kubernetes的基本使用 # 实验目的 # 了解Kubernetes的各种特性 掌握Kubernetes的常用功能 注意事项
-本次分配的机器的账户和密码为： buaa: &shieshuyuan21 root: &&shieshuyuan21 务必首先修改机器的root和buaa账户的密码
+分配的虚拟机中，已经安装了Docker，无需重复安装。
+背景 # 上学期的云计算课中，我们主要了解了什么是容器，以及目前最流行的容器运行时和容器管理工具Docker；并且在此过程中体会了容器技术给软件开发和部署带来的极大的便利性。
+但到此为止，我们对容器的使用和管理依旧处于非常“手工”的状态，难以胜任实际生产环境中对容器管理的要求。在实际生产环境中，
+通常一个应用包含多个容器；即，一个应用的部署，需要按照一定的顺序启动多个容器。例如，即便是一个最简单的前后端应用，我们也需要依次启动三个容器：数据库容器（例如一个MySQL容器）、后端应用容器、前端应用容器（通常是一个Nginx容器）。特别是在微服务场景中，后端可能涉及到几十个微服务模块，每个模块都对应着一个容器，不同服务之间又有复杂的依赖调用关系。 每个类别的服务通常会有多个容器实例。对于一些负载较高的服务，通常会部署多个相同的容器实例达到负载均衡的效果，从而提高服务整体的吞吐量。 容器是不稳定的，随时可能会因为各种各样的原因挂掉，因此，需要时刻监控容器的状态，在它挂掉的时候及时重新启动服务，保证服务整体的高可用。 大部分应用都是分布式的。即，一个应用中的不同服务是部署在不同机器上的，即使是一个服务的不同实例往往也会部署在多个机器上。如何在多台机器上做好资源（内存、CPU、磁盘）的负载均衡（即，避免出现某些机器负载过高的同时，其他机器负载空闲的情况）也是棘手的问题。 如果仅靠我们已经学到的几个docker命令显然是难以完成上述任务的。这就需要一个专门的容器编排调度工具帮我们处理这些事情。自Docker兴起后，很多厂商都进入该领域并推出了自己的容器编排调度解决方案，例如Docker Swarm、Mesos等，都想在新兴的容器市场中分一杯羹，但最终Kubernetes笑到了最后，并且作为CNCF的毕业项目，成为了当下容器编排调度领域的事实标准。本次实验我们就来认识一下Kubernetes，学习并实践其中一些基本概念。
+Kubernetes以其复杂难懂著称，在本次实验中，我们主要学习其中最基本的部分，培养大家对Kubernetes的感性认识，帮助大家开始入门云计算领域。
+初识Kubernetes # Kubernetes简介 # Kubernetes在希腊语中的含义是船长/领航员，这个名字生动地体现了它在容器集群管理中的作用——调度和监控全局的集装箱（container，容器）。由于Kubernetes这个单词太长，人们通常会用k8s来作为简称（Kubernetes的首尾两个字母之间正好有8个字母）。
+请始终记住，Kubernetes和Docker之类的容器运行时不是互相替代的关系，也不是包含与被包含的关系，而是互补的关系。Kubernetes仅仅是一个容器编排和调度工具，其必须运行在“容器运行时（container runtime）”之上。它能做的仅仅是接收用户的命令，然后通知其下层的容器运行时做具体的工作。
+上图可以看出，在之前，我们是直接通过Docker命令行或Docker HTTP接口来与Docker容器运行时通信，控制其构建镜像、推送或拉取镜像、启动或停止容器，等等。
+而现在，我们可以通过Kubernetes的命令行工具（即Kubectl）或Kubernetes的HTTP接口来控制Kubernetes，然后，Kubernetes会根据我们发出的命令，“翻译”成对应的Docker容器运行时的调用，从而控制Docker容器运行时构建镜像、推送或拉取镜像、启动或停止容器等等。
+另外，请注意，Kubernetes是一个非常模块化的系统，它定义了一套“容器运行时接口（CRI）”，凡是实现了这套接口的容器运行时都可以作为Kubernetes运行容器的后端。目前比较流行的有Containerd和CRI-O，实际上，从1.20版本开始，Kubernetes官方已经弃用Docker引擎作为容器运行时。
+在本次实验中，为了前后知识的连贯性，我们依旧选择使用Docker作为Kubernetes的容器运行时。
+创建Kubernetes集群 # 在Kubernetes官网的 Get Started中，分别给出了面向个人初学者的学习测试环境和一线生产环境的若干Kubernetes集群部署方法。对于生产环境， Kubernetes官方推荐使用kubeadm来启动集群。但实际上，kubeadm对非专业的运维，特别是初学者来说并不十分友好（需要用户事先完成对主机的一系列配置，如开放防火墙端口、关闭swap、安装容器运行时等），再加上国内特殊的网络环境（kubeadm默认会从gcr.io拉取启动Kubernetes所需的系统镜像），因此不推荐初学者直接使用kubeadm启动集群。
+云计算生态非常繁荣，社区中已经有很多成熟的工具帮助用户快速启动一个标准的Kubernetes集群用于学习、测试等目的。本实验文档分别针对集群版和本地版提供创建Kubernetes集群的选项，供大家参考和使用。
+集群版 # 推荐使用此种方式创建集群，这样有利于在后续章节中学习和实践Kubernetes“集群”的相关特性。如确实有问题，可以切换到个人电脑上使用“单机版”的方式。
+在本次实验中，我们将部署一个简单的 k3s（注意，不是“k8s”哦！）集群。k3s是通过CNCF认证的Kubernetes的一个发行版，是基于上游的“原生”的Kubernetes的代码进一步构建的。k3s和Kubernetes的关系可以简单类比为Ubuntu、CentOS等于Linux之间的关系。你可以在这里找到k3s官方维护的 k3s的中文文档。
+实际上，还有很多其他的Kubernetes发行版，比如k0s之类的。只不过k3s的中国化做得非常好，在国内的网络环境下使用非常便利，也有大量的资料可以使用，所以我们选用其作为本次实验的主要工具。当然，不同Kubernetes发行版之间存在着各种各样的差异，但这并不影响我们学习Kubernetes的基础知识。
+准备一台能够连接互联网的Linux机器。如果你选择使用软院云平台分配的机器，可以直接进行下一步；否则，请查看 安装要求，确保你的机器满足其中所述条件。
+确保机器已经安装Docker，并且其版本高于或等于19.03，可以使用docker info命令验证。如果你使用的是软院云平台分配的机器，可直接进行下一步；否则，请注意检查Docker是否正确安装，并且是否正确配置Docker Registry镜像地址，以保证可以顺利从docker.io中拉取镜像。（当然，如果你已经比较熟悉Kubernetes，可以忽略此步骤，选择使用k3s默认集成安装的containerd作为容器运行时。）
+保证你的机器已经连接互联网。
+切换到root用户（如果你觉得root操作危险，请保证自己有足够的能力使用普通用户权限完成所有操作），执行以下命令以初始化一个k3s的master节点（当前不理解什么是“master节点”没有关系，在后续章节中我们会进行详细介绍）：
+curl -sfL https://rancher-mirror.oss-cn-beijing.aliyuncs.com/k3s/k3s-install.sh | INSTALL_K3S_MIRROR=cn sh -s - --docker 如果你选择使用containerd作为容器运行时，请去除上述命令中的--docker参数。"><meta name=theme-color content="#FFFFFF"><meta name=color-scheme content="light dark"><meta property="og:title" content="Kubernetes综合实验"><meta property="og:description" content="Kubernetes综合实验 # 实验目的 # 了解Kubernetes的各种特性 掌握Kubernetes的常用功能 注意事项
+本次分配的机器的账户和密码为： buaa: &shieshuyuan21 为了避免权限问题，建议切换到root账户操作：
+首先使用sudo passwd root为root账户设置密码 然后使用sudo su命令切换到root账户 务必首先修改机器的root和buaa账户的密码
 请务必阅读 虚拟机使用说明。
-分配的虚拟机中，已经安装了Docker，无需重复安装；并设置了Docker镜像地址（该地址指向校内地址），理论上docker.io中的镜像不用联网即可拉取。例如可以直接在虚拟机上docker pull nginx。
-创建Kubernetes集群
-在实验开始前，请利用云平台提供的虚拟机或者自己的本地资源，创建一个至少包含两节点的Kubernetes集群。
-详情请参考： 附录：创建Kubernetes集群
-配置资源的两种方式 # 使用命令 # 回想之前我们之前初始化Kubernetes集群后，执行过的命令：
-kubectl create deployment nginx-test --image=harbor.scs.buaa.edu.cn/library/nginx --replicas=2 --port=80 使用kubectl命令创建资源时，会将Pod的配置都写入命令参数中。以我们执行过的kubectl create命令（在集群中使用指定镜像启动容器）为例，命令中包含了镜像名（--image）、伸缩情况（--replicas）。当然，kubectl命令还有许多其他的功能，详情可以在 Kubernetes文档-kubectl命令看到。
-直接使用kubectl创建资源简单、直观、快捷，很适合临时测试或者试验。但实际上，创建资源时通常需要一系列的配置，如果单纯使用kubectl命令会比较麻烦，因此通常在配置资源会使用yaml配置文件。
-使用配置文件 # 在之前的实验中，我们使用了这个命令来安装Weave Scope
-kubectl apply -f https://git-v1.scs.buaa.edu.cn/iobs/static_files/raw/main/kube/weave_scope/scope.yml 这个命令实际上从后面的地址读取了一个yaml配置文件，并根据这个文件来配置资源。如果你将这个文件打开，你会看到这样的内容（省略了很多内容）：
-apiVersion: v1 kind: List items: - apiVersion: v1 kind: Namespace metadata: name: weave annotations: cloud.weave.works/version: v1.0.0-302-g76376bb - apiVersion: v1 kind: ServiceAccount metadata: name: weave-scope labels: name: weave-scope namespace: weave YAML # YAML是一种可读性高、用来表达数据序列化的格式。YAML使用空白字符和分行来分隔数据，使用一些符号来标记清单、散列表、标量等资料形态。"><meta property="og:type" content="article"><meta property="og:url" content="https://scs.buaa.edu.cn/doc/cloud-labs/cloud/kube-single-3/"><meta property="article:section" content="cloud-labs"><meta property="article:modified_time" content="2022-04-11T21:05:21+08:00"><title>Kubernetes实验（三） | 软院云平台文档</title><link rel=manifest href=/doc/manifest.json><link rel=icon href=/doc/favicon.png type=image/x-icon><link rel=stylesheet href=/doc/book.min.46181bc93375ba932026e753b37c40e6ff8bb16a9ef770c78bcc663e4577b1ba.css integrity="sha256-RhgbyTN1upMgJudTs3xA5v+LsWqe93DHi8xmPkV3sbo=" crossorigin=anonymous><script defer src=/doc/flexsearch.min.js></script>
-<script defer src=/doc/en.search.min.94cbc21e10abb603f74134759bbce32e1b470037e88d1b121ed86edcf448cf23.js integrity="sha256-lMvCHhCrtgP3QTR1m7zjLhtHADfojRsSHthu3PRIzyM=" crossorigin=anonymous></script>
+分配的虚拟机中，已经安装了Docker，无需重复安装。
+背景 # 上学期的云计算课中，我们主要了解了什么是容器，以及目前最流行的容器运行时和容器管理工具Docker；并且在此过程中体会了容器技术给软件开发和部署带来的极大的便利性。
+但到此为止，我们对容器的使用和管理依旧处于非常“手工”的状态，难以胜任实际生产环境中对容器管理的要求。在实际生产环境中，
+通常一个应用包含多个容器；即，一个应用的部署，需要按照一定的顺序启动多个容器。例如，即便是一个最简单的前后端应用，我们也需要依次启动三个容器：数据库容器（例如一个MySQL容器）、后端应用容器、前端应用容器（通常是一个Nginx容器）。特别是在微服务场景中，后端可能涉及到几十个微服务模块，每个模块都对应着一个容器，不同服务之间又有复杂的依赖调用关系。 每个类别的服务通常会有多个容器实例。对于一些负载较高的服务，通常会部署多个相同的容器实例达到负载均衡的效果，从而提高服务整体的吞吐量。 容器是不稳定的，随时可能会因为各种各样的原因挂掉，因此，需要时刻监控容器的状态，在它挂掉的时候及时重新启动服务，保证服务整体的高可用。 大部分应用都是分布式的。即，一个应用中的不同服务是部署在不同机器上的，即使是一个服务的不同实例往往也会部署在多个机器上。如何在多台机器上做好资源（内存、CPU、磁盘）的负载均衡（即，避免出现某些机器负载过高的同时，其他机器负载空闲的情况）也是棘手的问题。 如果仅靠我们已经学到的几个docker命令显然是难以完成上述任务的。这就需要一个专门的容器编排调度工具帮我们处理这些事情。自Docker兴起后，很多厂商都进入该领域并推出了自己的容器编排调度解决方案，例如Docker Swarm、Mesos等，都想在新兴的容器市场中分一杯羹，但最终Kubernetes笑到了最后，并且作为CNCF的毕业项目，成为了当下容器编排调度领域的事实标准。本次实验我们就来认识一下Kubernetes，学习并实践其中一些基本概念。
+Kubernetes以其复杂难懂著称，在本次实验中，我们主要学习其中最基本的部分，培养大家对Kubernetes的感性认识，帮助大家开始入门云计算领域。
+初识Kubernetes # Kubernetes简介 # Kubernetes在希腊语中的含义是船长/领航员，这个名字生动地体现了它在容器集群管理中的作用——调度和监控全局的集装箱（container，容器）。由于Kubernetes这个单词太长，人们通常会用k8s来作为简称（Kubernetes的首尾两个字母之间正好有8个字母）。
+请始终记住，Kubernetes和Docker之类的容器运行时不是互相替代的关系，也不是包含与被包含的关系，而是互补的关系。Kubernetes仅仅是一个容器编排和调度工具，其必须运行在“容器运行时（container runtime）”之上。它能做的仅仅是接收用户的命令，然后通知其下层的容器运行时做具体的工作。
+上图可以看出，在之前，我们是直接通过Docker命令行或Docker HTTP接口来与Docker容器运行时通信，控制其构建镜像、推送或拉取镜像、启动或停止容器，等等。
+而现在，我们可以通过Kubernetes的命令行工具（即Kubectl）或Kubernetes的HTTP接口来控制Kubernetes，然后，Kubernetes会根据我们发出的命令，“翻译”成对应的Docker容器运行时的调用，从而控制Docker容器运行时构建镜像、推送或拉取镜像、启动或停止容器等等。
+另外，请注意，Kubernetes是一个非常模块化的系统，它定义了一套“容器运行时接口（CRI）”，凡是实现了这套接口的容器运行时都可以作为Kubernetes运行容器的后端。目前比较流行的有Containerd和CRI-O，实际上，从1.20版本开始，Kubernetes官方已经弃用Docker引擎作为容器运行时。
+在本次实验中，为了前后知识的连贯性，我们依旧选择使用Docker作为Kubernetes的容器运行时。
+创建Kubernetes集群 # 在Kubernetes官网的 Get Started中，分别给出了面向个人初学者的学习测试环境和一线生产环境的若干Kubernetes集群部署方法。对于生产环境， Kubernetes官方推荐使用kubeadm来启动集群。但实际上，kubeadm对非专业的运维，特别是初学者来说并不十分友好（需要用户事先完成对主机的一系列配置，如开放防火墙端口、关闭swap、安装容器运行时等），再加上国内特殊的网络环境（kubeadm默认会从gcr.io拉取启动Kubernetes所需的系统镜像），因此不推荐初学者直接使用kubeadm启动集群。
+云计算生态非常繁荣，社区中已经有很多成熟的工具帮助用户快速启动一个标准的Kubernetes集群用于学习、测试等目的。本实验文档分别针对集群版和本地版提供创建Kubernetes集群的选项，供大家参考和使用。
+集群版 # 推荐使用此种方式创建集群，这样有利于在后续章节中学习和实践Kubernetes“集群”的相关特性。如确实有问题，可以切换到个人电脑上使用“单机版”的方式。
+在本次实验中，我们将部署一个简单的 k3s（注意，不是“k8s”哦！）集群。k3s是通过CNCF认证的Kubernetes的一个发行版，是基于上游的“原生”的Kubernetes的代码进一步构建的。k3s和Kubernetes的关系可以简单类比为Ubuntu、CentOS等于Linux之间的关系。你可以在这里找到k3s官方维护的 k3s的中文文档。
+实际上，还有很多其他的Kubernetes发行版，比如k0s之类的。只不过k3s的中国化做得非常好，在国内的网络环境下使用非常便利，也有大量的资料可以使用，所以我们选用其作为本次实验的主要工具。当然，不同Kubernetes发行版之间存在着各种各样的差异，但这并不影响我们学习Kubernetes的基础知识。
+准备一台能够连接互联网的Linux机器。如果你选择使用软院云平台分配的机器，可以直接进行下一步；否则，请查看 安装要求，确保你的机器满足其中所述条件。
+确保机器已经安装Docker，并且其版本高于或等于19.03，可以使用docker info命令验证。如果你使用的是软院云平台分配的机器，可直接进行下一步；否则，请注意检查Docker是否正确安装，并且是否正确配置Docker Registry镜像地址，以保证可以顺利从docker.io中拉取镜像。（当然，如果你已经比较熟悉Kubernetes，可以忽略此步骤，选择使用k3s默认集成安装的containerd作为容器运行时。）
+保证你的机器已经连接互联网。
+切换到root用户（如果你觉得root操作危险，请保证自己有足够的能力使用普通用户权限完成所有操作），执行以下命令以初始化一个k3s的master节点（当前不理解什么是“master节点”没有关系，在后续章节中我们会进行详细介绍）：
+curl -sfL https://rancher-mirror.oss-cn-beijing.aliyuncs.com/k3s/k3s-install.sh | INSTALL_K3S_MIRROR=cn sh -s - --docker 如果你选择使用containerd作为容器运行时，请去除上述命令中的--docker参数。"><meta property="og:type" content="article"><meta property="og:url" content="https://scs.buaa.edu.cn/doc/cloud-labs/cloud/kube-single-3/"><meta property="article:section" content="cloud-labs"><meta property="article:modified_time" content="2022-10-29T21:16:23+08:00"><title>Kubernetes综合实验 | 软院云平台文档</title><link rel=manifest href=/doc/manifest.json><link rel=icon href=/doc/favicon.png type=image/x-icon><link rel=stylesheet href=/doc/book.min.46181bc93375ba932026e753b37c40e6ff8bb16a9ef770c78bcc663e4577b1ba.css integrity="sha256-RhgbyTN1upMgJudTs3xA5v+LsWqe93DHi8xmPkV3sbo=" crossorigin=anonymous><script defer src=/doc/flexsearch.min.js></script>
+<script defer src=/doc/en.search.min.69a13a7c4aca55a0dd9504fb549f23bdab48bb93ade464f4f6289c5c793231d2.js integrity="sha256-aaE6fErKVaDdlQT7VJ8jvatIu5Ot5GT09iicXHkyMdI=" crossorigin=anonymous></script>
 <script defer src=/doc/sw.min.c6e13cf2801d746c82b18aace5ed50254554a6ab28bdd01a6fd9fdc0d082e427.js integrity="sha256-xuE88oAddGyCsYqs5e1QJUVUpqsovdAab9n9wNCC5Cc=" crossorigin=anonymous></script></head><body dir=ltr><input type=checkbox class="hidden toggle" id=menu-control>
-<input type=checkbox class="hidden toggle" id=toc-control><main class="container flex"><aside class=book-menu><div class=book-menu-content><nav><h2 class=book-brand><a class="flex align-center" href=/doc/><span>软院云平台文档</span></a></h2><div class=book-search><input type=text id=book-search-input placeholder=Search aria-label=Search maxlength=64 data-hotkeys=s/><div class="book-search-spinner hidden"></div><ul id=book-search-results></ul></div><ul><li><a href=https://scs.buaa.edu.cn/doc/02_bugit/>BuGit代码托管与自动部署平台</a><ul><li><a href=https://scs.buaa.edu.cn/doc/02_bugit/build_deploy/>自动构建与部署</a></li></ul></li><li><a href=https://scs.buaa.edu.cn/doc/01_common/>云平台使用手册</a><ul><li><a href=https://scs.buaa.edu.cn/doc/01_common/virtual_machine_help/>虚拟机使用说明</a></li></ul></li><li><a href=https://scs.buaa.edu.cn/doc/cloud-labs/>大数据和云计算综合实践</a><ul><li><a href=https://scs.buaa.edu.cn/doc/cloud-labs/cloud/>云计算实验</a><ul><li><a href=https://scs.buaa.edu.cn/doc/cloud-labs/cloud/container_docker/>容器与Docker综合实验</a></li><li><a href=https://scs.buaa.edu.cn/doc/cloud-labs/cloud/kube-single-3/ class=active>Kubernetes实验（三）</a></li><li><a href=https://scs.buaa.edu.cn/doc/cloud-labs/cloud/cloud_lab/>云PaaS平台开发</a></li><li><a href=https://scs.buaa.edu.cn/doc/cloud-labs/cloud/appendix_create_kubernetes/>附录：创建Kubernetes集群</a></li><li><a href=https://scs.buaa.edu.cn/doc/cloud-labs/cloud/faq/>FAQ</a></li></ul></li></ul></li><li><a href=https://scs.buaa.edu.cn/doc/ns-labs/>网络存储实验规划</a><ul><li><a href=https://scs.buaa.edu.cn/doc/ns-labs/table-of-contents/>Table of Contents</a><ul><li><a href=https://scs.buaa.edu.cn/doc/ns-labs/table-of-contents/raid/>Lab01 RAID 阵列</a></li><li><a href=https://scs.buaa.edu.cn/doc/ns-labs/table-of-contents/virtualization/>Lab02 虚拟化实验</a></li></ul></li><li><a href=https://scs.buaa.edu.cn/doc/ns-labs/resources/>Resources</a><ul><li><a href=https://scs.buaa.edu.cn/doc/ns-labs/resources/os/>操作系统</a></li></ul></li></ul></li></ul><ul><li><a href=https://github.com/bugitt/doc target=_blank rel=noopener>Github</a></li></ul></nav><script>(function(){var e=document.querySelector("aside .book-menu-content");addEventListener("beforeunload",function(){localStorage.setItem("menu.scrollTop",e.scrollTop)}),e.scrollTop=localStorage.getItem("menu.scrollTop")})()</script></div></aside><div class=book-page><header class=book-header><div class="flex align-center justify-between"><label for=menu-control><img src=/doc/svg/menu.svg class=book-icon alt=Menu></label>
-<strong>Kubernetes实验（三）</strong>
-<label for=toc-control><img src=/doc/svg/toc.svg class=book-icon alt="Table of Contents"></label></div><aside class="hidden clearfix"><nav id=TableOfContents><ul><li><a href=#kubernetes实验三-kubernetes的基本使用>Kubernetes实验（三） Kubernetes的基本使用</a><ul><li><a href=#实验目的>实验目的</a></li><li><a href=#配置资源的两种方式>配置资源的两种方式</a><ul><li><a href=#使用命令>使用命令</a></li><li><a href=#使用配置文件>使用配置文件</a></li><li><a href=#yaml>YAML</a></li></ul></li><li><a href=#调度pod>调度Pod</a><ul><li><a href=#deployment>Deployment</a></li><li><a href=#replicaset>ReplicaSet</a></li><li><a href=#伸缩>伸缩</a></li><li><a href=#故障转移>故障转移</a></li><li><a href=#job>Job</a></li><li><a href=#其他controller>其他Controller</a></li></ul></li><li><a href=#service>Service</a><ul><li><a href=#创建service>创建Service</a></li><li><a href=#暴露端口>暴露端口</a></li></ul></li><li><a href=#滚动更新>滚动更新</a></li><li><a href=#数据管理>数据管理</a><ul><li><a href=#使用hostpath>使用hostPath</a></li><li><a href=#使用pv和pvc>使用PV和PVC</a></li></ul></li><li><a href=#动手做>动手做</a></li></ul></li></ul></nav></aside></header><article class=markdown><h1 id=kubernetes实验三-kubernetes的基本使用>Kubernetes实验（三） Kubernetes的基本使用
-<a class=anchor href=#kubernetes%e5%ae%9e%e9%aa%8c%e4%b8%89-kubernetes%e7%9a%84%e5%9f%ba%e6%9c%ac%e4%bd%bf%e7%94%a8>#</a></h1><h2 id=实验目的>实验目的
+<input type=checkbox class="hidden toggle" id=toc-control><main class="container flex"><aside class=book-menu><div class=book-menu-content><nav><h2 class=book-brand><a class="flex align-center" href=/doc/><span>软院云平台文档</span></a></h2><div class=book-search><input type=text id=book-search-input placeholder=Search aria-label=Search maxlength=64 data-hotkeys=s/><div class="book-search-spinner hidden"></div><ul id=book-search-results></ul></div><ul><li><a href=https://scs.buaa.edu.cn/doc/02_bugit/>BuGit代码托管与自动部署平台</a><ul><li><a href=https://scs.buaa.edu.cn/doc/02_bugit/build_deploy/>自动构建与部署</a></li></ul></li><li><a href=https://scs.buaa.edu.cn/doc/01_common/>云平台使用手册</a><ul><li><a href=https://scs.buaa.edu.cn/doc/01_common/virtual_machine_help/>虚拟机使用说明</a></li></ul></li><li><a href=https://scs.buaa.edu.cn/doc/cloud-labs/>大数据和云计算综合实践</a><ul><li><a href=https://scs.buaa.edu.cn/doc/cloud-labs/cloud/>云计算实验</a><ul><li><a href=https://scs.buaa.edu.cn/doc/cloud-labs/cloud/container_docker/>容器与Docker综合实验</a></li><li><a href=https://scs.buaa.edu.cn/doc/cloud-labs/cloud/cloud_course_design/>云计算课程设计</a></li><li><a href=https://scs.buaa.edu.cn/doc/cloud-labs/cloud/kube-single-3/ class=active>Kubernetes综合实验</a></li><li><a href=https://scs.buaa.edu.cn/doc/cloud-labs/cloud/faq/>FAQ</a></li></ul></li></ul></li><li><a href=https://scs.buaa.edu.cn/doc/ns-labs/>网络存储实验规划</a><ul><li><a href=https://scs.buaa.edu.cn/doc/ns-labs/table-of-contents/>Table of Contents</a><ul><li><a href=https://scs.buaa.edu.cn/doc/ns-labs/table-of-contents/raid/>Lab01 RAID 阵列</a></li><li><a href=https://scs.buaa.edu.cn/doc/ns-labs/table-of-contents/virtualization/>Lab02 虚拟化实验</a></li></ul></li><li><a href=https://scs.buaa.edu.cn/doc/ns-labs/resources/>Resources</a><ul><li><a href=https://scs.buaa.edu.cn/doc/ns-labs/resources/os/>操作系统</a></li></ul></li></ul></li></ul><ul><li><a href=https://github.com/bugitt/doc target=_blank rel=noopener>Github</a></li></ul></nav><script>(function(){var e=document.querySelector("aside .book-menu-content");addEventListener("beforeunload",function(){localStorage.setItem("menu.scrollTop",e.scrollTop)}),e.scrollTop=localStorage.getItem("menu.scrollTop")})()</script></div></aside><div class=book-page><header class=book-header><div class="flex align-center justify-between"><label for=menu-control><img src=/doc/svg/menu.svg class=book-icon alt=Menu></label>
+<strong>Kubernetes综合实验</strong>
+<label for=toc-control><img src=/doc/svg/toc.svg class=book-icon alt="Table of Contents"></label></div><aside class="hidden clearfix"><nav id=TableOfContents><ul><li><a href=#kubernetes综合实验>Kubernetes综合实验</a><ul><li><a href=#实验目的>实验目的</a></li><li><a href=#背景>背景</a></li><li><a href=#初识kubernetes>初识Kubernetes</a><ul><li><a href=#kubernetes简介>Kubernetes简介</a></li><li><a href=#创建kubernetes集群>创建Kubernetes集群</a></li><li><a href=#使用kubernetes启动第一个容器>使用Kubernetes启动第一个容器</a></li></ul></li><li><a href=#pod>Pod</a><ul><li><a href=#查看pod>查看Pod</a></li><li><a href=#删除pod>删除Pod</a></li><li><a href=#pod的生命周期>Pod的生命周期</a></li><li><a href=#使用yaml文件管理pod>使用YAML文件管理Pod</a></li></ul></li><li><a href=#label>Label</a></li><li><a href=#pod-controller>Pod Controller</a><ul><li><a href=#controller>Controller</a></li><li><a href=#pod-controller-1>Pod Controller</a></li><li><a href=#deployment>Deployment</a></li><li><a href=#其他pod-controller>其他Pod Controller</a></li></ul></li><li><a href=#service>Service</a><ul><li><a href=#创建service>创建Service</a></li><li><a href=#暴露端口>暴露端口</a></li></ul></li><li><a href=#基于云的课程设计二选一>基于云的课程设计（二选一）</a><ul><li><a href=#选项一云paas平台设计>选项一：云PaaS平台设计</a></li><li><a href=#选项二数据分析开发环境迁移上云>选项二：“数据分析开发环境”迁移上云</a></li></ul></li></ul></li></ul></nav></aside></header><article class=markdown><h1 id=kubernetes综合实验>Kubernetes综合实验
+<a class=anchor href=#kubernetes%e7%bb%bc%e5%90%88%e5%ae%9e%e9%aa%8c>#</a></h1><h2 id=实验目的>实验目的
 <a class=anchor href=#%e5%ae%9e%e9%aa%8c%e7%9b%ae%e7%9a%84>#</a></h2><ul><li>了解Kubernetes的各种特性</li><li>掌握Kubernetes的常用功能</li></ul><blockquote class="book-hint danger"><p><strong>注意事项</strong></p><ol><li>本次分配的机器的账户和密码为：</li></ol><pre tabindex=0><code>buaa: &amp;shieshuyuan21
-root: &amp;&amp;shieshuyuan21
-</code></pre><p><strong>务必首先修改机器的root和buaa账户的密码</strong></p><ol start=2><li><p>请务必阅读
-<a href=/doc/01_common/virtual_machine_help/>虚拟机使用说明</a>。</p></li><li><p>分配的虚拟机中，已经安装了Docker，无需重复安装；并设置了Docker镜像地址（该地址指向校内地址），理论上docker.io中的镜像不用联网即可拉取。例如可以直接在虚拟机上<code>docker pull nginx</code>。</p></li></ol></blockquote><blockquote class="book-hint warning"><p><strong>创建Kubernetes集群</strong></p><p>在实验开始前，请利用云平台提供的虚拟机或者自己的本地资源，创建一个至少包含两节点的Kubernetes集群。</p><p>详情请参考：
-<a href=/doc/cloud-labs/cloud/appendix_create_kubernetes/>附录：创建Kubernetes集群</a></p></blockquote><h2 id=配置资源的两种方式>配置资源的两种方式
-<a class=anchor href=#%e9%85%8d%e7%bd%ae%e8%b5%84%e6%ba%90%e7%9a%84%e4%b8%a4%e7%a7%8d%e6%96%b9%e5%bc%8f>#</a></h2><h3 id=使用命令>使用命令
-<a class=anchor href=#%e4%bd%bf%e7%94%a8%e5%91%bd%e4%bb%a4>#</a></h3><p>回想之前我们之前初始化Kubernetes集群后，执行过的命令：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>kubectl create deployment nginx-test --image<span style=color:#f92672>=</span>harbor.scs.buaa.edu.cn/library/nginx --replicas<span style=color:#f92672>=</span><span style=color:#ae81ff>2</span> --port<span style=color:#f92672>=</span><span style=color:#ae81ff>80</span>
-</span></span></code></pre></div><p>使用kubectl命令创建资源时，会将Pod的配置都写入命令参数中。以我们执行过的<code>kubectl create</code>命令（在集群中使用指定镜像启动容器）为例，命令中包含了镜像名（<code>--image</code>）、伸缩情况（<code>--replicas</code>）。当然，<code>kubectl</code>命令还有许多其他的功能，详情可以在
-<a href=https://kubernetes.io/docs/reference/generated/kubectl/kubectl-commands>Kubernetes文档-kubectl命令</a>看到。</p><p>直接使用kubectl创建资源简单、直观、快捷，很适合临时测试或者试验。但实际上，创建资源时通常需要一系列的配置，如果单纯使用kubectl命令会比较麻烦，因此通常在配置资源会使用yaml配置文件。</p><h3 id=使用配置文件>使用配置文件
-<a class=anchor href=#%e4%bd%bf%e7%94%a8%e9%85%8d%e7%bd%ae%e6%96%87%e4%bb%b6>#</a></h3><p>在之前的实验中，我们使用了这个命令来安装Weave Scope</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>kubectl apply -f https://git-v1.scs.buaa.edu.cn/iobs/static_files/raw/main/kube/weave_scope/scope.yml
-</span></span></code></pre></div><p>这个命令实际上从后面的地址读取了一个yaml配置文件，并根据这个文件来配置资源。如果你将这个文件打开，你会看到这样的内容（省略了很多内容）：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>apiVersion</span>: <span style=color:#ae81ff>v1</span>
-</span></span><span style=display:flex><span><span style=color:#f92672>kind</span>: <span style=color:#ae81ff>List</span>
-</span></span><span style=display:flex><span><span style=color:#f92672>items</span>:
-</span></span><span style=display:flex><span>  - <span style=color:#f92672>apiVersion</span>: <span style=color:#ae81ff>v1</span>
-</span></span><span style=display:flex><span>    <span style=color:#f92672>kind</span>: <span style=color:#ae81ff>Namespace</span>
-</span></span><span style=display:flex><span>    <span style=color:#f92672>metadata</span>:
-</span></span><span style=display:flex><span>      <span style=color:#f92672>name</span>: <span style=color:#ae81ff>weave</span>
-</span></span><span style=display:flex><span>      <span style=color:#f92672>annotations</span>:
-</span></span><span style=display:flex><span>        <span style=color:#f92672>cloud.weave.works/version</span>: <span style=color:#ae81ff>v1.0.0-302-g76376bb</span>
-</span></span><span style=display:flex><span>  - <span style=color:#f92672>apiVersion</span>: <span style=color:#ae81ff>v1</span>
-</span></span><span style=display:flex><span>    <span style=color:#f92672>kind</span>: <span style=color:#ae81ff>ServiceAccount</span>
-</span></span><span style=display:flex><span>    <span style=color:#f92672>metadata</span>:
-</span></span><span style=display:flex><span>      <span style=color:#f92672>name</span>: <span style=color:#ae81ff>weave-scope</span>
-</span></span><span style=display:flex><span>      <span style=color:#f92672>labels</span>:
-</span></span><span style=display:flex><span>        <span style=color:#f92672>name</span>: <span style=color:#ae81ff>weave-scope</span>
-</span></span><span style=display:flex><span>      <span style=color:#f92672>namespace</span>: <span style=color:#ae81ff>weave</span>
-</span></span></code></pre></div><h3 id=yaml>YAML
-<a class=anchor href=#yaml>#</a></h3><blockquote><p><a href=https://yaml.org/>YAML</a>是一种可读性高、用来表达数据序列化的格式。YAML使用空白字符和分行来分隔数据，使用一些符号来标记清单、散列表、标量等资料形态。</p></blockquote><p>常用的YAML语法：</p><ul><li>对象（键值对）：用冒号结构表示。注意，键值对的key无需使用引号。</li><li>纯量：数值直接以字面量表示，布尔值用<code>true</code>和<code>false</code>表示，当值为空时，用<code>~</code>表示。一般情况下，字符串可以不用引号，但是当字符串中包含空格时则必须使用引号（单双均可）。字符串也可以写成多行，但从第二行开始，必须有一个单空格缩进。<strong>换行符会被转换为空格</strong>。对于多行字符串，使用<code>|</code>可以保留换行符，<code>+</code>表示保留文字块末尾的换行，<code>-</code>表示删除字符串末尾的换行。</li><li>数组：数组的成员前以<code>-</code>标记，每个成员一行；也可以在同一行内使用<code>[]</code>。例如：</li></ul><p>事实上，我们常用的用于数据传递的JSON语法是YAML1.2版的子集，将上面的YAML文件转换为我们可能更加熟悉的JSON格式的话：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-json data-lang=json><span style=display:flex><span>{
-</span></span><span style=display:flex><span>  <span style=color:#f92672>&#34;apiVersion&#34;</span>: <span style=color:#e6db74>&#34;v1&#34;</span>,
-</span></span><span style=display:flex><span>  <span style=color:#f92672>&#34;kind&#34;</span>: <span style=color:#e6db74>&#34;List&#34;</span>,
-</span></span><span style=display:flex><span>  <span style=color:#f92672>&#34;items&#34;</span>: [
-</span></span><span style=display:flex><span>    {
-</span></span><span style=display:flex><span>      <span style=color:#f92672>&#34;apiVersion&#34;</span>: <span style=color:#e6db74>&#34;v1&#34;</span>,
-</span></span><span style=display:flex><span>      <span style=color:#f92672>&#34;kind&#34;</span>: <span style=color:#e6db74>&#34;Namespace&#34;</span>,
-</span></span><span style=display:flex><span>      <span style=color:#f92672>&#34;metadata&#34;</span>: {
-</span></span><span style=display:flex><span>        <span style=color:#f92672>&#34;name&#34;</span>: <span style=color:#e6db74>&#34;weave&#34;</span>,
-</span></span><span style=display:flex><span>        <span style=color:#f92672>&#34;annotations&#34;</span>: {
-</span></span><span style=display:flex><span>          <span style=color:#f92672>&#34;cloud.weave.works/version&#34;</span>: <span style=color:#e6db74>&#34;v1.0.0-302-g76376bb&#34;</span>
-</span></span><span style=display:flex><span>        }
-</span></span><span style=display:flex><span>      }
-</span></span><span style=display:flex><span>    },
-</span></span><span style=display:flex><span>    {
-</span></span><span style=display:flex><span>      <span style=color:#f92672>&#34;apiVersion&#34;</span>: <span style=color:#e6db74>&#34;v1&#34;</span>,
-</span></span><span style=display:flex><span>      <span style=color:#f92672>&#34;kind&#34;</span>: <span style=color:#e6db74>&#34;ServiceAccount&#34;</span>,
-</span></span><span style=display:flex><span>      <span style=color:#f92672>&#34;metadata&#34;</span>: {
-</span></span><span style=display:flex><span>        <span style=color:#f92672>&#34;name&#34;</span>: <span style=color:#e6db74>&#34;weave-scope&#34;</span>,
-</span></span><span style=display:flex><span>        <span style=color:#f92672>&#34;labels&#34;</span>: {
-</span></span><span style=display:flex><span>          <span style=color:#f92672>&#34;name&#34;</span>: <span style=color:#e6db74>&#34;weave-scope&#34;</span>
-</span></span><span style=display:flex><span>        },
-</span></span><span style=display:flex><span>        <span style=color:#f92672>&#34;namespace&#34;</span>: <span style=color:#e6db74>&#34;weave&#34;</span>
-</span></span><span style=display:flex><span>      }
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>  ]
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></div><p>这个例子应该可以帮助你理解YAML格式。节选的YAML配置文件会让Kubernetes进行如下工作：</p><ul><li>创建一个Namespace，名字为"weave"，并且将版本信息加到了注释上</li><li>创建一个ServiceAccount，名字为"weave-scope"，并且也注释了一些信息</li></ul><h2 id=调度pod>调度Pod
-<a class=anchor href=#%e8%b0%83%e5%ba%a6pod>#</a></h2><p>前面我们已经稍微了解到，Kubernetes通过各种Controller来管理Pod的生命周期，Kubernetes也提供了数种不同功能的内置Controller。每个控制器管理集群状态的一个特定方面。最常见的情况是：一个特定的控制器使用一种类型的资源作为它的期望状态，控制器管理控制另外一种类型的资源向它的期望状态发展。</p><h3 id=deployment>Deployment
-<a class=anchor href=#deployment>#</a></h3><p>回忆我们运行的第一个Pod：</p><pre><code>运行一个Nginx镜像
-
-```bash
-kubectl create deployment nginx-test --image=harbor.scs.buaa.edu.cn/library/nginx --replicas=2 --port=80
-```
-
-查看创建结果
-
-```bash
-sudo kubectl get deployment nginx-test
-```
-</code></pre><p>可以发现我们在查看它的时候使用的是<code>get deployment</code>命令。事实上我们已经部署了包含两个副本的Deployment，它的名字就是<code>nginx-test</code>。</p><blockquote><p>一个Deployment控制器为Pods和ReplicaSets提供描述性的更新方式：描述Deployment中的期望状态，并且Deployment控制器以受控速率更改实际状态，以达到期望状态。</p></blockquote><p>在这个例子中，我们的“期望状态”就是启动一个有两个副本的Nginx镜像。在这个过程中，我们创建了一个Deployment对象，通过Deployment生成了对应的ReplicaSet并完成了Pod副本的创建过程。除此之外，Deployment的主要功能还有以下几个：</p><ul><li><p>检查Deployment的状态来看部署动作是否完成（Pod副本的数量是否达到了预期的值）</p><ul><li>例如，在本例中，如果你执行<code>kubectl create</code>命令后马上执行<code>kubectl get deployment</code>命令，你可能会看到<code>READY</code>一栏并不是<code>2/2</code>，<code>AVAILABLE</code>一栏也不是<code>2</code>，也就是说，部署动作尚未完成，Pod副本数量没有达到预期的值（2）。</li></ul></li><li><p>更新Deployment以创建新的Pod（比如镜像升级）</p></li><li><p>回滚之前的Deployment版本</p></li><li><p>暂停Deployment（修改Pod中的镜像信息，之后再恢复Deployment进行新的发布）</p></li><li><p>扩展Deployment（以应对高负载情况）</p></li><li><p>清理不再需要的旧版本ReplicaSet</p></li><li><p>查看更详细的信息：<code>kubectl describe deployment nginx-test</code></p><pre tabindex=0><code>Name:                   nginx-test
-Namespace:              default
-CreationTimestamp:      Fri, 14 May 2021 15:46:51 +0800
-Labels:                 app=nginx-test
-Annotations:            deployment.kubernetes.io/revision: 1
-Selector:               app=nginx-test
-Replicas:               2 desired | 2 updated | 2 total | 2 available | 0 unavailable
-StrategyType:           RollingUpdate
-MinReadySeconds:        0
-RollingUpdateStrategy:  25% max unavailable, 25% max surge
-Pod Template:
-  Labels:  app=nginx-test
-  Containers:
-  nginx:
-    Image:        harbor.scs.buaa.edu.cn/library/nginx
-    Port:         80/TCP
-    Host Port:    0/TCP
-    Environment:  &lt;none&gt;
-    Mounts:       &lt;none&gt;
-  Volumes:        &lt;none&gt;
-Conditions:
-  Type           Status  Reason
-  ----           ------  ------
-  Available      True    MinimumReplicasAvailable
-  Progressing    True    NewReplicaSetAvailable
-OldReplicaSets:  &lt;none&gt;
-NewReplicaSet:   nginx-test-6884fd56dd (2/2 replicas created)
-Events:          &lt;none&gt;
-</code></pre></li></ul><p>大多数内容都是自解释的，比如Deployment的名字、命名空间、创建时间等等。我们主要关注最后的一些信息：<code>NewReplicaSet</code>和<code>Events</code>。这些信息告诉我们Deployment创建了一个新的ReplicaSet，其中包含2个副本。</p><h4 id=deployment配置文件>Deployment配置文件
-<a class=anchor href=#deployment%e9%85%8d%e7%bd%ae%e6%96%87%e4%bb%b6>#</a></h4><p>以之前的<code>nginx-test</code>为例，它的配置文件可以写成</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#75715e>#nginx-test</span>
-</span></span><span style=display:flex><span><span style=color:#f92672>apiVersion</span>: <span style=color:#ae81ff>apps/v1</span>
+</code></pre><p>为了避免权限问题，建议切换到root账户操作：</p><ul><li>首先使用<code>sudo passwd root</code>为root账户设置密码</li><li>然后使用<code>sudo su</code>命令切换到root账户</li></ul><p><strong>务必首先修改机器的root和buaa账户的密码</strong></p><ol start=2><li><p>请务必阅读
+<a href=../..//01_common/virtual_machine_help.md>虚拟机使用说明</a>。</p></li><li><p>分配的虚拟机中，已经安装了Docker，无需重复安装。</p></li></ol></blockquote><h2 id=背景>背景
+<a class=anchor href=#%e8%83%8c%e6%99%af>#</a></h2><p>上学期的云计算课中，我们主要了解了什么是容器，以及目前最流行的容器运行时和容器管理工具Docker；并且在此过程中体会了容器技术给软件开发和部署带来的极大的便利性。</p><p>但到此为止，我们对容器的使用和管理依旧处于非常“手工”的状态，难以胜任实际生产环境中对容器管理的要求。在实际生产环境中，</p><ol><li>通常一个应用包含多个容器；即，一个应用的部署，需要按照一定的顺序启动多个容器。例如，即便是一个最简单的前后端应用，我们也需要<strong>依次</strong>启动三个容器：数据库容器（例如一个MySQL容器）、后端应用容器、前端应用容器（通常是一个Nginx容器）。特别是在微服务场景中，后端可能涉及到几十个微服务模块，每个模块都对应着一个容器，不同服务之间又有复杂的依赖调用关系。</li><li>每个类别的服务通常会有多个容器实例。对于一些负载较高的服务，通常会部署多个相同的容器实例达到负载均衡的效果，从而提高服务整体的吞吐量。</li><li>容器是不稳定的，随时可能会因为各种各样的原因挂掉，因此，需要时刻监控容器的状态，在它挂掉的时候及时重新启动服务，保证服务整体的高可用。</li><li>大部分应用都是分布式的。即，一个应用中的不同服务是部署在不同机器上的，即使是一个服务的不同实例往往也会部署在多个机器上。如何在多台机器上做好资源（内存、CPU、磁盘）的负载均衡（即，避免出现某些机器负载过高的同时，其他机器负载空闲的情况）也是棘手的问题。</li></ol><p>如果仅靠我们已经学到的几个docker命令显然是难以完成上述任务的。这就需要一个专门的容器编排调度工具帮我们处理这些事情。自Docker兴起后，很多厂商都进入该领域并推出了自己的容器编排调度解决方案，例如Docker Swarm、Mesos等，都想在新兴的容器市场中分一杯羹，但最终Kubernetes笑到了最后，并且作为CNCF的毕业项目，成为了当下容器编排调度领域的事实标准。本次实验我们就来认识一下Kubernetes，学习并实践其中一些基本概念。</p><p><img src=download/VI8sKsx.jpg alt></p><p>Kubernetes以其复杂难懂著称，在本次实验中，我们主要学习其中最基本的部分，培养大家对Kubernetes的感性认识，帮助大家开始入门云计算领域。</p><p><img src=download/HtGSlKi.png alt></p><h2 id=初识kubernetes>初识Kubernetes
+<a class=anchor href=#%e5%88%9d%e8%af%86kubernetes>#</a></h2><h3 id=kubernetes简介>Kubernetes简介
+<a class=anchor href=#kubernetes%e7%ae%80%e4%bb%8b>#</a></h3><p>Kubernetes在希腊语中的含义是船长/领航员，这个名字生动地体现了它在容器集群管理中的作用——调度和监控全局的集装箱（container，容器）。由于Kubernetes这个单词太长，人们通常会用k8s来作为简称（Kubernetes的首尾两个字母之间正好有8个字母）。</p><p>请始终记住，Kubernetes和Docker之类的容器运行时不是互相替代的关系，也不是包含与被包含的关系，而是互补的关系。Kubernetes仅仅是一个容器编排和调度工具，其必须运行在“容器运行时（container runtime）”之上。它能做的仅仅是接收用户的命令，然后通知其下层的容器运行时做具体的工作。</p><p><img src=download/a0rNhUd.png alt></p><p>上图可以看出，在之前，我们是直接通过Docker命令行或Docker HTTP接口来与Docker容器运行时通信，控制其构建镜像、推送或拉取镜像、启动或停止容器，等等。</p><p>而现在，我们可以通过Kubernetes的命令行工具（即Kubectl）或Kubernetes的HTTP接口来控制Kubernetes，然后，Kubernetes会根据我们发出的命令，“翻译”成对应的Docker容器运行时的调用，从而控制Docker容器运行时构建镜像、推送或拉取镜像、启动或停止容器等等。</p><p>另外，请注意，Kubernetes是一个非常模块化的系统，它定义了一套“容器运行时接口（CRI）”，凡是实现了这套接口的容器运行时都可以作为Kubernetes运行容器的后端。目前比较流行的有Containerd和CRI-O，实际上，从1.20版本开始，Kubernetes官方已经弃用Docker引擎作为容器运行时。</p><p><img src=download/KBTozW2.png alt></p><blockquote><p>在本次实验中，为了前后知识的连贯性，我们依旧选择使用Docker作为Kubernetes的容器运行时。</p></blockquote><h3 id=创建kubernetes集群>创建Kubernetes集群
+<a class=anchor href=#%e5%88%9b%e5%bb%bakubernetes%e9%9b%86%e7%be%a4>#</a></h3><p>在Kubernetes官网的
+<a href=https://kubernetes.io/docs/setup/>Get Started</a>中，分别给出了面向个人初学者的学习测试环境和一线生产环境的若干Kubernetes集群部署方法。对于生产环境，
+<a href=https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/>Kubernetes官方推荐使用<code>kubeadm</code>来启动集群</a>。但实际上，<code>kubeadm</code>对非专业的运维，特别是初学者来说并不十分友好（需要用户事先完成对主机的一系列配置，如开放防火墙端口、关闭swap、安装容器运行时等），再加上国内特殊的网络环境（<code>kubeadm</code>默认会从<code>gcr.io</code>拉取启动Kubernetes所需的系统镜像），因此不推荐初学者直接使用<code>kubeadm</code>启动集群。</p><p><img src=download/Cr1awaZ.png alt></p><p>云计算生态非常繁荣，社区中已经有很多成熟的工具帮助用户快速启动一个标准的Kubernetes集群用于学习、测试等目的。本实验文档分别针对集群版和本地版提供创建Kubernetes集群的选项，供大家参考和使用。</p><h4 id=集群版>集群版
+<a class=anchor href=#%e9%9b%86%e7%be%a4%e7%89%88>#</a></h4><p><strong>推荐使用此种方式创建集群</strong>，这样有利于在后续章节中学习和实践Kubernetes“集群”的相关特性。如确实有问题，可以切换到个人电脑上使用“单机版”的方式。</p><p>在本次实验中，我们将部署一个简单的
+<a href=https://k3s.io>k3s</a>（注意，不是“k8s”哦！）集群。k3s是通过CNCF认证的Kubernetes的一个发行版，是基于上游的“原生”的Kubernetes的代码进一步构建的。k3s和Kubernetes的关系可以简单类比为Ubuntu、CentOS等于Linux之间的关系。你可以在这里找到k3s官方维护的
+<a href=https://docs.rancher.cn/k3s/>k3s的中文文档</a>。</p><blockquote><p>实际上，还有很多其他的Kubernetes发行版，比如k0s之类的。只不过k3s的中国化做得非常好，在国内的网络环境下使用非常便利，也有大量的资料可以使用，所以我们选用其作为本次实验的主要工具。当然，不同Kubernetes发行版之间存在着各种各样的差异，但这并不影响我们学习Kubernetes的基础知识。</p></blockquote><ol><li><p>准备一台能够连接互联网的Linux机器。如果你选择使用软院云平台分配的机器，可以直接进行下一步；否则，请查看
+<a href=https://docs.rancher.cn/docs/k3s/installation/installation-requirements/_index/>安装要求</a>，确保你的机器满足其中所述条件。</p></li><li><p>确保机器已经安装Docker，并且其版本高于或等于<code>19.03</code>，可以使用<code>docker info</code>命令验证。如果你使用的是软院云平台分配的机器，可直接进行下一步；否则，请注意检查Docker是否正确安装，并且是否正确配置Docker Registry镜像地址，以保证可以顺利从<code>docker.io</code>中拉取镜像。（当然，如果你已经比较熟悉Kubernetes，可以忽略此步骤，选择使用k3s默认集成安装的containerd作为容器运行时。）</p></li><li><p>保证你的机器已经连接互联网。</p></li><li><p><strong>切换到root用户</strong>（如果你觉得root操作危险，请保证自己有足够的能力使用普通用户权限完成所有操作），执行以下命令以初始化一个k3s的master节点（当前不理解什么是“master节点”没有关系，在后续章节中我们会进行详细介绍）：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-shell data-lang=shell><span style=display:flex><span>curl -sfL https://rancher-mirror.oss-cn-beijing.aliyuncs.com/k3s/k3s-install.sh | INSTALL_K3S_MIRROR<span style=color:#f92672>=</span>cn sh -s - --docker
+</span></span></code></pre></div><p>如果你选择使用containerd作为容器运行时，请去除上述命令中的<code>--docker</code>参数。</p></li><li><p>等待上述命令执行结束后，实际上我们的k3s已经安装完成，即，我们已经得到了一个可用的Kubernetes集群。在继续后续操作前，我们先完善一下配置：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-shell data-lang=shell><span style=display:flex><span>echo <span style=color:#e6db74>&#39;export KUBECONFIG=/etc/rancher/k3s/k3s.yaml&#39;</span> &gt;&gt; ~/.bashrc
+</span></span><span style=display:flex><span>source ~/.bashrc
+</span></span></code></pre></div><p>注意，如果你使用的不是bash，请注意更改上述命令。</p></li><li><p>使用<code>kubectl get node</code>验证一下Kubernetes集群是否就绪，一般可以得到如下结果：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-txt data-lang=txt><span style=display:flex><span>NAME     STATUS   ROLES                  AGE    VERSION
+</span></span><span style=display:flex><span>debian   Ready    control-plane,master   2d1h   v1.24.4+k3s1
+</span></span></code></pre></div><p><code>kubectl get node</code>这条命令是自解释的，含义是，获取当前Kubernetes集群中的所有节点信息。可以看到，当前我们这个Kubernetes集群中，仅有一个节点，并且：</p><ul><li>其名字（<code>NAME</code>）是<code>debian</code>（这个名字一般是当前机器的hostname）；</li><li>其状态（<code>STATUS</code>）是<code>Ready</code>（<code>Ready</code>表示节点状态健康，如果你刚刚完成集群创建，这里的状态显示可能是<code>Not Ready</code>，不要着急，等一会儿再看看）；</li><li>其在Kubernetes集群中的角色（<code>ROLES</code>）是<code>control-plane,master</code>，即两个角色：控制面（<code>control-plane</code>）、master；</li><li>其加入当前Kubernetes集群的时间（<code>AGE</code>）是2天1小时（<code>2d1h</code>）前；</li><li>其当前运行的Kubernetes版本号（<code>VERSION</code>）是<code>v1.24.4+k3s1</code>。</li></ul></li></ol><p>到目前为止，我们已经得到了一个可用的Kubernetes集群。但我们注意到，当前该集群中，仅包含一个节点，并且该节点的角色为<code>control-plane,master</code>。在实际生产环境中，很少会有这样的场景，但这对我们完成一些基础的学习和实践任务是完全足够的。如果你想拓展自己的这个单节点集群为真正的生产可用的多节点集群，可以参考
+<a href=https://docs.rancher.cn/docs/k3s/installation/ha-embedded/_index>k3s的文档</a>。</p><h4 id=本地版>本地版
+<a class=anchor href=#%e6%9c%ac%e5%9c%b0%e7%89%88>#</a></h4><p>Kubernetes集群从一开始就是为大规模的生产环境准备的（其最早就起源于Google内部的Borg），因此，我们推荐在本实验中使用集群版的方法创建集群。</p><p>但实际上在很多场景中，我们并不关心Kubernetes的多节点特性，而更关心如何快速在本地机器上启动一个Kubernetes集群用于简单的学习和测试目的。在这里，我们使用
+<a href=https://minikube.sigs.k8s.io/docs/>minikube</a>介绍如何在你 <strong>本地的电脑（Windows或macOS）</strong> 中启动一个简单的Kubernetes集群。</p><blockquote><p>从名字上可以看出minikube表示“mini kubernetes”。</p></blockquote><blockquote><p>需要提前说明的是，minikube本质上是在你的Windows或macOS上启动了一个虚拟机，并在这个虚拟机中配置了Kubernetes的相关组件。因此，minikube用起来不会和k3s那样“直接”，在需要的时候，请及时查阅
+<a href=https://minikube.sigs.k8s.io/docs/>其文档</a>。</p></blockquote><p>本节内容只能保证你能成功启动一个minikube实例，如果你需要进一步的个性化配置，请参考
+<a href=https://minikube.sigs.k8s.io/docs/start/>安装文档</a>。</p><p>理论上，minkube的安装非常简单，按照其官方文档的介绍进行即可。但由于众所周知的网络问题，我们这里对官方文档的步骤进行了一些修改。</p><ol><li><p>确保已经安装Docker，并且自己的计算机已经联网。</p></li><li><p>安装minikube二进制文件。请进入
+<a href=https://minikube.sigs.k8s.io/docs/start/>这个地址</a>，进入“Installation”一节，选择自己合适的选型，按照提示，进行下载和安装。完成该步骤后，无需进行该网页中的后续步骤，请回到本文档。
+<img src=download/qiMEbTT.png alt></p></li><li><p>使用minikube启动一个Kubernetes集群（注意根据自己电脑配置的实际情况调整命令中<code>--cpus</code>和<code>--memory</code>的值）：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-shell data-lang=shell><span style=display:flex><span>minikube start --driver<span style=color:#f92672>=</span>docker --cpus<span style=color:#f92672>=</span><span style=color:#ae81ff>4</span> --memory<span style=color:#f92672>=</span>4096mb --registry-mirror<span style=color:#f92672>=</span>https://mirror.baidubce.com --image-repository<span style=color:#f92672>=</span>registry.cn-hangzhou.aliyuncs.com/google_containers
+</span></span></code></pre></div><p>然后，你大概会得到如下的输出：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-txt data-lang=txt><span style=display:flex><span>😄  Darwin 13.0 上的 minikube v1.26.1
+</span></span><span style=display:flex><span>✨  根据用户配置使用 docker 驱动程序
+</span></span><span style=display:flex><span>✅  正在使用镜像存储库 registry.cn-hangzhou.aliyuncs.com/google_containers
+</span></span><span style=display:flex><span>📌  Using Docker Desktop driver with root privileges
+</span></span><span style=display:flex><span>👍  Starting control plane node minikube in cluster minikube
+</span></span><span style=display:flex><span>🚜  Pulling base image ...
+</span></span><span style=display:flex><span>🔥  Creating docker container (CPUs=4, Memory=4096MB) ...
+</span></span><span style=display:flex><span>🐳  正在 Docker 20.10.17 中准备 Kubernetes v1.24.3…
+</span></span><span style=display:flex><span>🔎  Verifying Kubernetes components...
+</span></span><span style=display:flex><span>    ▪ Using image registry.cn-hangzhou.aliyuncs.com/google_containers/storage-provisioner:v5
+</span></span><span style=display:flex><span>🌟  Enabled addons: default-storageclass, storage-provisioner
+</span></span><span style=display:flex><span>🏄  Done! kubectl is now configured to use &#34;minikube&#34; cluster and &#34;default&#34; namespace by default
+</span></span></code></pre></div><p>从输出信息可以看出，我们的Kubernetes集群已经成功在我们自己的电脑上启动好了。</p></li><li><p>集群启动完成后，我们该如何访问集群呢？在k3s部分的介绍中，我们使用的是<code>kubectl</code>这个工具（还记得那个<code>kubectl get nodes</code>命令吗？）k3s在安装的时候默认会安装<code>kubectl</code>，minikube也会自动下载<code>kubectl</code>这个工具，但使用起来比较麻烦。因此，我们推荐手动安装一下<code>kubectl</code>。具体安装方法在
+<a href=https://kubernetes.io/docs/tasks/tools/#kubectl>Kubernetes的文档</a>中写得非常详细，按照其说明自行安装即可，此处不再赘述。
+<img src=download/icq8sSN.png alt></p></li><li><p>最后，我们还是使用<code>kubectl get node</code>来验证集群的安装情况：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-shell data-lang=shell><span style=display:flex><span>$ kubectl get node
+</span></span><span style=display:flex><span>NAME       STATUS   ROLES           AGE   VERSION
+</span></span><span style=display:flex><span>minikube   Ready    control-plane   22h   v1.24.3
+</span></span></code></pre></div></li></ol><h3 id=使用kubernetes启动第一个容器>使用Kubernetes启动第一个容器
+<a class=anchor href=#%e4%bd%bf%e7%94%a8kubernetes%e5%90%af%e5%8a%a8%e7%ac%ac%e4%b8%80%e4%b8%aa%e5%ae%b9%e5%99%a8>#</a></h3><p>前面提到，Kubernetes最大的作用就是用来“管理容器”。因此，我们的第一个Kubernetes操作就从“创建一个容器”开始。</p><p>执行：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-shell data-lang=shell><span style=display:flex><span>kubectl run first-container --image<span style=color:#f92672>=</span>docker.io/library/nginx --port<span style=color:#f92672>=</span><span style=color:#ae81ff>80</span>
+</span></span></code></pre></div><p>上述命令是自解释的，表示使用<code>kubectl</code>创建一个名为<code>first-contaier</code>的容器，创建该容器使用的镜像是<code>docker.io/library/nginx</code>，并在创建完容器后，暴露出容器的<code>80</code>端口。</p><blockquote><p>上述的“创建一个名为<code>first-contaier</code>的容器”的表述并不准确，后面会详细解释。</p></blockquote><p><img src=download/rBIa9W3.png alt></p><p>执行完上述命令后，我们可以接着使用<code>kubectl get pod</code>查看当前所创建的容器的状态：</p><p><img src=download/VEsL5y2.png alt></p><p>可以看到，当前这个<code>fist-container</code>的<code>STATUS</code>是<code>ContainerCreating</code>，表示容器正在被创建。稍等一会儿我们再看一下：</p><p><img src=download/yXQkeUH.png alt></p><p>此时容器的<code>STATUS</code>是<code>Running</code>，表示容器已经成功运行了。</p><p>前面我们还提到，Kubernetes并不会替代Docker容器运行时的工作，而只是作为一个管理者在上层存在。那么，我们刚才创建的这个<code>first-contaienr</code>本质上应该是Docker容器运行时“代劳”的，那么我们应该可以使用<code>docker ps</code>看到刚才的创建的容器。事实也确实如此。</p><p><img src=download/BH1XR8y.png alt></p><p>我们再来对比一下使用Kubernetes创建容器和使用Docker创建容器的异同：</p><p><img src=download/RFXpJ1p.png alt></p><p>至此，想必大家已经对Kubernetes有了非常朴素的初步认知，接下来就让我们深入了解一下Kubernetes的一些基础概念。</p><h2 id=pod>Pod
+<a class=anchor href=#pod>#</a></h2><p>想必细心的同学已经发现了，前面在使用<code>kubectl run</code>创建容器的时候，命令返回的提示信息是<code>pod/first-container created</code>：</p><p><img src=download/qWgiOVm.png alt></p><p>意思是，一个名为<code>first-container</code>的pod被创建了。我们创建的不是容器吗？这个“pod”是什么东西？</p><p>Pod是Kubernetes中的基本执行单元，即管理、创建、计划的最小单元（而不是<strong>容器</strong>）。一个Pod中可以包含多个容器，可以把Pod理解为“容器组”。在英文中，pod的意思是“豆荚”，豆荚中一般会包含多个豆子，豆荚和豆子的关系就类似于Pod和容器的关系。Pod内的各个容器共享网络和存储。比如可以使用localhost互相通信。</p><p><img src=download/XVqHtBc.png alt></p><p>在上一小节的“使用Kubernetes启动第一个容器”中，我们实际上是创建了一个名为“first-container”的Pod，这个Pod中包含了一个Nginx Container，而这个container，恰恰是我们使用<code>docker ps</code>看到的那个容器。</p><p><img src=download/5x1MNrv.jpg alt></p><h3 id=查看pod>查看Pod
+<a class=anchor href=#%e6%9f%a5%e7%9c%8bpod>#</a></h3><p>Kubernetes的接口非常<code>Restful</code>，即对其进行的任何操作都可以归结为对各种资源的增删改查。因此，当我们想查看当前集群中的Pod时，只需要使用<code>get</code>方法<code>kubectl get pod</code>：</p><p><img src=download/a4zywa8.png alt></p><p>如果你已经知道了自己要查看的Pod名字，可以直接指定名称，例如<code>kubectl get pod first-container</code>：</p><p><img src=download/jYeie75.png alt></p><p>可以使用<code>-o wide</code>参数查看Pod更详细的内容：</p><p><img src=download/4H1HkQ4.png alt></p><p>可以看到，上述命令的输出中，包含了Pod的IP，这个IP是我们访问容器的重要工具。由于我们在<code>first-container</code>中启动的是一个Nginx Container，并且暴露了80端口，因此，可以通过该IP的80端口访问到Nginx Container：</p><p><img src=download/47u2p6X.png alt></p><h3 id=删除pod>删除Pod
+<a class=anchor href=#%e5%88%a0%e9%99%a4pod>#</a></h3><p>删除Pod很简单：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-txt data-lang=txt><span style=display:flex><span>$ kubectl delete pod first-container
+</span></span><span style=display:flex><span>pod &#34;first-container&#34; deleted
+</span></span></code></pre></div><h3 id=pod的生命周期>Pod的生命周期
+<a class=anchor href=#pod%e7%9a%84%e7%94%9f%e5%91%bd%e5%91%a8%e6%9c%9f>#</a></h3><p><code>kubectl get pod</code>中使用<code>--watch</code>参数可以监控集群中Pod的变化。接下来，我们通过使用<code>--watch</code>参数来学习Pod的生命周期。</p><p>首先打开两个终端窗口。在其中一个终端中，输入<code>kubectl get pod --watch</code>。该命令不会立即返回，而是会持续一段时间，在此过程中，集群中Pod发生的变化都会在该终端中输出：</p><p><img src=download/xn2ZmU5.png alt></p><p>然后，我们在另一个终端窗口中，依次执行Pod的创建操作：</p><p><img src=download/jPqQn7s.png alt></p><p>耐心等待一会儿，注意观察左侧终端窗口的变化。可以发现，名为<code>first-container</code>的Pod被创建，其状态</p><ol><li>最开始是<code>Pending</code>，表示Pod已经被Kubernetes系统接受，正在等待被创建。</li><li>然后<code>ContainerCreating</code>，表示Pod中的容器正在被创建中，这个过程可能会从网络拉取镜像，所以可能花费较长时间，特别是网络状态不好的时候。</li><li>最后是<code>Running</code>，并且其状态将最终停留在<code>Running</code>。当Pod状态为<code>Running</code>时，说明其已经被成功创建并正常运行了。</li></ol><p>下面，我们在右侧的终端窗口中，删除刚创建的Pod：</p><p><img src=download/MAmv5Gt.png alt></p><p>可以看到，Pod的状态变成了<code>Terminating</code>（中止），并最终不再变化（被删除了）。</p><h3 id=使用yaml文件管理pod>使用YAML文件管理Pod
+<a class=anchor href=#%e4%bd%bf%e7%94%a8yaml%e6%96%87%e4%bb%b6%e7%ae%a1%e7%90%86pod>#</a></h3><p>通畅情况下，我们不会直接使用<code>kubectl run</code>这样的命令行来管理容器，而是使用一个
+<a href=https://yaml.org/>YAML格式</a>的文件来描述Pod。比如，下面是一个典型的Pod的YAML描述：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>apiVersion</span>: <span style=color:#ae81ff>v1</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>kind</span>: <span style=color:#ae81ff>Pod</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>metadata</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>name</span>: <span style=color:#ae81ff>nginx-yaml</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>spec</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>containers</span>:
+</span></span><span style=display:flex><span>  - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>nginx</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>image</span>: <span style=color:#ae81ff>nginx:1.14.2</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>ports</span>:
+</span></span><span style=display:flex><span>    - <span style=color:#f92672>containerPort</span>: <span style=color:#ae81ff>80</span>
+</span></span></code></pre></div><p><a href=https://yaml.org/>YAML格式</a>和JSON、XML一样，是一种用于配置描述语言（简单来说就是这种语言一般用来写配置文件）。YAML的语法非常简单，基本由KV键值对组成，并且使用缩进来表示嵌套关系。下面，我们就来详细说明一下上述这个Pod的YAML文件中各个字段的含义。</p><ul><li><code>apiVersion: v1</code>表示该Pod描述适用的Kubernetes的Pod的API版本是v1（如果不理解也问题不大，不影响后续的学习）</li><li><code>kind: Pod</code>表示当前这个YAML描述，描述的对象是一个Pod</li><li><code>metadata</code>表示“元信息”，一般会在这里描述Pod的名字、命名空间等“身份识别信息”。注意，<code>metadata</code>后面没有值，而且第二行缩进，表示<code>metadata</code>的值是一个对象，这个对象包含下面缩进中的若个键值对<ul><li><code>name: nginx-yaml</code>表示，该Pod的名字是<code>nginx-yaml</code>。它位于<code>metadata</code>的缩进中，表示其是<code>metadata</code>的值的一部分。</li></ul></li><li><code>spec</code>是对Pod的具体描述<ul><li><code>containers</code>描述了Pod中会包含哪些容器。可以看到，其第二行的<code>- name: nginx</code>是以<code>- </code>开头的，这说明，containers的值是一个数组，这个数组中的每个元素都是一个对象，这个对象包含了<code>name</code>、<code>image</code>、<code>ports</code>等键值对<ul><li><code>name: nginx</code>表示容器的名字是<code>nginx</code>。这个名字其实没有特殊含义，符合命名规范的情况下，随便写就行</li><li><code>image: nginx:1.14.2</code>表示这个容器使用的镜像是<code>nginx:1.14.2</code></li><li><code>ports</code>表示容器会向外暴露哪些端口</li></ul></li></ul></li></ul><p>将上述Pod的YAML描述保存到一个YAML文件中，如<code>pod-demo.yaml</code>，然后执行<code>kubectl apply -f pod-demo.yaml</code>，即可将该Pod<code>apply</code>到Kubernetes集群中。</p><p><code>apply</code>的含义是，</p><ul><li>如果当前集群中不存在存在文件中对描述的资源，那将创建该资源；</li><li>如果已经存在了，则根据YAML文件中的描述对资源进行更新。</li></ul><p>因此，在我们执行完<code>kubectl apply -f pod-demo.yaml</code>，Kubernetes将会创建一个名为<code>nginx-yaml</code>的Pod。</p><p><img src=download/Bdv52vB.png alt></p><p>类似地，<code>kubectl delete -f pod-demo.yaml</code>将会把<code>pod-demo.yaml</code>文件中定义的资源删除。</p><blockquote><p><code>apply</code>操作体现的是Kubernetes的<strong>声明式编程</strong>的思想，即，我告诉你我想要啥（我只提供一个YAML文件，即我希望最终这个Pod的样子是什么），具体怎么做由你来负责（你怎么创建Pod，怎么启动Container，是你Kubernetes的事，跟我无关）。其实，我们经常使用的SQL就有声明式编程的影子。比如一条<code>SELECT</code>语句，我们只是告诉数据库我们想查什么东西，但具体怎么查，使用哪个索引还是别的什么东西，作为用户的我们并不关系。与声明式编程相对的是命令式编程，即需要用户自己将问题拆解，告诉执行器该怎样一步步地解决问题。</p></blockquote><blockquote><p>在我们后续的学习中，几乎所有的资源都会使用YAML文件来描述。YAML在Kubernetes中使用非常广泛，因此云计算工程师又经常自嘲自己是“YAML工程师”。</p></blockquote><p><img src=download/bip6xtI.png alt></p><h2 id=label>Label
+<a class=anchor href=#label>#</a></h2><p>Kubernetes支持给资源对象打标签（Label）。Pod是Kubernetes中最基本的资源对象，自然也支持打标签（Label）。</p><p>这里所说的标签，其实就是一组键值对（key-value），内容没有限制，只要key不重复，写啥都行；并且Label需要写在<code>metadata</code>里。</p><p>比如，给上一小节用到的<code>nginx-yaml</code>加上标签的话，应该是：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>apiVersion</span>: <span style=color:#ae81ff>v1</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>kind</span>: <span style=color:#ae81ff>Pod</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>metadata</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>name</span>: <span style=color:#ae81ff>nginx-yaml</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>labels</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>kkk</span>: <span style=color:#ae81ff>hahaha</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>hhh</span>: <span style=color:#ae81ff>hahaha</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>kubernetes</span>: <span style=color:#ae81ff>yyds</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>spec</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>containers</span>:
+</span></span><span style=display:flex><span>  - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>nginx</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>image</span>: <span style=color:#ae81ff>nginx:1.14.2</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>ports</span>:
+</span></span><span style=display:flex><span>    - <span style=color:#f92672>containerPort</span>: <span style=color:#ae81ff>80</span>
+</span></span></code></pre></div><p>上面的代码给Pod加上了三个标签，<code>kkk: hahaha</code>，<code>hhh: hahaha</code>，<code>kubernetes: yyds</code>。</p><p>我们将修改后的<code>pod-demo.yaml</code>重新<code>apply</code>一下，即可给Pod打上这三个标签：</p><p><img src=download/R83PBEH.png alt></p><p>从输出内容可以看出，<code>nginx-yaml</code>这个pod被更新了。</p><p>如何验证我们设置的标签生效了呢？可以在<code>kubectl get pod</code>的时候使用<code>-l</code>参数，例如<code>kubectl get pod -l kkk=hahaha</code>就将返回那些被打上<code>kkk: hahaha</code>标签的Pod：</p><p><img src=download/5ytuye4.png alt></p><p>可以想到，如果使用<code>kubectl get pod -l kkk=hiahiahia</code>，那将没有任何结果：</p><p><img src=download/H3GadkW.png alt></p><p>基于Label选取对应的资源，是Kubernetes中非常重要的在不同类型的资源对象间建立联系的方式。</p><h2 id=pod-controller>Pod Controller
+<a class=anchor href=#pod-controller>#</a></h2><p>在介绍容器的时候我们提到过，container是脆弱的。在实际的生产环境中，container中运行的进程很可能因为各种各样的原因挂掉（比如JVM进程OOM），这时候，快速恢复业务的方法是重新启动一个新的容器实例。</p><p>另一方面，为了实现负载均衡或并行计算，我们需要维护相同的多个容器实例，来共同完成任务。</p><p>上述两方面的讨论，归结起来可以表示为：<strong>在集群中维护一定数量的容器实例</strong>。</p><p>纯粹由人工来维护一定数量的容器实例当然是可以的，但那将是十分低效和不可靠的。Kubernetes给出了一种新的解决方法——Pod Controller，来解决这一问题。</p><p>在学习Pod Controller之前，我们先来了解一下Kubernetes中的Controller机制。</p><h3 id=controller>Controller
+<a class=anchor href=#controller>#</a></h3><p>在这里引用Kubernetes文档中给出的关于控制器的讨论：</p><blockquote><p>在机器人技术和自动化领域，控制回路（Control Loop）是一个非终止回路，用于调节系统状态。
+这是一个控制环的例子：房间里的温度自动调节器。
+当你设置了温度，告诉了温度自动调节器你的<strong>期望状态（Desired State）</strong>。 房间的实际温度是<strong>当前状态（Current State）</strong>。 通过对设备的开关控制，温度自动调节器让其当前状态接近期望状态。</p></blockquote><p><img src=download/fSz0mvd.png alt></p><p>和上述提到的“温度自动调节器”类似，Kubernetes中的控制器（Controller）将会<strong>监控当前集群中的状态，并努力使集群的当前状态满足用户设置的目标状态</strong>。</p><h3 id=pod-controller-1>Pod Controller
+<a class=anchor href=#pod-controller-1>#</a></h3><p>Pod Controller，顾名思义，就是用于调节集群中当前Pod状态的Controller。下面，我们依次来介绍几种Kubernetes最常用的Pod Controller。</p><h3 id=deployment>Deployment
+<a class=anchor href=#deployment>#</a></h3><p>Deployment的主要作用是努力使当前集群中的Pod数量与用户期望的状态相同。</p><p>我们先来看一个简单的Deployment的YAML定义：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>apiVersion</span>: <span style=color:#ae81ff>apps/v1</span>
 </span></span><span style=display:flex><span><span style=color:#f92672>kind</span>: <span style=color:#ae81ff>Deployment</span>
 </span></span><span style=display:flex><span><span style=color:#f92672>metadata</span>:
-</span></span><span style=display:flex><span>  <span style=color:#f92672>name</span>: <span style=color:#ae81ff>nginx-test</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>name</span>: <span style=color:#ae81ff>nginx-deployment</span>
 </span></span><span style=display:flex><span><span style=color:#f92672>spec</span>:
-</span></span><span style=display:flex><span>  <span style=color:#f92672>replicas</span>: <span style=color:#ae81ff>2</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>replicas</span>: <span style=color:#ae81ff>3</span>
 </span></span><span style=display:flex><span>  <span style=color:#f92672>selector</span>:
 </span></span><span style=display:flex><span>    <span style=color:#f92672>matchLabels</span>:
-</span></span><span style=display:flex><span>      <span style=color:#f92672>run</span>: <span style=color:#ae81ff>nginx-test</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>kkk</span>: <span style=color:#ae81ff>hahaha</span>
 </span></span><span style=display:flex><span>  <span style=color:#f92672>template</span>:
 </span></span><span style=display:flex><span>    <span style=color:#f92672>metadata</span>:
 </span></span><span style=display:flex><span>      <span style=color:#f92672>labels</span>:
-</span></span><span style=display:flex><span>        <span style=color:#f92672>run</span>: <span style=color:#ae81ff>nginx-test</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>kkk</span>: <span style=color:#ae81ff>hahaha</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>kubernetes</span>: <span style=color:#ae81ff>yyds</span>
 </span></span><span style=display:flex><span>    <span style=color:#f92672>spec</span>:
 </span></span><span style=display:flex><span>      <span style=color:#f92672>containers</span>:
 </span></span><span style=display:flex><span>      - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>nginx</span>
-</span></span><span style=display:flex><span>        <span style=color:#f92672>image</span>: <span style=color:#ae81ff>harbor.scs.buaa.edu.cn/library/nginx</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>image</span>: <span style=color:#ae81ff>nginx:1.14.2</span>
 </span></span><span style=display:flex><span>        <span style=color:#f92672>ports</span>:
 </span></span><span style=display:flex><span>        - <span style=color:#f92672>containerPort</span>: <span style=color:#ae81ff>80</span>
-</span></span><span style=display:flex><span>          <span style=color:#f92672>protocol</span>: <span style=color:#ae81ff>TCP</span>
-</span></span></code></pre></div><p>将上述内容写入文件<code>nginx.yml</code>中，然后执行：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>kubectl apply -f nginx.yml
-</span></span></code></pre></div><p>其效果与我们在实验三中直接执行<code>kubectl create deployment nginx-test --image=harbor.scs.buaa.edu.cn/library/nginx --replicas=2 --port=80</code>效果是完全一样的。</p><p>在上述这个文件<code>nginx.yml</code>中：</p><ul><li><code>apiVersion</code> 当前配置所使用的API版本。其格式为<code>组/版本号</code>，例如刚刚使用的配置文件中，使用Deployment要表明API版本为<code>apps/v1</code>。</li><li><code>kind</code> 当前配置资源的类型</li><li><code>metadata</code> 当前配置资源的元数据。其中<code>name</code>是必填项。</li><li><code>spec</code> 当前资源的规格，此处为Deployment的规格<ul><li><code>replicas</code> 副本数</li><li><code>selector</code> 选择控制的Pod<ul><li><code>matchLabels</code></li></ul></li><li><code>template</code> Pod的模板<ul><li><code>metadata</code> Pod的元数据，至少要定义一个label。每个label是一个键值对，key和value都可以自定义。为了和使用<code>kubectl run</code>创建的Deployment保持一致，这里用了<code>run: nginx-test</code>。<ul><li><code>labels</code></li></ul></li><li><code>spec</code> Pod的规格。此部分定义Pod中每一个容器的属性，对于每一个容器，<code>name</code>和<code>image</code>是必须的。<ul><li><code>ports</code>中详细指明了该容器需要向外暴露哪些端口。</li></ul></li></ul></li></ul></li></ul><h3 id=replicaset>ReplicaSet
-<a class=anchor href=#replicaset>#</a></h3><blockquote><p>ReplicaSet确保任何时间都有指定数量的Pod副本在运行。虽然ReplicaSet可以独立使用，但如今它主要被Deployment用作协调Pod创建、删除和更新的机制。Deployment是一个更高级的概念，它管理ReplicaSet，并向Pod提供声明式的更新以及许多其他有用的功能（比如版本记录、回滚、暂停升级等高级特性）。实际上，我们可能永远<strong>不需要</strong>操作ReplicaSet对象，而是使用Deployment。</p></blockquote><p>查看由Deployment创建的ReplicaSet</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>kubectl get replicaset
-</span></span></code></pre></div><pre tabindex=0><code>NAME                    DESIRED   CURRENT   READY   AGE
-nginx-test-6884fd56dd   2         2         2       6h7m
-</code></pre><p>查看ReplicaSet的详细信息</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>kubectl describe replicaset nginx-test-6884fd56dd
-</span></span></code></pre></div><pre tabindex=0><code>Name:           nginx-test-6884fd56dd
-Namespace:      default
-Selector:       app=nginx-test,pod-template-hash=6884fd56dd
-Labels:         app=nginx-test
-                pod-template-hash=6884fd56dd
-Annotations:    deployment.kubernetes.io/desired-replicas: 2
-                deployment.kubernetes.io/max-replicas: 3
-                deployment.kubernetes.io/revision: 1
-Controlled By:  Deployment/nginx-test
-Replicas:       2 current / 2 desired
-Pods Status:    2 Running / 0 Waiting / 0 Succeeded / 0 Failed
-Pod Template:
-  Labels:  app=nginx-test
-           pod-template-hash=6884fd56dd
-  Containers:
-   nginx:
-    Image:        harbor.scs.buaa.edu.cn/library/nginx
-    Port:         80/TCP
-    Host Port:    0/TCP
-    Environment:  &lt;none&gt;
-    Mounts:       &lt;none&gt;
-  Volumes:        &lt;none&gt;
-Events:           &lt;none&gt;
-</code></pre><p><code>Controlled By</code>指明了此ReplicaSet是由我们之前创建的Deployment所创建的。那么Pod是由什么创建的呢？在之前我们查看Pod时已经知道了Pod的Name，直接查看Pod的详细信息：</p><p>查看Pod详细信息</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>kubectl describe pod nginx-test-6884fd56dd-8j7sg
-</span></span></code></pre></div><pre tabindex=0><code>Name:         nginx-test-6884fd56dd-8j7sg
-Namespace:    default
-Priority:     0
-Node:         k8s-master/10.251.254.114
-Start Time:   Fri, 14 May 2021 15:46:51 +0800
-Labels:       app=nginx-test
-              pod-template-hash=6884fd56dd
-Annotations:  &lt;none&gt;
-Status:       Running
-IP:           10.42.0.17
-IPs:
-  IP:           10.42.0.17
-Controlled By:  ReplicaSet/nginx-test-6884fd56dd
-Containers:
-  nginx:
-    Container ID:   containerd://135a7109de612ec0b0e35e9b9cf3599ffd66f8e383d3a0b02c86d514fd4288fd
-    Image:          harbor.scs.buaa.edu.cn/library/nginx
-    Image ID:       harbor.scs.buaa.edu.cn/library/nginx@sha256:42bba58a1c5a6e2039af02302ba06ee66c446e9547cbfb0da33f4267638cdb53
-    Port:           80/TCP
-    Host Port:      0/TCP
-    State:          Running
-      Started:      Fri, 14 May 2021 15:46:52 +0800
-    Ready:          True
-    Restart Count:  0
-    Environment:    &lt;none&gt;
-    Mounts:
-      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-2fhnf (ro)
-Conditions:
-  Type              Status
-  Initialized       True
-  Ready             True
-  ContainersReady   True
-  PodScheduled      True
-Volumes:
-  kube-api-access-2fhnf:
-    Type:                    Projected (a volume that contains injected data from multiple sources)
-    TokenExpirationSeconds:  3607
-    ConfigMapName:           kube-root-ca.crt
-    ConfigMapOptional:       &lt;nil&gt;
-    DownwardAPI:             true
-QoS Class:                   BestEffort
-Node-Selectors:              &lt;none&gt;
-Tolerations:                 node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
-                             node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
-Events:                      &lt;none&gt;
-</code></pre><p>同样地，从<code>Controlled By</code>中我们可以看到，这里的Pod是由ReplicaSet创建的。根据以上的创建结果，我们可以大概推断出Kubernetes在这个过程中都做了什么：</p><ul><li>用户通过kubectl创建了Deployment，名为<code>nginx-test</code></li><li>该Deployment创建了ReplicaSet，名为<code>nginx-test-6884fd56dd</code></li><li>该ReplicaSet创建了<strong>两个</strong>Pod，名为<code>nginx-test-6884fd56dd-8j7sg</code>和<code>nginx-test-6884fd56dd-rqjxv</code></li></ul><p>同时我们也可以发现，Kubernetes的对象命名方式：<code>对象名=父对象名+字符串</code></p><p>现在，使用<code>kubectl create</code>创建的Pod已经完成了它的使命，之后我们会用新的方式创建新的Pod。</p><p>删除之前部署的Nginx</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>sudo kubectl delete deployment nginx-test
-</span></span></code></pre></div><h3 id=伸缩>伸缩
-<a class=anchor href=#%e4%bc%b8%e7%bc%a9>#</a></h3><p>伸缩是指在线增加或减少Pod的副本数。</p><p>使用前面所说的yml文件的方式再次创建一个名为<code>nginx-test</code>的Deployment。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>kubectl apply -f nginx.yml
-</span></span></code></pre></div><p>我们创建的Deployment有两个副本，执行<code>kubectl get pod -o wide</code>可以看到，两个副本分别运行在master节点和普通节点上：</p><pre tabindex=0><code>NAME                          READY   STATUS    RESTARTS   AGE   IP           NODE         NOMINATED NODE   READINESS GATES
-nginx-test-6478975c66-jtd2r   1/1     Running   0          17s   10.42.0.15   k8s-master   &lt;none&gt;           &lt;none&gt;
-nginx-test-6478975c66-vj48s   1/1     Running   0          17s   10.42.1.92   k8s-node     &lt;none&gt;           &lt;none&gt;
-</code></pre><p>修改yaml配置文件，将<code>replicas</code>改为5，并再次执行</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>kubectl apply -f nginx.yml
-</span></span></code></pre></div><p>再次查看Pod</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>kubectl get pod -o wide
-</span></span></code></pre></div><pre tabindex=0><code>NAME                          READY   STATUS    RESTARTS   AGE   IP           NODE         NOMINATED NODE   READINESS GATES
-nginx-test-6478975c66-jtd2r   1/1     Running   0          66s   10.42.0.15   k8s-master   &lt;none&gt;           &lt;none&gt;
-nginx-test-6478975c66-vj48s   1/1     Running   0          66s   10.42.1.92   k8s-node     &lt;none&gt;           &lt;none&gt;
-nginx-test-6478975c66-8fl7v   1/1     Running   0          5s    10.42.1.93   k8s-node     &lt;none&gt;           &lt;none&gt;
-nginx-test-6478975c66-dgqn5   1/1     Running   0          5s    10.42.1.95   k8s-node     &lt;none&gt;           &lt;none&gt;
-nginx-test-6478975c66-zfpj2   1/1     Running   0          5s    10.42.1.94   k8s-node     &lt;none&gt;           &lt;none&gt;
-</code></pre><p>Pod副本数已经变为了5个。</p><p>再次修改yaml配置文件，将replicas修改为3，并应用更改，再次查看Pod</p><pre tabindex=0><code>NAME                          READY   STATUS    RESTARTS   AGE    IP           NODE         NOMINATED NODE   READINESS GATES
-nginx-test-6478975c66-jtd2r   1/1     Running   0          106s   10.42.0.15   k8s-master   &lt;none&gt;           &lt;none&gt;
-nginx-test-6478975c66-vj48s   1/1     Running   0          106s   10.42.1.92   k8s-node     &lt;none&gt;           &lt;none&gt;
-nginx-test-6478975c66-dgqn5   1/1     Running   0          45s    10.42.1.95   k8s-node     &lt;none&gt;           &lt;none&gt;
-</code></pre><p>Pod副本数变为了3个。</p><h3 id=故障转移>故障转移
-<a class=anchor href=#%e6%95%85%e9%9a%9c%e8%bd%ac%e7%a7%bb>#</a></h3><p><strong>由于服务器资源紧张的原因，本节涉及的开关机操作比较危险，很可能导致虚拟机长时间无响应，因此，本节内容只阅读理解相关内容即可，可以不实践操作。</strong></p><p>这里，我们使用直接关机的方式来模拟Kubernetes集群中有一台机器故障的情况。</p><p>将<strong>node节点</strong>关机，这一步可以在云平台上进行，也可以直接登录node节点，使用<code>sudo shutdown now</code>来直接关机。</p><p>关机后，master节点会找不到node节点，因此node节点会变为<code>NotReady</code>状态。</p><blockquote><p>可能需要等待一段时间才能看到节点状态变为<code>NotReady</code>。不过如果用curl访问node节点上的Nginx服务器，可以马上看到Nginx已经无响应了。</p></blockquote><p>查看节点状态 <code>kubectl get node -o wide</code></p><pre tabindex=0><code>NAME         STATUS     ROLES                  AGE   VERSION        INTERNAL-IP      EXTERNAL-IP   OS-IMAGE             KERNEL-VERSION     CONTAINER-RUNTIME
-k8s-master   Ready      control-plane,master   14d   v1.21.0+k3s1   10.251.254.114   &lt;none&gt;        Ubuntu 20.04.2 LTS   5.4.0-73-generic   containerd://1.4.4-k3s1
-k8s-node     NotReady   &lt;none&gt;                 14d   v1.21.0+k3s1   10.251.254.110   &lt;none&gt;        Ubuntu 20.04.2 LTS   5.4.0-73-generic   containerd://1.4.4-k3s1
-</code></pre><p>可以看到，node节点的状态已经更改为了<code>NotReady</code></p><p>稍等几分钟后，查看Pod <code>kubectl get pod -o wide</code></p><pre tabindex=0><code>NAME                          READY   STATUS        RESTARTS   AGE     IP           NODE         NOMINATED NODE   READINESS GATES
-nginx-test-6478975c66-jtd2r   1/1     Running       0          32m     10.42.0.15   k8s-master   &lt;none&gt;           &lt;none&gt;
-nginx-test-6478975c66-dgqn5   1/1     Terminating   0          31m     10.42.1.95   k8s-node     &lt;none&gt;           &lt;none&gt;
-nginx-test-6478975c66-vj48s   1/1     Terminating   0          32m     10.42.1.92   k8s-node     &lt;none&gt;           &lt;none&gt;
-nginx-test-6478975c66-n7mmj   1/1     Running       0          5m52s   10.42.0.16   k8s-master   &lt;none&gt;           &lt;none&gt;
-nginx-test-6478975c66-jndr8   1/1     Running       0          5m52s   10.42.0.17   k8s-master   &lt;none&gt;           &lt;none&gt;
-</code></pre><p>原来在node节点上的两个Pod副本，都处于<code>Terminating</code>状态。并且master节点上新增了两个Pod副本。处于正常运行状态的Pod副本的总数依然维持在三个。</p><p>进入云平台，打开刚才关掉的服务器，一段时间后再次查看node列表和Pod列表，可以看到节点已经恢复为了<code>Ready</code>状态，处于<code>Terminating</code>的Pod已经被删除。</p><h3 id=job>Job
-<a class=anchor href=#job>#</a></h3><p>Job会创建一个或多个Pod，并确保指定数量的Pod成功终止。当Pod成功完成时，Job将追踪成功完成的情况。当达到指定的成功完成次数时，Job就完成了。删除一个Job将清除它所创建的Pod。Job一般用于定义并启动一个批处理任务。批处理任务通常并行（或串行）启动多个计算进程去处理一批工作项，处理完成后，整个批处理任务结束。</p><p>Kubernetes支持一下几种Job:</p><ul><li>非并行Job: 通常创建一个Pod直至其成功结束</li><li>固定结束次数的Job: 设置<code>.spec.completions</code>，创建多个Pod，直到<code>.spec.completions</code>个Pod成功结束</li><li>带有工作队列的并行Job: 设置<code>.spec.Parallelism</code>但不设置<code>.spec.completions</code>，当所有Pod结束并且至少一个成功时，Job就认为是成功。</li></ul><p>一个运行一次的Job例子:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>apiVersion</span>: <span style=color:#ae81ff>batch/v1</span>
-</span></span><span style=display:flex><span><span style=color:#f92672>kind</span>: <span style=color:#ae81ff>Job</span>
+</span></span></code></pre></div><p><code>apiVersion</code>、<code>kind</code>、<code>metadata</code>都是Deployment的元信息配置，与Pod中的写法非常类似，不再赘述。</p><p><code>spec</code>中包含以下字段：</p><ul><li><code>replicas</code>：表示“副本数”。即该Deployment将会管理多少个Pod。</li><li><code>selector</code>：选择器。表示该Deployment如何在集群中查找到它需要管理的Pod。<code>matchLabels</code>表示被打上<code>kkk: hahaha</code>这个标签的Pod将会被管理。</li><li><code>template</code>中的内容想必大家都很眼熟，这其实就是我们上面提到的一个典型的Pod的描述。</li></ul><p>（可能上面的描述有点抽象，下面我们将举例说明）</p><p>将上述代码保存到本地文件中，例如<code>deployment.yaml</code>，然后执行<code>kubectl apply -f deployment.yaml</code>：</p><p><img src=download/kUrjxDv.png alt></p><p>可以看到，一个名为<code>nginx-deployment</code>的Deployment被创建了。可以使用<code>kubectl get deployment</code>查看：</p><p><img src=download/RgtWh4M.png alt></p><p>如果你得到的<code>AVAILABLE</code>的数量不是3，请耐心等一会儿。</p><p>同时，我们可以查看一下当前集群里的Pod：</p><p><img src=download/abE3SdC.png alt></p><p>可以看到，集群新启动了3个Pod，其名称前缀都是<code>nginx-deployment</code>，说明它们就是被我们刚刚创建的Deployment创建的。下面具体讨论一下这个过程是怎样发生的：</p><ol><li><code>kubectl apply -f nginx-deployment.yaml</code>在Kubernetes集群中创建了一个名为<code>nginx-deployment</code>的Deployment。</li><li>集群中的Deployment控制器发现了新创建的名为<code>nginx-deployment</code>的Deployment，然后尝试解析其中的内容。</li><li>Deployment控制器对Deployment的<code>spec.template</code>部分做hash，得到<code>pod-template-hash</code>的值，例如该值为<code>584784cc75</code>。</li><li>Deployment控制器发现这个Deployment中描述的Pod的副本数是3，并且发现选择器（<code>selector</code>）选取那些带有标签<code>kkk:hahahha</code>的Pod。于是，Deployment控制器尝试检索集群中同时带有标签<code>kkk:hahahha</code>和<code>pod-template-hash:584784cc75</code>的Pod数量，检查其是否是3个。</li><li>Deployment控制器发现上述Pod数量0，于是，根据<code>spec.template</code>中的定义创建3个Pod。</li></ol><p>我们可以尝试删除其中上述Deployment中的某一个Pod，来模拟该Pod意外崩溃的情况：</p><p><img src=download/Yo86Ns4.png alt></p><p>可以在到，在其中一个Pod被删除后（进入<code>Terminating</code>状态后），一个新的Pod立即被创建，补上了缺位。也就是说，Deployment将永远保证集群中，被打上<code>kkk:hahahha</code>和<code>pod-template-hash:584784cc75</code>标签的Pod的数量是3。</p><p><img src=download/7B5sToK.jpg alt></p><h4 id=更新deployment>更新Deployment
+<a class=anchor href=#%e6%9b%b4%e6%96%b0deployment>#</a></h4><p>更新Deployment（比如更改Deployment中的副本数）非常简单，只需要编辑YAML文件，重新<code>apply</code>一下即可，例如修改<code>deployment.yaml</code>中的副本数为5：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>apiVersion</span>: <span style=color:#ae81ff>apps/v1</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>kind</span>: <span style=color:#ae81ff>Deployment</span>
 </span></span><span style=display:flex><span><span style=color:#f92672>metadata</span>:
-</span></span><span style=display:flex><span>  <span style=color:#f92672>name</span>: <span style=color:#ae81ff>pi</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>name</span>: <span style=color:#ae81ff>nginx-deployment</span>
 </span></span><span style=display:flex><span><span style=color:#f92672>spec</span>:
-</span></span><span style=display:flex><span>  <span style=color:#75715e># completions: 1</span>
-</span></span><span style=display:flex><span>  <span style=color:#75715e># parallelism: 1</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>replicas</span>: <span style=color:#ae81ff>5</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>selector</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>matchLabels</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>kkk</span>: <span style=color:#ae81ff>hahaha</span>
 </span></span><span style=display:flex><span>  <span style=color:#f92672>template</span>:
 </span></span><span style=display:flex><span>    <span style=color:#f92672>metadata</span>:
-</span></span><span style=display:flex><span>      <span style=color:#f92672>name</span>: <span style=color:#ae81ff>pi</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>labels</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>kkk</span>: <span style=color:#ae81ff>hahaha</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>kubernetes</span>: <span style=color:#ae81ff>yyds</span>
 </span></span><span style=display:flex><span>    <span style=color:#f92672>spec</span>:
 </span></span><span style=display:flex><span>      <span style=color:#f92672>containers</span>:
-</span></span><span style=display:flex><span>        - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>pi</span>
-</span></span><span style=display:flex><span>          <span style=color:#f92672>image</span>: <span style=color:#ae81ff>harbor.scs.buaa.edu.cn/library/perl</span>
-</span></span><span style=display:flex><span>          <span style=color:#f92672>command</span>: [<span style=color:#e6db74>&#34;perl&#34;</span>, <span style=color:#e6db74>&#34;-Mbignum=bpi&#34;</span>, <span style=color:#e6db74>&#34;-wle&#34;</span>, <span style=color:#e6db74>&#34;print bpi(2000)&#34;</span>]
-</span></span><span style=display:flex><span>      <span style=color:#f92672>restartPolicy</span>: <span style=color:#ae81ff>Never</span>
-</span></span></code></pre></div><h4 id=job-yaml格式>Job yaml格式
-<a class=anchor href=#job-yaml%e6%a0%bc%e5%bc%8f>#</a></h4><blockquote><ul><li>RestartPolicy: Pod的重启策略，在这里仅支持<code>Never</code>或<code>OnFailure</code></li><li>completions: 标志Job结束需要成功运行的Pod个数，默认为<code>1</code></li><li>parallelism: 标志并行运行的Pod的个数，默认为<code>1</code></li><li>activeDeadlineSeconds: 标志失败Pod的重试最大时间，超过这个时间不会继续重试</li><li><code>container</code>中的<code>command</code>: 以<strong>string数组</strong>的格式输入待执行指令 (样例中为perl输出2000位数字的pi的语句)</li></ul></blockquote><p>运行该job:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>kubectl create -f job.yaml
-</span></span></code></pre></div><p>几分钟后，可以看到pod的创建情况 <code>kubectl get pod</code>：</p><pre tabindex=0><code>NAME              READY   STATUS           RESTARTS   AGE
-pi-5qng4          0/1     Completed        0          2m30s
-</code></pre><p>此时Job已经按照预设的任务完成了，使用<code>kubectl logs &lt;podname></code>查看Pod的日志也能看到按照预设的command输出的2000位数字的$\pi$。</p><pre tabindex=0><code>3.1415926535897932384626433832795028841971693993751058209749445923078164062862089986280348253421170679821480865132823066470938446095505822317253594081284811174502841027019385211055596446229489549303819644288109756659334461284756482337867831652712019091456485669234603486104543266482133936072602491412737245870066063155881748815209209628292540917153643678925903600113305305488204665213841469519415116094330572703657595919530921861173819326117931051185480744623799627495673518857527248912279381830119491298336733624406566430860213949463952247371907021798609437027705392171762931767523846748184676694051320005681271452635608277857713427577896091736371787214684409012249534301465495853710507922796892589235420199561121290219608640344181598136297747713099605187072113499999983729780499510597317328160963185950244594553469083026425223082533446850352619311881710100031378387528865875332083814206171776691473035982534904287554687311595628638823537875937519577818577805321712268066130019278766111959092164201989380952572010654858632788659361533818279682303019520353018529689957736225994138912497217752834791315155748572424541506959508295331168617278558890750983817546374649393192550604009277016711390098488240128583616035637076601047101819429555961989467678374494482553797747268471040475346462080466842590694912933136770289891521047521620569660240580381501935112533824300355876402474964732639141992726042699227967823547816360093417216412199245863150302861829745557067498385054945885869269956909272107975093029553211653449872027559602364806654991198818347977535663698074265425278625518184175746728909777727938000816470600161452491921732172147723501414419735685481613611573525521334757418494684385233239073941433345477624168625189835694855620992192221842725502542568876717904946016534668049886272327917860857843838279679766814541009538837863609506800642251252051173929848960841284886269456042419652850222106611863067442786220391949450471237137869609563643719172874677646575739624138908658326459958133904780275901
-</code></pre><h4 id=cron-job定时任务>Cron Job定时任务
-<a class=anchor href=#cron-job%e5%ae%9a%e6%97%b6%e4%bb%bb%e5%8a%a1>#</a></h4><p>Kubernetes还提供了定时计划任务：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>apiVersion</span>: <span style=color:#ae81ff>batch/v1</span>
-</span></span><span style=display:flex><span><span style=color:#f92672>kind</span>: <span style=color:#ae81ff>CronJob</span>
-</span></span><span style=display:flex><span><span style=color:#f92672>metadata</span>:
-</span></span><span style=display:flex><span>  <span style=color:#f92672>name</span>: <span style=color:#ae81ff>hello</span>
-</span></span><span style=display:flex><span><span style=color:#f92672>spec</span>:
-</span></span><span style=display:flex><span>  <span style=color:#f92672>schedule</span>: <span style=color:#e6db74>&#34;*/1 * * * *&#34;</span>
-</span></span><span style=display:flex><span>  <span style=color:#f92672>jobTemplate</span>:
-</span></span><span style=display:flex><span>    <span style=color:#f92672>spec</span>:
-</span></span><span style=display:flex><span>      <span style=color:#f92672>template</span>:
-</span></span><span style=display:flex><span>        <span style=color:#f92672>spec</span>:
-</span></span><span style=display:flex><span>          <span style=color:#f92672>containers</span>:
-</span></span><span style=display:flex><span>            - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>hello</span>
-</span></span><span style=display:flex><span>              <span style=color:#f92672>image</span>: <span style=color:#ae81ff>harbor.scs.buaa.edu.cn/library/busybox</span>
-</span></span><span style=display:flex><span>              <span style=color:#f92672>args</span>:
-</span></span><span style=display:flex><span>                - <span style=color:#ae81ff>/bin/sh</span>
-</span></span><span style=display:flex><span>                - -<span style=color:#ae81ff>c</span>
-</span></span><span style=display:flex><span>                - <span style=color:#ae81ff>date; echo Hello from the Kubernetes cluster</span>
-</span></span><span style=display:flex><span>          <span style=color:#f92672>restartPolicy</span>: <span style=color:#ae81ff>OnFailure</span>
-</span></span></code></pre></div><p>与一般的Job相比，CronJob的主要不同点在于额外有了<code>schedule</code>及<code>jobTemplate</code>两个字段。<code>schedule</code>是定时表达式，其格式与Linux Cron的格式基本相同，如示例的cron表达式为每分钟执行一次。<code>jobTemplate</code>一节与Job中的<code>template</code>格式相同。</p><p>创建定时任务 <code>kubectl create -f cron.yml</code></p><p>查看定时任务 <code>kubectl get cronjob</code></p><pre tabindex=0><code class=language-command data-lang=command>NAME    SCHEDULE      SUSPEND   ACTIVE   LAST SCHEDULE   AGE
-hello   */1 * * * *   False     0        2s              47s
-</code></pre><p>get命令只会输出上一次创建Job的时间，而不是所有。可以使用<code>watch</code>参数来更加直观地观察Job的创建过程 <code>kubectl get jobs --watch</code></p><pre tabindex=0><code class=language-command data-lang=command>NAME             COMPLETIONS   DURATION   AGE
-hello-27032437   1/1           1s         2m34s
-hello-27032438   1/1           1s         94s
-hello-27032439   1/1           1s         34s
-</code></pre><p>可以看到，每隔60s就会创建一个容器。</p><p>获取其中一个job的Pod <code>kubectl get pods --selector=job-name=hello-27032439 --output=jsonpath={.items[*].metadata.name}</code></p><p>执行上述命令后，会输出对应pod的名字</p><pre tabindex=0><code class=language-command data-lang=command>hello-27032439-cxt45
-</code></pre><p>查看Pod输出 <code>kubectl logs hello-27032439-cxt45</code></p><pre tabindex=0><code class=language-command data-lang=command>Tue May 25 12:59:24 UTC 2021
-Hello from the Kubernetes cluster
-</code></pre><ul><li>最后，记得将计划任务删除，否则会一直运行。<code>kubectl delete -f cron.yml</code></li></ul><h3 id=其他controller>其他Controller
-<a class=anchor href=#%e5%85%b6%e4%bb%96controller>#</a></h3><h4 id=daemonset>DaemonSet
+</span></span><span style=display:flex><span>      - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>nginx</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>image</span>: <span style=color:#ae81ff>nginx:1.14.2</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>ports</span>:
+</span></span><span style=display:flex><span>        - <span style=color:#f92672>containerPort</span>: <span style=color:#ae81ff>80</span>
+</span></span></code></pre></div><p><code>kubectl apply -f deployment.yaml</code>之后可以发现Pod数量增加到了5：</p><p><img src=download/SoPJ5dr.png alt></p><p>当然你也可以减小<code>spec.replicas</code>的值，比如从3减小到1，这时Deployment控制器会删除多余的Pod。</p><p>总结一下，Deployment控制器的工作原理与本节开头提到的温度控制器工作原理非常相似：</p><p><img src=download/levZZB0.png alt></p><h3 id=其他pod-controller>其他Pod Controller
+<a class=anchor href=#%e5%85%b6%e4%bb%96pod-controller>#</a></h3><h4 id=job>Job
+<a class=anchor href=#job>#</a></h4><p>Job会创建一个或多个Pod，并确保指定数量的Pod成功终止。当Pod成功完成时，Job将追踪成功完成的情况。当达到指定的成功完成次数时，Job就完成了。删除一个Job将清除它所创建的Pod。Job一般用于定义并启动一个批处理任务。批处理任务通常并行（或串行）启动多个计算进程去处理一批工作项，处理完成后，整个批处理任务结束。</p><p>Kubernetes支持一下几种Job:</p><ul><li>非并行Job: 通常创建一个Pod直至其成功结束</li><li>固定结束次数的Job: 设置<code>.spec.completions</code>，创建多个Pod，直到<code>.spec.completions</code>个Pod成功结束</li><li>带有工作队列的并行Job: 设置<code>.spec.Parallelism</code>但不设置<code>.spec.completions</code>，当所有Pod结束并且至少一个成功时，Job就认为是成功。</li></ul><h4 id=daemonset>DaemonSet
 <a class=anchor href=#daemonset>#</a></h4><p>DaemonSet用于管理在集群中每个Node上运行且仅运行一份Pod的副本实例，一般来说，在以下情形中会使用到DaemonSet：</p><ul><li>在每个Node上都运行一个存储进程</li><li>在每个Node上都运行一个日志采集程序</li><li>在每个Node上都运行一个性能监控程序</li></ul><h4 id=statefulset>StatefulSet
-<a class=anchor href=#statefulset>#</a></h4><p>StatefulSet用来搭建<strong>有状态</strong>的应用集群（比如MySQL、MongoDB等）。Kubernetes会保证StatefulSet中各应用实例在创建和运行的过程中，都具有固定的身份标识和独立的后端存储；还支持在运行时对集群规模进行扩容、保障集群的高可用等功能。</p><h2 id=service>Service
-<a class=anchor href=#service>#</a></h2><p>Service可以将运行在一组Pods上的应用程序公开为网络服务，简单地实现服务发现、负载均衡等功能。</p><p>k8s的Pods具有自己的生命周期，同一时刻运行的Pod集合与稍后运行的Pod集合很有可能不同（如发生更新、node故障等），Pods的IP地址可能会随时发生变化。这就会导致一个问题：如果一组后端Pods为集群内其他前端Pods提供功能，那么前端Pods该如何找出并跟踪需要连接的IP地址？通过Service，能够解耦这种关联，方便的通过Service地址访问到相应的Pods，前端不应该也没必要知道怎么访问、访问到的具体是哪一个Pod。</p><blockquote><p>Service一共有4种类型：</p><ul><li>ClusterIP：通过集群的内部 IP 暴露服务，选择该值，服务只能够在集群内部可以访问，这也是默认的 <code>ServiceType</code>。</li><li>NodePort： 通过每个 Node 上的 IP 和静态端口（NodePort）暴露服务。NodePort 服务会路由到 ClusterIP 服务，这个 ClusterIP 服务会自动创建。通过请求 &lt;NodeIP>:&lt;NodePort>，可以从集群的外部访问一个 NodePort 服务。</li><li>LoadBalancer：使用云提供商的负载局衡器，可以向外部暴露服务。外部的负载均衡器可以路由到 NodePort 服务和 ClusterIP 服务。仅作了解。</li><li>ExternalName：通过返回 CNAME 和它的值，可以将服务映射到 externalName 字段的内容（例如，在集群内查找my-service.my-namespace.svc时，k8s DNS service只返回foo.bar.example.com这样的CNAME record）。没有任何类型代理被创建，网络流量发生在DNS层面。由于ExternalName要求kube-dns而我们使用的是coredns，也只作了解。</li></ul></blockquote><h3 id=创建service>创建Service
-<a class=anchor href=#%e5%88%9b%e5%bb%baservice>#</a></h3><p>Service通常通过selector来选择被访问的Pod。</p><p>继续沿用我们之前所创建的nginx-test。查看Pod详细信息：</p><p><code>kubectl describe pod nginx-test-6478975c66-jtd2r</code></p><p>在Labels栏能看到如下的标签（selector使用该标签来选择被访问的Pod）：</p><pre tabindex=0><code>Labels:       pod-template-hash=6478975c66
-              run=nginx-test
-</code></pre><p>因此可以通过下列yaml文件创建Service (将下面的内容写入<code>nginx-service.yaml</code>)</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#75715e>#nginx-service.yaml</span>
+<a class=anchor href=#statefulset>#</a></h4><p>StatefulSet用来搭建有状态的应用集群（比如MySQL、MongoDB等）。Kubernetes会保证StatefulSet中各应用实例在创建和运行的过程中，都具有固定的身份标识和独立的后端存储；还支持在运行时对集群规模进行扩容、保障集群的高可用等功能。</p><h2 id=service>Service
+<a class=anchor href=#service>#</a></h2><p>Service可以将运行在一组Pods上的应用程序公开为网络服务，简单地实现服务发现、负载均衡等功能。</p><p>k8s的Pods具有自己的生命周期，同一时刻运行的Pod集合与稍后运行的Pod集合很有可能不同（如发生更新、node故障等），Pods的IP地址可能会随时发生变化。这就会导致一个问题：如果一组后端Pods为集群内其他前端Pods提供功能，那么前端Pods该如何找出并跟踪需要连接的IP地址？通过Service，能够解耦这种关联，方便的通过Service地址访问到相应的Pods，前端不应该也没必要知道怎么访问、访问到的具体是哪一个Pod。</p><p>Service一共有4种类型：</p><ul><li>ClusterIP：通过集群的内部 IP 暴露服务，选择该值，服务只能够在集群内部可以访问，这也是默认的 <code>ServiceType</code>。</li><li>NodePort： 通过每个 Node 上的 IP 和静态端口（NodePort）暴露服务。NodePort 服务会路由到 ClusterIP 服务，这个 ClusterIP 服务会自动创建。通过请求 &lt;NodeIP>:&lt;NodePort>，可以从集群的外部访问一个 NodePort 服务。</li><li>LoadBalancer：使用云提供商的负载局衡器，可以向外部暴露服务。外部的负载均衡器可以路由到 NodePort 服务和 ClusterIP 服务。仅作了解。</li><li>ExternalName：通过返回 CNAME 和它的值，可以将服务映射到 externalName 字段的内容（例如，在集群内查找<code>my-service.my-namespace.svc</code>时，k8s DNS service只返回<code>foo.bar.example.com</code>这样的CNAME record）。没有任何类型代理被创建，网络流量发生在DNS层面。由于ExternalName要求kube-dns而我们使用的是coredns，也只作了解。</li></ul><h3 id=创建service>创建Service
+<a class=anchor href=#%e5%88%9b%e5%bb%baservice>#</a></h3><p>Service通常通过selector（比如通过选取标签）来选择被访问的Pod。</p><p>继续沿用我们之前所创建的nginx-deployment。可以通过下列YAML文件创建Service (将下面的内容写入<code>service.yaml</code>)</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#75715e>#service.yaml</span>
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span><span style=color:#f92672>apiVersion</span>: <span style=color:#ae81ff>v1</span>
 </span></span><span style=display:flex><span><span style=color:#f92672>kind</span>: <span style=color:#ae81ff>Service</span>
 </span></span><span style=display:flex><span><span style=color:#f92672>metadata</span>:
-</span></span><span style=display:flex><span>  <span style=color:#f92672>name</span>: <span style=color:#ae81ff>nginx-test-service</span>
-</span></span><span style=display:flex><span>  <span style=color:#f92672>labels</span>:
-</span></span><span style=display:flex><span>    <span style=color:#f92672>svc</span>: <span style=color:#ae81ff>nginx-test-svc</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>name</span>: <span style=color:#ae81ff>nginx-service</span>
 </span></span><span style=display:flex><span><span style=color:#f92672>spec</span>:
 </span></span><span style=display:flex><span>  <span style=color:#f92672>ports</span>:
 </span></span><span style=display:flex><span>    - <span style=color:#f92672>port</span>: <span style=color:#ae81ff>80</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>targetPort</span>: <span style=color:#ae81ff>80</span>
 </span></span><span style=display:flex><span>      <span style=color:#f92672>protocol</span>: <span style=color:#ae81ff>TCP</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>name</span>: <span style=color:#ae81ff>anyway</span>
 </span></span><span style=display:flex><span>  <span style=color:#f92672>selector</span>:
-</span></span><span style=display:flex><span>    <span style=color:#f92672>run</span>: <span style=color:#ae81ff>nginx-test</span>
-</span></span></code></pre></div><blockquote><ul><li>port：Service暴露在集群IP上的端口。集群内通过&lt;clusterIP>:&lt;port>可以访问Service。</li><li>targetPort：被代理的Pod上的端口。默认与port相同。</li><li>nodePort：Service暴露在节点外部IP上的端口。集群外通过&lt;nodeIP>:&lt;nodePort>可以访问Service。仅在<code>spec.type=NodePort</code>时可用(<code>spec.type</code>默认为<code>ClusterIP</code>)。</li><li>name：端口名称，当Service具有多个端口时必须为每个端口提供唯一且无歧义的端口名称。</li></ul></blockquote><p>创建Service</p><pre tabindex=0><code>kubectl apply -f nginx-service.yaml
-</code></pre><p>查看service <code>kubectl get svc</code></p><pre tabindex=0><code>NAME                 TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)   AGE
-kubernetes           ClusterIP   10.43.0.1      &lt;none&gt;        443/TCP   15d
-nginx-test-service   ClusterIP   10.43.149.18   &lt;none&gt;        80/TCP    11s
-</code></pre><p>可以看到，第二个就是我们刚才创建的service，其中，它有一个cluster-ip：<code>10.43.149.18</code>。</p><p>验证是否可以通过Service访问Pod，注意，上述这个IP是“cluster-ip”，也就是说，它是一个集群内ip，因此，只能在集群中的机器上访问：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>curl 10.43.149.18
-</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-html data-lang=html><span style=display:flex><span><span style=color:#75715e>&lt;!DOCTYPE html&gt;</span>
-</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>html</span>&gt;
-</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>head</span>&gt;
-</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>title</span>&gt;Welcome to nginx!&lt;/<span style=color:#f92672>title</span>&gt;
-</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>style</span>&gt;
-</span></span><span style=display:flex><span>    <span style=color:#f92672>body</span> {
-</span></span><span style=display:flex><span>        <span style=color:#66d9ef>width</span>: <span style=color:#ae81ff>35</span><span style=color:#66d9ef>em</span>;
-</span></span><span style=display:flex><span>        <span style=color:#66d9ef>margin</span>: <span style=color:#ae81ff>0</span> <span style=color:#66d9ef>auto</span>;
-</span></span><span style=display:flex><span>        <span style=color:#66d9ef>font-family</span>: Tahoma, Verdana, Arial, <span style=color:#66d9ef>sans-serif</span>;
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>&lt;/<span style=color:#f92672>style</span>&gt;
-</span></span><span style=display:flex><span>&lt;/<span style=color:#f92672>head</span>&gt;
-</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>body</span>&gt;
-</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>h1</span>&gt;Welcome to nginx!&lt;/<span style=color:#f92672>h1</span>&gt;
-</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>p</span>&gt;If you see this page, the nginx web server is successfully installed and
-</span></span><span style=display:flex><span>working. Further configuration is required.&lt;/<span style=color:#f92672>p</span>&gt;
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>p</span>&gt;For online documentation and support please refer to
-</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>a</span> <span style=color:#a6e22e>href</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;http://nginx.org/&#34;</span>&gt;nginx.org&lt;/<span style=color:#f92672>a</span>&gt;.&lt;<span style=color:#f92672>br</span>/&gt;
-</span></span><span style=display:flex><span>Commercial support is available at
-</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>a</span> <span style=color:#a6e22e>href</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;http://nginx.com/&#34;</span>&gt;nginx.com&lt;/<span style=color:#f92672>a</span>&gt;.&lt;/<span style=color:#f92672>p</span>&gt;
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>p</span>&gt;&lt;<span style=color:#f92672>em</span>&gt;Thank you for using nginx.&lt;/<span style=color:#f92672>em</span>&gt;&lt;/<span style=color:#f92672>p</span>&gt;
-</span></span><span style=display:flex><span>&lt;/<span style=color:#f92672>body</span>&gt;
-</span></span><span style=display:flex><span>&lt;/<span style=color:#f92672>html</span>&gt;
-</span></span></code></pre></div><p>查看当前三个Pods的IP地址 <code>kubectl get pod -l run=nginx-test -o wide</code></p><pre tabindex=0><code class=language-command data-lang=command>NAME                          READY   STATUS    RESTARTS   AGE     IP           NODE         NOMINATED NODE   READINESS GATES
-nginx-test-6478975c66-jtd2r   1/1     Running   0          5h48m   10.42.0.15   k8s-master   &lt;none&gt;           &lt;none&gt;
-nginx-test-6478975c66-n7mmj   1/1     Running   0          5h22m   10.42.0.16   k8s-master   &lt;none&gt;           &lt;none&gt;
-nginx-test-6478975c66-jndr8   1/1     Running   0          5h22m   10.42.0.17   k8s-master   &lt;none&gt;           &lt;none&gt;
-</code></pre><p>删除这三个Pods并等待Deployment重新创建</p><pre tabindex=0><code class=language-command data-lang=command>~$ kubectl delete pods -l run=nginx-test
-pod &#34;nginx-test-79cd7499bf-vrlss&#34; deleted
-pod &#34;nginx-test-79cd7499bf-zd42s&#34; deleted
-~$ kubectl get pod -l run=nginx-test -o wide
-NAME                          READY   STATUS    RESTARTS   AGE   IP            NODE       NOMINATED NODE   READINESS GATES
-nginx-test-6478975c66-7ktl4   1/1     Running   0          21s   10.42.1.109   k8s-node   &lt;none&gt;           &lt;none&gt;
-nginx-test-6478975c66-cffrr   1/1     Running   0          21s   10.42.1.111   k8s-node   &lt;none&gt;           &lt;none&gt;
-nginx-test-6478975c66-jssj4   1/1     Running   0          21s   10.42.1.110   k8s-node   &lt;none&gt;           &lt;none&gt;
-</code></pre><p>可以看到重新创建的三个Pods的IP地址已经发生变化，再次通过Service，仍能访问对应的Pod</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>curl 10.97.91.103
-</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-html data-lang=html><span style=display:flex><span><span style=color:#75715e>&lt;!DOCTYPE html&gt;</span>
-</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>html</span>&gt;
-</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>head</span>&gt;
-</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>title</span>&gt;Welcome to nginx!&lt;/<span style=color:#f92672>title</span>&gt;
-</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>style</span>&gt;
-</span></span><span style=display:flex><span>    <span style=color:#f92672>body</span> {
-</span></span><span style=display:flex><span>        <span style=color:#66d9ef>width</span>: <span style=color:#ae81ff>35</span><span style=color:#66d9ef>em</span>;
-</span></span><span style=display:flex><span>        <span style=color:#66d9ef>margin</span>: <span style=color:#ae81ff>0</span> <span style=color:#66d9ef>auto</span>;
-</span></span><span style=display:flex><span>        <span style=color:#66d9ef>font-family</span>: Tahoma, Verdana, Arial, <span style=color:#66d9ef>sans-serif</span>;
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>&lt;/<span style=color:#f92672>style</span>&gt;
-</span></span><span style=display:flex><span>&lt;/<span style=color:#f92672>head</span>&gt;
-</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>body</span>&gt;
-</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>h1</span>&gt;Welcome to nginx!&lt;/<span style=color:#f92672>h1</span>&gt;
-</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>p</span>&gt;If you see this page, the nginx web server is successfully installed and
-</span></span><span style=display:flex><span>working. Further configuration is required.&lt;/<span style=color:#f92672>p</span>&gt;
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>p</span>&gt;For online documentation and support please refer to
-</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>a</span> <span style=color:#a6e22e>href</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;http://nginx.org/&#34;</span>&gt;nginx.org&lt;/<span style=color:#f92672>a</span>&gt;.&lt;<span style=color:#f92672>br</span>/&gt;
-</span></span><span style=display:flex><span>Commercial support is available at
-</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>a</span> <span style=color:#a6e22e>href</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;http://nginx.com/&#34;</span>&gt;nginx.com&lt;/<span style=color:#f92672>a</span>&gt;.&lt;/<span style=color:#f92672>p</span>&gt;
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>p</span>&gt;&lt;<span style=color:#f92672>em</span>&gt;Thank you for using nginx.&lt;/<span style=color:#f92672>em</span>&gt;&lt;/<span style=color:#f92672>p</span>&gt;
-</span></span><span style=display:flex><span>&lt;/<span style=color:#f92672>body</span>&gt;
-</span></span><span style=display:flex><span>&lt;/<span style=color:#f92672>html</span>&gt;
-</span></span></code></pre></div><h3 id=暴露端口>暴露端口
-<a class=anchor href=#%e6%9a%b4%e9%9c%b2%e7%ab%af%e5%8f%a3>#</a></h3><p>之前创建的Service并没有指定类型，因此为默认的ClusterIP，只能在集群内部访问。如果需要将服务端口暴露在公网，可以使用NodePort类型。</p><p>将<code>nginx-service.yaml</code>修改为下面的内容</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#75715e>#nginx-service.yaml</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>kkk</span>: <span style=color:#ae81ff>hahaha</span>
+</span></span></code></pre></div><p>注意到，我们在<code>selector</code>中使用了标签<code>kkk: hahaha</code>。</p><p>解释一下<code>spec.ports</code>中的各个字段：</p><ul><li>port：Service暴露在集群IP上的端口。集群内通过&lt;clusterIP>:&lt;port>可以访问Service。</li><li>targetPort：被代理的Pod上的端口。默认与port相同。</li><li>protocol：Service暴露出来的这个端口所支持的通信协议，通常是<code>TCP</code>或<code>UDP</code>。</li><li>name：端口名称，当Service具有多个端口时必须为每个端口提供唯一且无歧义的端口名称，具体内容写啥都行。</li></ul><p>创建Service：</p><pre tabindex=0><code>kubectl apply -f service.yaml
+</code></pre><p>查看service <code>kubectl get svc</code> 或 <code>kubectl get service</code></p><p><img src=download/phOqK7i.png alt></p><p>可以看到，第二个就是我们刚才创建的service，其中，它有一个cluster-ip：<code>10.43.95.143</code>。</p><p>验证是否可以通过Service访问Pod，注意，上述这个IP是“cluster-ip”，也就是说，它是一个集群内ip，因此，只能在集群中的机器上访问：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-shell data-lang=shell><span style=display:flex><span>curl 10.43.95.143:80
+</span></span></code></pre></div><p><img src=download/SSaLmz1.png alt></p><p>查看当前5个Pod的IP地址 <code>kubectl get pod -l kkk=hahaha -o wide</code></p><p><img src=download/rGP38QA.png alt></p><p>删除这5个Pod并等待Deployment重新创建<code>kubectl delete pod -l kkk=hahaha</code>。</p><p>可以看到重新创建的5个Pods的IP地址都已经发生变化：</p><p><img src=download/1xeloOy.png alt></p><p>但通过Service，仍能访问对应的Pod：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>curl 10.97.91.103:80
+</span></span></code></pre></div><p><img src=download/SSaLmz1.png alt></p><h3 id=暴露端口>暴露端口
+<a class=anchor href=#%e6%9a%b4%e9%9c%b2%e7%ab%af%e5%8f%a3>#</a></h3><p>之前创建的Service并没有指定类型，因此为默认的ClusterIP，只能在集群内部访问。如果需要将服务端口暴露在公网，可以使用NodePort类型。</p><p>将<code>service.yaml</code>修改为下面的内容</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#75715e>#service.yaml</span>
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span><span style=color:#f92672>apiVersion</span>: <span style=color:#ae81ff>v1</span>
 </span></span><span style=display:flex><span><span style=color:#f92672>kind</span>: <span style=color:#ae81ff>Service</span>
 </span></span><span style=display:flex><span><span style=color:#f92672>metadata</span>:
-</span></span><span style=display:flex><span>  <span style=color:#f92672>name</span>: <span style=color:#ae81ff>nginx-test-service</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>name</span>: <span style=color:#ae81ff>nginx-service</span>
 </span></span><span style=display:flex><span>  <span style=color:#f92672>labels</span>:
-</span></span><span style=display:flex><span>    <span style=color:#f92672>svc</span>: <span style=color:#ae81ff>nginx-test-svc</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>svc</span>: <span style=color:#ae81ff>nginx-svc</span>
 </span></span><span style=display:flex><span><span style=color:#f92672>spec</span>:
 </span></span><span style=display:flex><span>  <span style=color:#f92672>type</span>: <span style=color:#ae81ff>NodePort</span>
 </span></span><span style=display:flex><span>  <span style=color:#f92672>ports</span>:
 </span></span><span style=display:flex><span>    - <span style=color:#f92672>port</span>: <span style=color:#ae81ff>80</span>
 </span></span><span style=display:flex><span>      <span style=color:#f92672>nodePort</span>: <span style=color:#ae81ff>32180</span>
 </span></span><span style=display:flex><span>      <span style=color:#f92672>protocol</span>: <span style=color:#ae81ff>TCP</span>
-</span></span><span style=display:flex><span>      <span style=color:#f92672>name</span>: <span style=color:#ae81ff>http</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>name</span>: <span style=color:#ae81ff>anyway</span>
 </span></span><span style=display:flex><span>  <span style=color:#f92672>selector</span>:
-</span></span><span style=display:flex><span>    <span style=color:#f92672>run</span>: <span style=color:#ae81ff>nginx-test</span>
-</span></span></code></pre></div><p>修改Service <code>kubectl apply -f nginx-service.yaml</code></p><p>查看service <code>kubectl get svc nginx-test-service</code></p><pre tabindex=0><code class=language-command data-lang=command>NAME                 TYPE       CLUSTER-IP      EXTERNAL-IP   PORT(S)        AGE
-nginx-test-service   NodePort   10.43.115.127   &lt;none&gt;        80:32180/TCP   17s
-</code></pre><p>此时，从集群内任一节点IP的32180端口均可访问到某个Pod的80端口。</p><p>比如，你的两台虚拟机的IP分别为<code>10.255.9.80</code>和<code>10.255.9.81</code>，那么，你在校园网内的任何一台机器上，执行<code>curl http://10.255.9.80:32180</code>或者<code>curl http://10.255.9.81:32180</code>，都能得到如下的输出：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-html data-lang=html><span style=display:flex><span><span style=color:#75715e>&lt;!DOCTYPE html&gt;</span>
-</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>html</span>&gt;
-</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>head</span>&gt;
-</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>title</span>&gt;Welcome to nginx!&lt;/<span style=color:#f92672>title</span>&gt;
-</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>style</span>&gt;
-</span></span><span style=display:flex><span>    <span style=color:#f92672>body</span> {
-</span></span><span style=display:flex><span>        <span style=color:#66d9ef>width</span>: <span style=color:#ae81ff>35</span><span style=color:#66d9ef>em</span>;
-</span></span><span style=display:flex><span>        <span style=color:#66d9ef>margin</span>: <span style=color:#ae81ff>0</span> <span style=color:#66d9ef>auto</span>;
-</span></span><span style=display:flex><span>        <span style=color:#66d9ef>font-family</span>: Tahoma, Verdana, Arial, <span style=color:#66d9ef>sans-serif</span>;
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>&lt;/<span style=color:#f92672>style</span>&gt;
-</span></span><span style=display:flex><span>&lt;/<span style=color:#f92672>head</span>&gt;
-</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>body</span>&gt;
-</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>h1</span>&gt;Welcome to nginx!&lt;/<span style=color:#f92672>h1</span>&gt;
-</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>p</span>&gt;If you see this page, the nginx web server is successfully installed and
-</span></span><span style=display:flex><span>working. Further configuration is required.&lt;/<span style=color:#f92672>p</span>&gt;
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>p</span>&gt;For online documentation and support please refer to
-</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>a</span> <span style=color:#a6e22e>href</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;http://nginx.org/&#34;</span>&gt;nginx.org&lt;/<span style=color:#f92672>a</span>&gt;.&lt;<span style=color:#f92672>br</span>/&gt;
-</span></span><span style=display:flex><span>Commercial support is available at
-</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>a</span> <span style=color:#a6e22e>href</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;http://nginx.com/&#34;</span>&gt;nginx.com&lt;/<span style=color:#f92672>a</span>&gt;.&lt;/<span style=color:#f92672>p</span>&gt;
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>&lt;<span style=color:#f92672>p</span>&gt;&lt;<span style=color:#f92672>em</span>&gt;Thank you for using nginx.&lt;/<span style=color:#f92672>em</span>&gt;&lt;/<span style=color:#f92672>p</span>&gt;
-</span></span><span style=display:flex><span>&lt;/<span style=color:#f92672>body</span>&gt;
-</span></span><span style=display:flex><span>&lt;/<span style=color:#f92672>html</span>&gt;
-</span></span></code></pre></div><p>或者在浏览器中也可以访问：</p><p><img src=img/2021-05-27-14-46-37.png alt></p><p>可以尝试删除Pods并等待新的Pods创建完成，仍可以通过上述方式访问。</p><h2 id=滚动更新>滚动更新
-<a class=anchor href=#%e6%bb%9a%e5%8a%a8%e6%9b%b4%e6%96%b0>#</a></h2><p>为了在更新服务的同时不中断服务，kubectl支持<strong>滚动更新</strong>，它一次更新一个Pod，而不是停止整个服务。</p><p>使用Deployment可以查看升级详细进度和状态，当升级出现问题的时候，可以使用回滚操作回滚到指定的版本，每一次对Deployment的操作，都会保存下来，方便进行回滚操作，另外对于每一次升级都可以随时暂停和启动，拥有多种升级方案：<strong>Recreate</strong>删除现在的Pod，重新创建；<strong>RollingUpdate</strong>滚动升级，逐步替换现有Pod，对于生产环境的服务升级，显然这是一种最好的方式。</p><p>创建Deployment</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>apiVersion</span>: <span style=color:#ae81ff>apps/v1</span>
-</span></span><span style=display:flex><span><span style=color:#f92672>kind</span>: <span style=color:#ae81ff>Deployment</span>
-</span></span><span style=display:flex><span><span style=color:#f92672>metadata</span>:
-</span></span><span style=display:flex><span>  <span style=color:#f92672>name</span>: <span style=color:#ae81ff>nginx</span>
-</span></span><span style=display:flex><span><span style=color:#f92672>spec</span>:
-</span></span><span style=display:flex><span>  <span style=color:#f92672>replicas</span>: <span style=color:#ae81ff>3</span>
-</span></span><span style=display:flex><span>  <span style=color:#f92672>selector</span>:
-</span></span><span style=display:flex><span>    <span style=color:#f92672>matchLabels</span>:
-</span></span><span style=display:flex><span>      <span style=color:#f92672>app</span>: <span style=color:#ae81ff>nginx</span>
-</span></span><span style=display:flex><span>  <span style=color:#f92672>template</span>:
-</span></span><span style=display:flex><span>    <span style=color:#f92672>metadata</span>:
-</span></span><span style=display:flex><span>      <span style=color:#f92672>labels</span>:
-</span></span><span style=display:flex><span>        <span style=color:#f92672>app</span>: <span style=color:#ae81ff>nginx</span>
-</span></span><span style=display:flex><span>    <span style=color:#f92672>spec</span>:
-</span></span><span style=display:flex><span>      <span style=color:#f92672>containers</span>:
-</span></span><span style=display:flex><span>        - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>nginx</span>
-</span></span><span style=display:flex><span>          <span style=color:#f92672>image</span>: <span style=color:#ae81ff>harbor.scs.buaa.edu.cn/library/nginx:1.16</span>
-</span></span></code></pre></div><p>使用<code>kubectl create -f nginx-deploy.yaml</code>，由于<code>replicas</code>为3，因此会创建三个Pod</p><pre tabindex=0><code>NAME                          READY   STATUS        RESTARTS   AGE
-nginx-77bf7f47fd-9q7fw        1/1     Running       0          80s
-nginx-77bf7f47fd-567nf        1/1     Running       0          80s
-nginx-77bf7f47fd-k795n        1/1     Running       0          80s
-</code></pre><p>此时尝试访问Nginx主页，会看到版本提示。</p><blockquote><p>注意：使用的镜像并不是官方原版镜像，而是修改了默认的index.html后的镜像。访问Nginx主页，既可以自己创建一个service进行访问，也可以查看pod的IP后直接在虚拟机上使用curl访问。</p></blockquote><p>通过配置文件更新：</p><p>在刚刚的配置文件中将镜像修改为<code>harbor.scs.buaa.edu.cn/library/nginx:1.17</code>，然后在<code>spec</code>中添加滚动升级策略，改动后如下</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>apiVersion</span>: <span style=color:#ae81ff>apps/v1</span>
-</span></span><span style=display:flex><span><span style=color:#f92672>kind</span>: <span style=color:#ae81ff>Deployment</span>
-</span></span><span style=display:flex><span><span style=color:#f92672>metadata</span>:
-</span></span><span style=display:flex><span>  <span style=color:#f92672>name</span>: <span style=color:#ae81ff>nginx</span>
-</span></span><span style=display:flex><span><span style=color:#f92672>spec</span>:
-</span></span><span style=display:flex><span>  <span style=color:#f92672>minReadySeconds</span>: <span style=color:#ae81ff>5</span>
-</span></span><span style=display:flex><span>  <span style=color:#f92672>strategy</span>:
-</span></span><span style=display:flex><span>    <span style=color:#f92672>type</span>: <span style=color:#ae81ff>RollingUpdate</span>
-</span></span><span style=display:flex><span>    <span style=color:#f92672>rollingUpdate</span>:
-</span></span><span style=display:flex><span>      <span style=color:#f92672>maxSurge</span>: <span style=color:#ae81ff>1</span>
-</span></span><span style=display:flex><span>      <span style=color:#f92672>maxUnavailable</span>: <span style=color:#ae81ff>1</span>
-</span></span><span style=display:flex><span>  <span style=color:#f92672>replicas</span>: <span style=color:#ae81ff>3</span>
-</span></span><span style=display:flex><span>  <span style=color:#f92672>selector</span>:
-</span></span><span style=display:flex><span>    <span style=color:#f92672>matchLabels</span>:
-</span></span><span style=display:flex><span>      <span style=color:#f92672>app</span>: <span style=color:#ae81ff>nginx</span>
-</span></span><span style=display:flex><span>  <span style=color:#f92672>template</span>:
-</span></span><span style=display:flex><span>    <span style=color:#f92672>metadata</span>:
-</span></span><span style=display:flex><span>      <span style=color:#f92672>labels</span>:
-</span></span><span style=display:flex><span>        <span style=color:#f92672>app</span>: <span style=color:#ae81ff>nginx</span>
-</span></span><span style=display:flex><span>    <span style=color:#f92672>spec</span>:
-</span></span><span style=display:flex><span>      <span style=color:#f92672>containers</span>:
-</span></span><span style=display:flex><span>        - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>nginx</span>
-</span></span><span style=display:flex><span>          <span style=color:#f92672>image</span>: <span style=color:#ae81ff>harbor.scs.buaa.edu.cn/library/nginx:1.17</span>
-</span></span></code></pre></div><ul><li>minReadySeconds:<ul><li>Kubernetes在等待设置的时间后才进行升级</li><li>如果没有设置该值，Kubernetes会假设该容器启动起来后就提供服务了</li><li>如果没有设置该值，在某些极端情况下可能会造成服务服务正常运行</li></ul></li><li>maxSurge:<ul><li>升级过程中最多可以比原先设置多出的POD数量</li><li>例如：maxSurage=1，replicas=5,则表示Kubernetes会先启动1一个新的Pod后才删掉一个旧的POD，整个升级过程中最多会有5+1个POD。</li></ul></li><li>maxUnavaible:<ul><li>升级过程中最多有多少个POD处于无法提供服务的状态</li><li>当maxSurge不为0时，该值也不能为0</li><li>例如：maxUnavaible=1，则表示Kubernetes整个升级过程中最多会有1个POD处于无法服务的状态。</li></ul></li></ul><p>然后执行命令 <code>kubectl apply -f nginx-deploy.yaml</code></p><p>接着查看deployment的升级情况 <code>kubectl rollout status deploy/nginx</code></p><pre tabindex=0><code>Waiting for deployment &#34;nginx&#34; rollout to finish: 2 out of 3 new replicas have been updated...
-Waiting for deployment &#34;nginx&#34; rollout to finish: 2 out of 3 new replicas have been updated...
-Waiting for deployment &#34;nginx&#34; rollout to finish: 2 out of 3 new replicas have been updated...
-Waiting for deployment &#34;nginx&#34; rollout to finish: 2 of 3 updated replicas are available...
-Waiting for deployment &#34;nginx&#34; rollout to finish: 2 of 3 updated replicas are available...
-deployment &#34;nginx&#34; successfully rolled out
-</code></pre><p>执行<code>kubectl rollout status deploy/nginx</code>可以实时观测滚动更新的进度，在更新过程中，可以使用<code>kubectl rollout pause(resume) deployment &lt;deployment></code>来暂停(继续)更新</p><p>更新结束后，查看Replica Set的状态 <code>kubectl get replicaset</code></p><pre tabindex=0><code>NAME               DESIRED   CURRENT   READY   AGE
-nginx-77bf7f47fd   0         0         0       8m28s
-nginx-5b8c7c5877   3         3         3       3m7s
-</code></pre><p>可以看到旧的Replica Set和新的Replica Set的状态，此时查看任意一个Pod的镜像信息</p><pre tabindex=0><code>
-......
-
-Containers:
-  nginx:
-    Container ID:   containerd://0790761a1248fcb4dc8d9432aebeb37ff7ee96b7267a83fe0172812323764e85
-    Image:          harbor.scs.buaa.edu.cn/library/nginx:1.17
-    Image ID:       harbor.scs.buaa.edu.cn/library/nginx@sha256:6f3b7f003243dca41dae46fe442e826df08e056a76cdd3e11e6f41cdaef
-
-......
-</code></pre><p>其中image的信息已经得到改动了。</p><p>此时再次尝试访问Nginx主页，会看到版本已经变化。</p><ul><li>回滚Deployment</li></ul><p>首先，查看Deployment的升级历史 <code>kubectl rollout history deploy/nginx</code></p><pre tabindex=0><code>deployment.apps/nginx
-REVISION  CHANGE-CAUSE
-1         &lt;none&gt;
-2         &lt;none&gt;
-</code></pre><p>其中，<code>1</code>和<code>2</code>为历史版本，可以带上参数来查看该次的版本信息 <code>kubectl rollout history deploy/nginx --revision=1</code></p><pre tabindex=0><code>deployment.apps/nginx with revision #1
-Pod Template:
-  Labels:	app=nginx
-	pod-template-hash=77bf7f47fd
-  Containers:
-   nginx:
-    Image:	harbor.scs.buaa.edu.cn/library/nginx:1.16
-    Port:	&lt;none&gt;
-    Host Port:	&lt;none&gt;
-    Environment:	&lt;none&gt;
-    Mounts:	&lt;none&gt;
-  Volumes:	&lt;none&gt;
-</code></pre><p>可以使用<code>kubectl rollout undo deploy/nginx</code>来回退到上一个版本，也可以在后面加上参数<code>--to-revision=3</code>来回退到<code>3</code>所指定的历史版本</p><h2 id=数据管理>数据管理
-<a class=anchor href=#%e6%95%b0%e6%8d%ae%e7%ae%a1%e7%90%86>#</a></h2><p>Pod中的数据默认并没有进行持久化，它们会随着Pod的销毁而一同被消灭。 我们都知道，Pod并不总是稳定可靠的，它有可能会被频繁销毁并重建，我们并不希望重要的数据（例如MySQL中的数据）跟着Pod一同被销毁。这就需要引入一种持久的存储系统。</p><ul><li>Volume和Persistent Volume</li></ul><p>Kubernetes提供了两种储存介质，它们是Volume和Persistent Volume。简单来说，Volume中的数据不能被持久化，Pod销毁，数据消失；而Persistent Volume中的数据则独立于Pod，即使Pod销毁，数据依然可以永久保存，除非你不希望。</p><ul><li>常用的(Persistent) Volume<ul><li>emptyDir(非Persistent Volume)</li><li>hostPath(Persistent Volume)</li><li>nfs(Persistent Volume)</li></ul></li></ul><h3 id=使用hostpath>使用hostPath
-<a class=anchor href=#%e4%bd%bf%e7%94%a8hostpath>#</a></h3><p>使用hostPath，将容器的<code>/storage</code>目录挂载到容器所在主机的<code>/home/storage</code>目录下</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>apiVersion</span>: <span style=color:#ae81ff>v1</span>
-</span></span><span style=display:flex><span><span style=color:#f92672>kind</span>: <span style=color:#ae81ff>Pod</span>
-</span></span><span style=display:flex><span><span style=color:#f92672>metadata</span>:
-</span></span><span style=display:flex><span>  <span style=color:#f92672>name</span>: <span style=color:#ae81ff>hostpath-test</span>
-</span></span><span style=display:flex><span><span style=color:#f92672>spec</span>:
-</span></span><span style=display:flex><span>  <span style=color:#f92672>containers</span>:
-</span></span><span style=display:flex><span>    - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>busybox</span>
-</span></span><span style=display:flex><span>      <span style=color:#f92672>image</span>: <span style=color:#ae81ff>harbor.scs.buaa.edu.cn/library/busybox:1.24</span>
-</span></span><span style=display:flex><span>      <span style=color:#f92672>volumeMounts</span>:
-</span></span><span style=display:flex><span>        - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>storage</span>
-</span></span><span style=display:flex><span>          <span style=color:#f92672>mountPath</span>: <span style=color:#ae81ff>/storage</span> <span style=color:#75715e>#将容器的 /storage 目录作为挂载点</span>
-</span></span><span style=display:flex><span>      <span style=color:#f92672>args</span>:
-</span></span><span style=display:flex><span>        - <span style=color:#ae81ff>/bin/sh</span>
-</span></span><span style=display:flex><span>        - -<span style=color:#ae81ff>c</span>
-</span></span><span style=display:flex><span>        - <span style=color:#ae81ff>echo &#34;test file&#34; &gt; /storage/test.txt</span>
-</span></span><span style=display:flex><span>  <span style=color:#f92672>restartPolicy</span>: <span style=color:#e6db74>&#34;Never&#34;</span>
-</span></span><span style=display:flex><span>  <span style=color:#f92672>volumes</span>:
-</span></span><span style=display:flex><span>    - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>storage</span>
-</span></span><span style=display:flex><span>      <span style=color:#f92672>hostPath</span>:
-</span></span><span style=display:flex><span>        <span style=color:#f92672>path</span>: <span style=color:#ae81ff>/home/buaa/storage</span> <span style=color:#75715e># 挂载到主机的 /home/buaa/storage目录下</span>
-</span></span></code></pre></div><blockquote><ul><li>volumeMounts: container中需要被mount的目录</li><li>volumes: 根据name来对应container中的volumeMounts并选择mount到本地的路径</li></ul></blockquote><p>使用<code>kubectl get pod -o wide</code>可查看pod所在主机，进入主机查看<code>/home/buaa/storage</code>下的文件</p><pre tabindex=0><code class=language-command data-lang=command>$ ls /home/buaa/storage
-test.txt
-
-$ cat /home/storage/test.txt
-test file
-</code></pre><p>hostPath的缺点为若使用一个pod需要跨主机到另外一台主机上重建，数据将会丢失，这时我们需要PersistentVolume来进行持久化</p><h3 id=使用pv和pvc>使用PV和PVC
-<a class=anchor href=#%e4%bd%bf%e7%94%a8pv%e5%92%8cpvc>#</a></h3><p>两者的关系为：PV用于定义存储，而PVC用于向已有存储申请存储空间</p><p>用nfs来实现PV比较容易，因此用nfs来做实例</p><blockquote><ul><li>nfs:网络文件系统（英语：Network File System，缩写作 NFS）</li></ul></blockquote><p>nfs需要一个server端，一个client端，对于实验的Kubernetes集群来说，可将Master节点作为server同时为client(因为设置了Master节点开启工作负载)，其他所有从节点为client。</p><h4 id=配置nfs-server端>配置nfs server端
-<a class=anchor href=#%e9%85%8d%e7%bd%aenfs-server%e7%ab%af>#</a></h4><p>在nfs服务器上安装nfs-kernel-server （理论上实验用的机器已经安装，如果没有，请自行联网安装）</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>apt install nfs-kernel-server
-</span></span></code></pre></div><p>首先创建一个用于存放数据的文件夹</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>mkdir /data
-</span></span></code></pre></div><p>接下来修改nfs的配置文件</p><pre tabindex=0><code class=language-command data-lang=command>$ vim /etc/exports
-
-#添加如下内容
-/data *(rw,sync,no_root_squash)
-</code></pre><p>其中：</p><blockquote><ul><li>/data： 共享的目录</li><li>* ： 谁可以访问(这里设置为所有人能访问)</li><li>(rw,sync,no_root_squash): 权限设置<ul><li>rw: 能读写</li><li>sync: 同步</li><li>no_root_squash: 不降低root用户的权限(不安全，不过本次实验选择这样做更方便)</li></ul></li></ul></blockquote><p>重启nfs服务：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>service nfs-kernel-server restart
-</span></span></code></pre></div><p>在<strong>所有节点</strong>安装nfs-common （理论上实验用的机器已经安装，如果没有，请自行联网安装）</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>apt install nfs-common
-</span></span></code></pre></div><p>安装好后可使用如下指令查看是否能看到nfs服务器的挂载点(x.x.x.x为nfs服务器的ip地址)</p><pre tabindex=0><code class=language-command data-lang=command>$ showmount -e x.x.x.x
-Export list for x.x.x.x:
-/data *
-</code></pre><p>这时候说明已经能够访问到这个挂载点了，使用以下指令将挂载点挂载到本地的<code>/mnt</code>路径下(x.x.x.x同样为nfs服务器地址)</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>mount x.x.x.x:/data /mnt
-</span></span></code></pre></div><p>无提示则说明挂载成功，此时在nfs客户端上进行测试</p><p><code>$ cd /mnt</code>
-<code>$ touch success</code></p><p>若看到nfs服务器上<code>/data</code>目录中出现<code>success</code>文件，则说明nfs已经部署成功，将集群所有机器都进行挂载(包括服务器本机)，在一个挂载点删除后，所有客户端和服务器也会同步删除</p><h4 id=创建pv>创建PV
-<a class=anchor href=#%e5%88%9b%e5%bb%bapv>#</a></h4><p>准备好nfs环境后，创建PersistentVolume(pv)</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>apiVersion</span>: <span style=color:#ae81ff>v1</span>
-</span></span><span style=display:flex><span><span style=color:#f92672>kind</span>: <span style=color:#ae81ff>PersistentVolume</span>
-</span></span><span style=display:flex><span><span style=color:#f92672>metadata</span>:
-</span></span><span style=display:flex><span>  <span style=color:#f92672>name</span>: <span style=color:#ae81ff>nfspv</span>
-</span></span><span style=display:flex><span><span style=color:#f92672>spec</span>:
-</span></span><span style=display:flex><span>  <span style=color:#f92672>capacity</span>:
-</span></span><span style=display:flex><span>    <span style=color:#f92672>storage</span>: <span style=color:#ae81ff>1Gi</span>
-</span></span><span style=display:flex><span>  <span style=color:#f92672>accessModes</span>:
-</span></span><span style=display:flex><span>    - <span style=color:#ae81ff>ReadWriteOnce</span>
-</span></span><span style=display:flex><span>  <span style=color:#f92672>persistentVolumeReclaimPolicy</span>: <span style=color:#ae81ff>Retain</span>
-</span></span><span style=display:flex><span>  <span style=color:#f92672>storageClassName</span>: <span style=color:#ae81ff>nfs</span>
-</span></span><span style=display:flex><span>  <span style=color:#f92672>nfs</span>:
-</span></span><span style=display:flex><span>    <span style=color:#f92672>path</span>: <span style=color:#ae81ff>/data</span> <span style=color:#75715e>#要mount到的路径</span>
-</span></span><span style=display:flex><span>    <span style=color:#f92672>server</span>: <span style=color:#ae81ff>x.x.x.x</span> <span style=color:#75715e>#nfs服务器ip</span>
-</span></span></code></pre></div><blockquote><ul><li>accessModes:<ul><li>ReadWriteOnce &ndash; PV能以read-write模式mount到单个节点</li><li>ReadOnlyMany &ndash; PV能以read-only模式mount到多个节点</li><li>ReadWriteMany &ndash; PV能以read-write模式mount到多个节点</li></ul></li><li>persistentVolumeReclaimPolicy<ul><li>Retain &ndash; 需要管理员手工回收</li><li>Recycle &ndash; 清除PV中的数据，效果相当于执行<code>rm -rf /thevolume/*</code></li><li>Delete &ndash; 删除Storage Provider上的对应存储资源</li></ul></li><li>nfs<ul><li>path的路径要存在，若不存在，Pod无法正常运行，请提前手动创建好(动态pv无需手动创建)</li></ul></li></ul></blockquote><p>使用指令<code>kubectl create -f &lt;filename></code>按照上述yaml文件创建PV后</p><pre tabindex=0><code class=language-command data-lang=command>$ kubectl get pv
-NAME    CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS      CLAIM   STORAGECLASS   REASON   AGE
-nfspv   1Gi        RWO            Retain           Available           nfs                     3s
-</code></pre><p>接下来创建PVC</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>apiVersion</span>: <span style=color:#ae81ff>v1</span>
-</span></span><span style=display:flex><span><span style=color:#f92672>kind</span>: <span style=color:#ae81ff>PersistentVolumeClaim</span>
-</span></span><span style=display:flex><span><span style=color:#f92672>metadata</span>:
-</span></span><span style=display:flex><span>  <span style=color:#f92672>name</span>: <span style=color:#ae81ff>nfspvc</span>
-</span></span><span style=display:flex><span><span style=color:#f92672>spec</span>:
-</span></span><span style=display:flex><span>  <span style=color:#f92672>accessModes</span>:
-</span></span><span style=display:flex><span>    - <span style=color:#ae81ff>ReadWriteOnce</span>
-</span></span><span style=display:flex><span>  <span style=color:#f92672>resources</span>:
-</span></span><span style=display:flex><span>    <span style=color:#f92672>requests</span>:
-</span></span><span style=display:flex><span>      <span style=color:#f92672>storage</span>: <span style=color:#ae81ff>1Gi</span>
-</span></span><span style=display:flex><span>  <span style=color:#f92672>storageClassName</span>: <span style=color:#ae81ff>nfs</span>
-</span></span></code></pre></div><p>创建后查看PVC和PV的情况</p><pre tabindex=0><code class=language-command data-lang=command>kubectl get pvc
-NAME     STATUS   VOLUME   CAPACITY   ACCESS MODES   STORAGECLASS   AGE
-nfspvc   Bound    nfspv    1Gi        RWO            nfs            5s
-kubectl get pv
-NAME    CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS   CLAIM            STORAGECLASS   REASON   AGE
-nfspv   1Gi        RWO            Retain           Bound    default/nfspvc   nfs                     82m
-</code></pre><p>发现pvc已经和pv绑定了，因为Kubernetes将查找满足申领要求的pv，并将pvc绑定到具有相同StorageClass的适当的pv上</p><p>接下来在裸Pod中使用PVC</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>kind</span>: <span style=color:#ae81ff>Pod</span>
-</span></span><span style=display:flex><span><span style=color:#f92672>apiVersion</span>: <span style=color:#ae81ff>v1</span>
-</span></span><span style=display:flex><span><span style=color:#f92672>metadata</span>:
-</span></span><span style=display:flex><span>  <span style=color:#f92672>name</span>: <span style=color:#ae81ff>test-pod</span>
-</span></span><span style=display:flex><span><span style=color:#f92672>spec</span>:
-</span></span><span style=display:flex><span>  <span style=color:#f92672>containers</span>:
-</span></span><span style=display:flex><span>  - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>test-pod</span>
-</span></span><span style=display:flex><span>    <span style=color:#f92672>image</span>: <span style=color:#ae81ff>harbor.scs.buaa.edu.cn/library/busybox:1.24</span>
-</span></span><span style=display:flex><span>    <span style=color:#f92672>command</span>:
-</span></span><span style=display:flex><span>      - <span style=color:#e6db74>&#34;/bin/sh&#34;</span>
-</span></span><span style=display:flex><span>    <span style=color:#f92672>args</span>:
-</span></span><span style=display:flex><span>      - <span style=color:#e6db74>&#34;-c&#34;</span>
-</span></span><span style=display:flex><span>      - <span style=color:#e6db74>&#34;touch /mnt/SUCCESS &amp;&amp; exit 0 || exit 1&#34;</span>
-</span></span><span style=display:flex><span>    <span style=color:#f92672>volumeMounts</span>:
-</span></span><span style=display:flex><span>      - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>nfs-pvc</span>
-</span></span><span style=display:flex><span>        <span style=color:#f92672>mountPath</span>: <span style=color:#e6db74>&#34;/mnt&#34;</span> <span style=color:#75715e>#此处为容器内的被挂载点，根据pv中的设置，将这个目录直接挂载到nfs服务器的/data目录下</span>
-</span></span><span style=display:flex><span>  <span style=color:#f92672>restartPolicy</span>: <span style=color:#e6db74>&#34;Never&#34;</span>
-</span></span><span style=display:flex><span>  <span style=color:#f92672>volumes</span>:
-</span></span><span style=display:flex><span>    - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>nfs-pvc</span>
-</span></span><span style=display:flex><span>      <span style=color:#f92672>persistentVolumeClaim</span>:
-</span></span><span style=display:flex><span>        <span style=color:#f92672>claimName</span>: <span style=color:#ae81ff>nfspvc</span>
-</span></span></code></pre></div><p>这个pod使用busybox来执行一段语句，在需要mount的路径下新建一个名为<strong>SUCCESS</strong>的文件。创建好pod后，等待pod的Status变为<code>Completed</code>之后，查看所有<code>/mnt</code>文件夹以及<code>/data</code>文件夹</p><pre tabindex=0><code class=language-command data-lang=command>$ kubectl get pod
-NAME                  READY   STATUS      RESTARTS   AGE
-test-pod              0/1     Completed   0          10s
-#pod已经完成，查看被挂载以及挂载目录
-
-#nfs-server:
-$ ls /data
-SUCCESS
-
-#nfs-client
-$ls /mnt
-SUCCESS
-</code></pre><p>通过busybox创建文件已经通过pv存储在了nfs服务器中，并同步到了各个客户端的挂载点上。</p><p>实际上，只需要nfs服务器即可达到实验效果，使用客户端可加深对nfs的理解。</p><ul><li>动态PV</li></ul><p>动态PV是指使用PVC之前不需要创建PV，而是在PVC申请存储空间的时候自动根据条件创建，也叫做动态供给（Dynamical Provision）。动态供给的基础是StorageClass，详细可参考：
-<a href=https://kubernetes.io/docs/concepts/storage/storage-classes/#the-storageclass-resource>StorageClass</a></p><h2 id=动手做>动手做
-<a class=anchor href=#%e5%8a%a8%e6%89%8b%e5%81%9a>#</a></h2><ul><li><p>复现手册中提到的Kubernetes操作，并理解操作所涉及到的Kubernetes特性/功能</p></li><li><p>部署nginx服务</p><ul><li><p>创建nginx的Deployment</p></li><li><p>复现故障转移和伸缩功能</p></li><li><p>创建nginx的Service</p><ul><li><p>ServiceType应为NodePort</p></li><li><p>Deployment的replicas至少为2</p></li><li><p>为每个Nginx Pod创建不同的service.html</p></li><li><p>通过Service NodePort对Pod的service.html进行多次curl，要求每次结果都不相同(因为被代理到了不同的Pod，且默认的选择算法为round-robin)，例如：</p><pre tabindex=0><code class=language-command data-lang=command>~$ curl &lt;nodeIP&gt;:&lt;nodePort&gt;/service.html
-2
-~$ curl &lt;nodeIP&gt;:&lt;nodePort&gt;/service.html
-1
-</code></pre><blockquote><p>Tips:</p><p>可以通过<code>kubectl exec -it &lt;podName> -- bash</code>进入Pod内部
-要创建的文件位于<code>/usr/share/nginx/html/service.html</code>
-容器内并未安装文本编辑器，可以通过<code>echo</code>和<code>cat</code>命令对<code>service.html</code>进行编辑，如</p><pre tabindex=0><code>echo &#39;single string&#39; &gt; service.html
-</code></pre><pre tabindex=0><code>cat &gt; service.html &lt;&lt;EOF
-complicated
-string
-with
-multiple
-lines
-EOF
-</code></pre></blockquote></li></ul></li><li><p>尝试使用滚动更新，对比前后主页版本 (可以自行创建Service通过代理访问网页，也可以直接curl ClusterIP访问。<strong>注意浏览器缓存影响</strong>)</p></li></ul></li><li><p>部署持久化服务</p><ul><li>在集群中部署nfs环境</li><li>创建pv和pvc</li><li>创建mysql的Deployment和Service，确保绑定了pvc (<strong>mysql的mount目录为/var/lib/mysql</strong>)，创建MySQL时，可以使用镜像<code>harbor.scs.buaa.edu.cn/library/mysql:8</code></li><li>查看nfs server的mount目录，mysql数据文件已经写入</li></ul></li></ul></article><footer class=book-footer><div class="flex flex-wrap justify-between"><div><a class="flex align-center" href=https://github.com/alex-shpak/hugo-book/commit/485cb9aa1a6a5a8dff1345ec2ab9c401c10b9bb3 title='Last modified by loheagn | April 11, 2022' target=_blank rel=noopener><img src=/doc/svg/calendar.svg class=book-icon alt=Calendar>
-<span>April 11, 2022</span></a></div><div><a class="flex align-center" href=https://github.com/alex-shpak/hugo-book/edit/main/exampleSite/content/cloud-labs/cloud/kube-single-3.md target=_blank rel=noopener><img src=/doc/svg/edit.svg class=book-icon alt=Edit>
-<span>Edit this page</span></a></div></div><script>(function(){function e(e){const t=window.getSelection(),n=document.createRange();n.selectNodeContents(e),t.removeAllRanges(),t.addRange(n)}document.querySelectorAll("pre code").forEach(t=>{t.addEventListener("click",function(){e(t.parentElement),navigator.clipboard&&navigator.clipboard.writeText(t.parentElement.textContent)})})})()</script></footer><div class=book-comments></div><label for=menu-control class="hidden book-menu-overlay"></label></div><aside class=book-toc><div class=book-toc-content><nav id=TableOfContents><ul><li><a href=#kubernetes实验三-kubernetes的基本使用>Kubernetes实验（三） Kubernetes的基本使用</a><ul><li><a href=#实验目的>实验目的</a></li><li><a href=#配置资源的两种方式>配置资源的两种方式</a><ul><li><a href=#使用命令>使用命令</a></li><li><a href=#使用配置文件>使用配置文件</a></li><li><a href=#yaml>YAML</a></li></ul></li><li><a href=#调度pod>调度Pod</a><ul><li><a href=#deployment>Deployment</a></li><li><a href=#replicaset>ReplicaSet</a></li><li><a href=#伸缩>伸缩</a></li><li><a href=#故障转移>故障转移</a></li><li><a href=#job>Job</a></li><li><a href=#其他controller>其他Controller</a></li></ul></li><li><a href=#service>Service</a><ul><li><a href=#创建service>创建Service</a></li><li><a href=#暴露端口>暴露端口</a></li></ul></li><li><a href=#滚动更新>滚动更新</a></li><li><a href=#数据管理>数据管理</a><ul><li><a href=#使用hostpath>使用hostPath</a></li><li><a href=#使用pv和pvc>使用PV和PVC</a></li></ul></li><li><a href=#动手做>动手做</a></li></ul></li></ul></nav></div></aside></main></body></html>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>kkk</span>: <span style=color:#ae81ff>hahaha</span>
+</span></span></code></pre></div><p>修改Service <code>kubectl apply -f service.yaml</code></p><p>查看service <code>kubectl get svc nginx-service</code></p><p><img src=download/YFbcSwC.png alt></p><p>此时，从集群内任一节点IP的<code>32180</code>端口均可访问到该Service指定的Pod的80端口。</p><p>比如，你现在所使用的虚拟机的IP是<code>10.251.254.183</code>，那么，你在校园网内的任何一台机器上，执行<code>curl http://10.251.254.183:32180</code>，都能得到如下的输出：</p><p><img src=download/I36tl5E.png alt></p><p>当然，你也可以使用浏览器访问：</p><p><img src=download/sRGyCgM.png alt></p><p>可以尝试删除Pods并等待新的Pods创建完成，仍可以通过上述方式访问。</p><h2 id=基于云的课程设计二选一>基于云的课程设计（二选一）
+<a class=anchor href=#%e5%9f%ba%e4%ba%8e%e4%ba%91%e7%9a%84%e8%af%be%e7%a8%8b%e8%ae%be%e8%ae%a1%e4%ba%8c%e9%80%89%e4%b8%80>#</a></h2><p>注意，以下两个课程设计二选一即可。</p><h3 id=选项一云paas平台设计>选项一：云PaaS平台设计
+<a class=anchor href=#%e9%80%89%e9%a1%b9%e4%b8%80%e4%ba%91paas%e5%b9%b3%e5%8f%b0%e8%ae%be%e8%ae%a1>#</a></h3><p>以上学期的云计算课程设计中设计的云PaaS平台为基础，对其中的“自动部署”功能基于Kubernetes做进一步细化。</p><p>假设有这样一个需求场景，学生针对某一门课程的某一项作业，提供了若干代码仓库地址和部署所用的配置文件；教师或助教点击“部署”按钮，云平台将会自动按照学生提供的配置文件，拉取代码仓库，进行编译、部署等操作，并返回给教师或助教一个可以访问的URL或其他形式的编译产物。</p><p>请你：</p><ol><li>设计学生所提交的配置文件格式，该配置文件应该描述如何对代码仓库进行编译（或者如何打包为镜像）、编译产物如何部署、在部署时各个组件的依赖关系等等。</li><li>结合包括但不限于架构图和顺序图等方式，结合具体案例（例如，一个简单的前后端+数据库的系统），描述你的系统是如何工作的，特别是其是如何与Kubernetes进行交互的（在这个过程中，将会创建或修改哪些Kubernetes的资源对象，包括但不限于Pod、Deployment、Service等等）。</li></ol><p>注意：仅需完成设计并编写文档即可，<strong>不需要编码实现</strong>。</p><h3 id=选项二数据分析开发环境迁移上云>选项二：“数据分析开发环境”迁移上云
+<a class=anchor href=#%e9%80%89%e9%a1%b9%e4%ba%8c%e6%95%b0%e6%8d%ae%e5%88%86%e6%9e%90%e5%bc%80%e5%8f%91%e7%8e%af%e5%a2%83%e8%bf%81%e7%a7%bb%e4%b8%8a%e4%ba%91>#</a></h3><p>在数据分析实验中，在本地部署Hadoop开发环境是繁琐的，并且很容易出错，因此，可以尝试将本次课程实践中的“数据分析开发环境”的部署迁移到Kubernetes上。</p><p>请你：</p><ol><li>设计并编写一系列YAML文件，这些YAML文件包含在Kubernetes中部署“数据分析开发环境”的各类Pod、Deployment、Service等的定义。用户使用kubectl将这些文件apply到Kubernetes集群中，即可完成对“数据分析开发环境”的部署，从而可以直接在Kubernetes中完成数据分析工作。</li><li>提供说明，用户应该如何使用你的YAML文件，从而在Kubernetes中完成“数据分析开发环境”的部署；并且在部署完成后，用户应该如何使用该“数据分析开发环境”进行数据分析工作。</li></ol><h4 id=hint>Hint
+<a class=anchor href=#hint>#</a></h4><p>在启动Hive容器时，可以直接使用已经云平台已有的Hive镜像 <code>scs.buaa.edu.cn:8081/iobs/hive:1.0.0</code>，其Dockerfile是：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-dockerfile data-lang=dockerfile><span style=display:flex><span><span style=color:#66d9ef>FROM</span><span style=color:#e6db74> openjdk:8-bullseye</span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> mkdir -p /export/server <span style=color:#f92672>&amp;&amp;</span> <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>    wget https://mirror.tuna.tsinghua.edu.cn/apache/hive/hive-3.1.2/apache-hive-3.1.2-bin.tar.gz <span style=color:#f92672>&amp;&amp;</span> <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>    tar -xvf apache-hive-3.1.2-bin.tar.gz -C /export/server <span style=color:#f92672>&amp;&amp;</span> <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>    rm -rf apache-hive-3.1.2-bin.tar.gz<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>ENV</span> HIVE_HOME<span style=color:#f92672>=</span>/export/server/apache-hive-3.1.2-bin<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>ENV</span> PATH<span style=color:#f92672>=</span><span style=color:#e6db74>&#34;</span><span style=color:#e6db74>${</span>PATH<span style=color:#e6db74>}</span><span style=color:#e6db74>:</span><span style=color:#e6db74>${</span>HIVE_HOME<span style=color:#e6db74>}</span><span style=color:#e6db74>/bin&#34;</span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> wget https://mirrors.tuna.tsinghua.edu.cn/apache/hadoop/common/hadoop-3.3.4/hadoop-3.3.4.tar.gz <span style=color:#f92672>&amp;&amp;</span> <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>    tar -xvf hadoop-3.3.4.tar.gz -C /export/server <span style=color:#f92672>&amp;&amp;</span> <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>    rm hadoop-3.3.4.tar.gz<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> cp <span style=color:#e6db74>${</span>HIVE_HOME<span style=color:#e6db74>}</span>/conf/hive-env.sh.template <span style=color:#e6db74>${</span>HIVE_HOME<span style=color:#e6db74>}</span>/conf/hive-env.sh <span style=color:#f92672>&amp;&amp;</span> <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>    echo <span style=color:#e6db74>&#34;export HADOOP_HOME=/export/server/hadoop-3.3.4&#34;</span> &gt;&gt; <span style=color:#e6db74>${</span>HIVE_HOME<span style=color:#e6db74>}</span>/conf/hive-env.sh <span style=color:#f92672>&amp;&amp;</span> <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>    echo <span style=color:#e6db74>&#34;export HADOOP_CONF_DIR=/export/server/hadoop-3.3.4/etc/hadoop&#34;</span> &gt;&gt; <span style=color:#e6db74>${</span>HIVE_HOME<span style=color:#e6db74>}</span>/conf/hive-env.sh <span style=color:#f92672>&amp;&amp;</span> <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>    echo <span style=color:#e6db74>&#34;export HIVE_CONF_DIR=</span><span style=color:#e6db74>${</span>HIVE_HOME<span style=color:#e6db74>}</span><span style=color:#e6db74>/conf&#34;</span> &gt;&gt; <span style=color:#e6db74>${</span>HIVE_HOME<span style=color:#e6db74>}</span>/conf/hive-env.sh <span style=color:#f92672>&amp;&amp;</span> <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>    echo <span style=color:#e6db74>&#34;export HIVE_AUX_JARS_PATH=</span><span style=color:#e6db74>${</span>HIVE_HOME<span style=color:#e6db74>}</span><span style=color:#e6db74>/lib&#34;</span> &gt;&gt; <span style=color:#e6db74>${</span>HIVE_HOME<span style=color:#e6db74>}</span>/conf/hive-env.sh <span style=color:#f92672>&amp;&amp;</span> <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>    echo <span style=color:#e6db74>&#34;export HIVE_LOG_DIR=</span><span style=color:#e6db74>${</span>HIVE_HOME<span style=color:#e6db74>}</span><span style=color:#e6db74>/logs&#34;</span> &gt;&gt; <span style=color:#e6db74>${</span>HIVE_HOME<span style=color:#e6db74>}</span>/conf/hive-env.sh<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> wget https://mirrors.tuna.tsinghua.edu.cn/mysql/downloads/Connector-J/mysql-connector-java-8.0.29.tar.gz <span style=color:#f92672>&amp;&amp;</span> <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>    tar -xvf mysql-connector-java-8.0.29.tar.gz <span style=color:#f92672>&amp;&amp;</span> <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>    cp mysql-connector-java-8.0.29/mysql-connector-java-8.0.29.jar <span style=color:#e6db74>${</span>HIVE_HOME<span style=color:#e6db74>}</span>/lib<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> mkdir -p /data/hive<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>EXPOSE</span><span style=color:#e6db74> 10000</span><span style=color:#960050;background-color:#1e0010>
+</span></span></span></code></pre></div></article><footer class=book-footer><div class="flex flex-wrap justify-between"><div><a class="flex align-center" href=https://github.com/alex-shpak/hugo-book/commit/85934d4b10cd0ce3e797c49b9cb624f8bf5b0e04 title='Last modified by loheagn | October 29, 2022' target=_blank rel=noopener><img src=/doc/svg/calendar.svg class=book-icon alt=Calendar>
+<span>October 29, 2022</span></a></div><div><a class="flex align-center" href=https://github.com/alex-shpak/hugo-book/edit/main/exampleSite/content/cloud-labs/cloud/kube-single-3/index.md target=_blank rel=noopener><img src=/doc/svg/edit.svg class=book-icon alt=Edit>
+<span>Edit this page</span></a></div></div><script>(function(){function e(e){const t=window.getSelection(),n=document.createRange();n.selectNodeContents(e),t.removeAllRanges(),t.addRange(n)}document.querySelectorAll("pre code").forEach(t=>{t.addEventListener("click",function(){e(t.parentElement),navigator.clipboard&&navigator.clipboard.writeText(t.parentElement.textContent)})})})()</script></footer><div class=book-comments></div><label for=menu-control class="hidden book-menu-overlay"></label></div><aside class=book-toc><div class=book-toc-content><nav id=TableOfContents><ul><li><a href=#kubernetes综合实验>Kubernetes综合实验</a><ul><li><a href=#实验目的>实验目的</a></li><li><a href=#背景>背景</a></li><li><a href=#初识kubernetes>初识Kubernetes</a><ul><li><a href=#kubernetes简介>Kubernetes简介</a></li><li><a href=#创建kubernetes集群>创建Kubernetes集群</a></li><li><a href=#使用kubernetes启动第一个容器>使用Kubernetes启动第一个容器</a></li></ul></li><li><a href=#pod>Pod</a><ul><li><a href=#查看pod>查看Pod</a></li><li><a href=#删除pod>删除Pod</a></li><li><a href=#pod的生命周期>Pod的生命周期</a></li><li><a href=#使用yaml文件管理pod>使用YAML文件管理Pod</a></li></ul></li><li><a href=#label>Label</a></li><li><a href=#pod-controller>Pod Controller</a><ul><li><a href=#controller>Controller</a></li><li><a href=#pod-controller-1>Pod Controller</a></li><li><a href=#deployment>Deployment</a></li><li><a href=#其他pod-controller>其他Pod Controller</a></li></ul></li><li><a href=#service>Service</a><ul><li><a href=#创建service>创建Service</a></li><li><a href=#暴露端口>暴露端口</a></li></ul></li><li><a href=#基于云的课程设计二选一>基于云的课程设计（二选一）</a><ul><li><a href=#选项一云paas平台设计>选项一：云PaaS平台设计</a></li><li><a href=#选项二数据分析开发环境迁移上云>选项二：“数据分析开发环境”迁移上云</a></li></ul></li></ul></li></ul></nav></div></aside></main></body></html>

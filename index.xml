@@ -46,44 +46,48 @@ harbor.scs.buaa.edu.cn 这个网页可以打开
 harbor.scs.buaa.edu.cn 的用户名为你的学号，默认密码为Newpass@2021</description></item><item><title>操作系统</title><link>https://scs.buaa.edu.cn/doc/ns-labs/resources/os/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://scs.buaa.edu.cn/doc/ns-labs/resources/os/</guid><description> 操作系统 # 常见操作系统 ISO 镜像可至官网、 MSDN，我告诉你、 Next, ITELLYOU 等网站上去下载。
 Windows Server 2019 # ED2K 下载：ed2k://|file|cn_windows_server_2019_updated_july_2020_x64_dvd_2c9b67da.iso|5675251712|19AE348F0D321785007D95B7D2FAF320|/
 使用 KMS 激活方式如下：
-# 使用管理员身份打开PowerShell DISM /online /Set-Edition:ServerDatacenter /ProductKey:WMDGN-G9PQG-XVVXX-R3X43-63DFG /AcceptEula # 打开 CMD (管理员) slmgr.vbs /ipk WMDGN-G9PQG-XVVXX-R3X43-63DFG slmgr.vbs /skms kms.teevee.asia slmgr.vbs /ato</description></item><item><title>Kubernetes实验（三）</title><link>https://scs.buaa.edu.cn/doc/cloud-labs/cloud/kube-single-3/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://scs.buaa.edu.cn/doc/cloud-labs/cloud/kube-single-3/</guid><description>Kubernetes实验（三） Kubernetes的基本使用 # 实验目的 # 了解Kubernetes的各种特性 掌握Kubernetes的常用功能 注意事项
-本次分配的机器的账户和密码为： buaa: &amp;amp;shieshuyuan21 root: &amp;amp;&amp;amp;shieshuyuan21 务必首先修改机器的root和buaa账户的密码
+# 使用管理员身份打开PowerShell DISM /online /Set-Edition:ServerDatacenter /ProductKey:WMDGN-G9PQG-XVVXX-R3X43-63DFG /AcceptEula # 打开 CMD (管理员) slmgr.vbs /ipk WMDGN-G9PQG-XVVXX-R3X43-63DFG slmgr.vbs /skms kms.teevee.asia slmgr.vbs /ato</description></item><item><title>云计算课程设计</title><link>https://scs.buaa.edu.cn/doc/cloud-labs/cloud/cloud_course_design/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://scs.buaa.edu.cn/doc/cloud-labs/cloud/cloud_course_design/</guid><description> 云计算课程设计 # 背景 # 当今时代是云原生的时代。
+容器化带来的优势 # 在之前的《容器与Docker》的实验中，我们从“隔离不同的应用程序”入手，介绍了引入容器的必然性。容器之间这种相互隔离的特性为使它非常便于进行弹性伸缩和迁移部署。
+各位试想一下自己之前部署一个应用的过程，通常分为这么几个步骤：
+编译源代码，得到编译产物（你可能需要根据不同的部署目标编译多个不同平台的编译产物，比如在macOS和Windows上开发，却需要编译Linux目标平台的产物） 在目标机器上安装运行时环境（对于部分类型的应用程序来说，这一步可以省略，如大部分Go、Rust等编写的应用） 将编译产物传送到目标机器 设置程序运行时需要的环境变量、配置文件等（大多数情况下至少需要维护开发时和运行时两种不同的配置文件和环境变量） 启动应用程序 如果是需要长期稳定运行的程序，还需要配置程序作为守护进程启动（可能需要编写systemd配置文件等） 而对于以容器形式部署的应用来说，只需要：
+编写Dockerfile（这里会包含进程在运行时需要使用的环境变量和配置文件等） 根据Dockerfile构建镜像 推送镜像到目标机器，然后使用docker run启动容器 整个过程流畅而优雅，并且因为需要操作的步骤很少，所以会有更低的出错的可能（在传统的部署过程中，敲错一行命令导致部署失败是常有的事）。而且，更进一步地：
+有些时候，我们将机器A上的应用迁移到机器B上时，如果使用传统部署方式，则很可能需要将1至6这几个步骤重复走一遍；而如果使用容器部署方式，只需要在机器B上拉取机器A中使用的镜像，重新启动容器即可。 有些时候，我们可能需要在同一台机器上部署和管理一个应用的多个不同的实例（如对于单进程应用，出于负载均衡，充分榨干机器性能的需要），如果使用传统部署方式，很可能需要为每个需要部署的实例修改不同的配置，并手动开启或关闭这多个实例；而如果使用容器部署的方式，则只需修改docker run的参数，对于启动的多个实例，可以轻松地使用docker本身提供的工具进行管理。 大多数情况下，一个应用程序往往会依赖若干个不同的外部服务。比如一个Java编写的后端服务，可能需要依赖数据库、对象存储等服务。这些外部服务的部署和配置在部署应用时也是一个很让人头疼的事情。而对于容器的部署方式，这些外部服务，诸如数据库、对象存储等，完全也可以实现容器化，它们的部署也可以使用基于容器的方式进行（相信各位在上次实验中已经体会到了使用容器的方式部署MySQL服务的便利性）。 微服务与容器 # 相信很多同学都接触或者实践过微服务架构（比如Spring Cloud之类的）。微服务，简单来讲就是说将原来的整个软件系统，拆分成不同的模块，每个模块对外都表现为一个独立的系统（它们可以独立进行开发、测试和部署），每个模块对外暴露规划好的接口，不同模块之间通过某种协议（一般是原生的HTTP或各种各样的RPC协议）相互调用这些接口，从而组织成整个完整的软件系统。
+微服务带来了很多好处：
+整个业务系统“高内聚，低耦合”。不同模块只需要维护好对外的接口即可，对内完全是自治的。这给整个软件系统的迭代更新带来了极大的便利。比如，可以根据需要很方便地增减不同模块等等。 不同模块相互独立，其之间的沟通交流一般使用的是基于HTTP的与编程语言和编程框架无关的协议。这就使得同一个软件系统内部的不同微服务模块可以交给不同团队开发，不同团队可以根据自身的技术积累，或者当前模块的特点，使用不同的编程语言和框架来实现。 不同微服务模块的部署是相互独立的。这就意味着，可以根据需要调整不同模块部署的实例个数，而无需调整整个软件系统的部署情况，从而可以充分利用硬件资源。 微服务架构的上述特点很适合互联网业务敏捷开发、快速迭代的工作方式。 不难发现，微服务的特点和容器的优势有很大的重合点，容器非常适合用来作为微服务的实现方式。即，对每个模块构建一个或多个镜像，然后以部署容器的方式部署每个微服务模块。事实上，我们当前使用的各个大厂的主要业务都是跑在容器里面的。“微服务化”和“容器化”也基本成为了同义词。
+容器管理与云 # 当前大部分互联网公司的业务的部署都是以容器的方式进行的。整个软件系统被拆成一个个微服务模块，每个微服务的实例都是一个容器。这些成千上万的容器翱翔在以数以万计的服务器组成的大规模集群的资源池中。容器定义了新时代的云。而所谓的“上云”，也基本意味着“将应用以容器方式进行部署和管理”。
+随着容器数量的扩大，容器管理问题也逐渐凸显出来。试想，在容器数量很少时，你可以在自己的机器上手动使用docker命令开启或关闭容器。但当容器数量数以万计时，手动操作的成本就会迅速增加，因为：
+即使每个容器因为各种各样的原因崩溃的概率很低，但乘以一个很大的容器总数，就会使“每时每刻都会有若干容器挂掉”变成大概率事件。为了保证业务的正常运行，必须能够即使发现这些崩溃的容器，并将它们重新启动。 在业务迭代时，经常需要更新容器的镜像。这意味着，我们必须能够在数以万计的容器中，找到先前版本的所有容器实例，并将它们关闭移除，然后启动新版本镜像的容器。 集群中的各个机器的状态可能不同（集群可能是异构的），为了充分发挥硬件资源的能力，必须能够即使根据不同机器的状态（空闲与否）和容器占用资源的情况，将容器调度到不同机器上运行。 不仅如此，随着单纯的容器化本身只是一种“理想的愿景”，有很多实际问题需要考虑：
+前面我们提到，微服务的各个模块之间需要相互调用，这也意味着，不同容器之间需要相互交换信息，那么如何定位不同的容器、容器之间以怎样的方式发送和接收消息就成为一个非常重要的问题。 容器本身是“一次性”的，它的存储相关工作一般都交给数据卷来保存。不仅如此，数据对任何业务来讲都是最宝贵的资源，为了保证高可用，数据卷的管理必须考虑备份、容灾等。当容器数量增大时，数据卷的管理将变得非常复杂。 围绕这上述这些实际生产中的问题，很多科技公司都积极尝试并给出了自己的解决方案，但最终还是Google开源的Kubernetes笑到了最后，并已经在当下成为了分布式容器管理和容器编排的事实标准。而当下繁荣的云原生生态，也正是以容器和Kubernetes为基石，围绕它们构建起来的。
+如果同学们对云计算感兴趣，可以去关注一下 CNCF（云原生计算基金会），它是Linux基金会的一部分，收录了大量云计算方面的开源项目，很多国内外大厂都是它的会员，同时也会给它捐献自己的云计算方面的开源项目，在 这里你可以看到CNCF的全景图。CNCF每年都会举办很多面向学生的开源项目活动，是一个接触并深入云计算领域的非常不错的窗口，感兴趣的同学可以多留意相关信息（比如各个大厂的云原生公众号，CNCF在国内的公众号等）。
+课程设计内容 # 相信大家都上过软件学院的软件工程这门课。课程的大作业一般都需要完成做一次完整的软件开发，最终一般都需要提交源代码和相关文档等。但这门课的作业检查是非常痛苦的。不同小组使用的编程语言、编程框架及其相应的版本都不一而同。助教或教师如果想实际检查源代码的正确性（即能正确编译并在部署后能呈现出你文档中描述的那种效果）是非常困难的。
+因此，请以软件学院为样本，结合容器技术，设计这样一个Web应用，教师或助教部署作业任务后，学生提交源代码和必要的编译部署选项（比如编译脚本、部署参数等）；教师或助教在学生提交完成后，只需要在系统中点击“编译”和“部署”按钮，就可以完成学生作品的部署流程，并观察到学生作品的运行效果。
+以上只是对系统的笼统描述，有很多细节需要考虑：
+软院云平台现有课程管理、实验管理、提交作业功能，如何将这些现有功能与新系统联动起来？ 学生提交作业时使用什么方式？直接提交源代码压缩包，还是给出一个代码托管地址？有自己的代码托管平台BuGit，如果将新系统与其联动起来？ 学生在完成作业后，提交代码前，很可能也需要自己在系统上尝试编译部署进行自测，以保证自己代码的运行效果与本地测试的效果相同。 （可选）大多数情况下，学生在完成作业时，都使用版本控制系统（如Git等）来管理代码。学生很可能需要在每次提交代码时能验证本次所提交的代码没有破坏之前的功能。即，系统应该可以在每次学生提交新代码（如果使用Git进行管理的话，就是在每次提交新commit时）时自动拉取学生代码，或者运行代码库的单元测试，或者进行编译和部署，并将结果展示出来。熟悉 GitHub Actions和 CI/CD的同学应该很容易理解这里在说什么。 本次课程设计并不需要大家真正实现这一系统，而是要编写文档，描述：
+对上述场景进行需求分析，可以使用用例图等形式描述系统中包含哪些角色，每个角色应该有怎样的功能。请大家重视这一部分的工作，这是你接下来设计系统的重要前提。 描述系统的设计结构，可以使用原型图、架构图、流程图等形式，说明系统从教师或助教部署作业，到教师或助教看到学生的作业效果这一端到端的流程是怎样工作的。并请结合一个典型的作业类型（例如，一个包含了前端、后端和数据库的课程作业），来举例描述系统的工作流程。 描述技术选型，描述计划使用哪些关键技术，并且这些技术是怎样为最终系统功能服务的。</description></item><item><title>Kubernetes综合实验</title><link>https://scs.buaa.edu.cn/doc/cloud-labs/cloud/kube-single-3/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://scs.buaa.edu.cn/doc/cloud-labs/cloud/kube-single-3/</guid><description>Kubernetes综合实验 # 实验目的 # 了解Kubernetes的各种特性 掌握Kubernetes的常用功能 注意事项
+本次分配的机器的账户和密码为： buaa: &amp;amp;shieshuyuan21 为了避免权限问题，建议切换到root账户操作：
+首先使用sudo passwd root为root账户设置密码 然后使用sudo su命令切换到root账户 务必首先修改机器的root和buaa账户的密码
 请务必阅读 虚拟机使用说明。
-分配的虚拟机中，已经安装了Docker，无需重复安装；并设置了Docker镜像地址（该地址指向校内地址），理论上docker.io中的镜像不用联网即可拉取。例如可以直接在虚拟机上docker pull nginx。
-创建Kubernetes集群
-在实验开始前，请利用云平台提供的虚拟机或者自己的本地资源，创建一个至少包含两节点的Kubernetes集群。
-详情请参考： 附录：创建Kubernetes集群
-配置资源的两种方式 # 使用命令 # 回想之前我们之前初始化Kubernetes集群后，执行过的命令：
-kubectl create deployment nginx-test --image=harbor.scs.buaa.edu.cn/library/nginx --replicas=2 --port=80 使用kubectl命令创建资源时，会将Pod的配置都写入命令参数中。以我们执行过的kubectl create命令（在集群中使用指定镜像启动容器）为例，命令中包含了镜像名（--image）、伸缩情况（--replicas）。当然，kubectl命令还有许多其他的功能，详情可以在 Kubernetes文档-kubectl命令看到。
-直接使用kubectl创建资源简单、直观、快捷，很适合临时测试或者试验。但实际上，创建资源时通常需要一系列的配置，如果单纯使用kubectl命令会比较麻烦，因此通常在配置资源会使用yaml配置文件。
-使用配置文件 # 在之前的实验中，我们使用了这个命令来安装Weave Scope
-kubectl apply -f https://git-v1.scs.buaa.edu.cn/iobs/static_files/raw/main/kube/weave_scope/scope.yml 这个命令实际上从后面的地址读取了一个yaml配置文件，并根据这个文件来配置资源。如果你将这个文件打开，你会看到这样的内容（省略了很多内容）：
-apiVersion: v1 kind: List items: - apiVersion: v1 kind: Namespace metadata: name: weave annotations: cloud.weave.works/version: v1.0.0-302-g76376bb - apiVersion: v1 kind: ServiceAccount metadata: name: weave-scope labels: name: weave-scope namespace: weave YAML # YAML是一种可读性高、用来表达数据序列化的格式。YAML使用空白字符和分行来分隔数据，使用一些符号来标记清单、散列表、标量等资料形态。</description></item><item><title>云PaaS平台开发</title><link>https://scs.buaa.edu.cn/doc/cloud-labs/cloud/cloud_lab/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://scs.buaa.edu.cn/doc/cloud-labs/cloud/cloud_lab/</guid><description>云PaaS平台开发 # 实验要求 # 基于Kubernetes，设计并实现一PaaS平台。该平台的终极目标，用户可以通过该平台，实现从源代码到可访问的服务之间的整个自动化流程。
-比如，在传统方式下，用户编写了一个React应用，为了能让其他人通过互联网访问到他的应用，他需要首先在云厂商购买服务器，然后在服务器上安装操作系统和NodeJS，然后手动拉取依赖和编译，然后手动将编译好的静态文件放到合适的地方（配置Nginx等）。
-而在通过这个PaaS平台，用户只需要提供自己的源代码，并按照平台的需求，编写一个配置文件（可能会包含一个Dockerfile，也可能是某种模板的形式），剩下的工作可以放心地交给PaaS平台来完成。
-那么PaaS平台是如何实现这个功能的呢？首先，它根据用户提供的源代码和配置文件，将源代码编译成一个OCI镜像；然后将该镜像交给一个容器管理平台部署为一个容器组（一般是Kubernetes中的Deployment或StatefulSet）；然后根据用户提供的配置文件，将容器组的特定端口暴露到互联网上（例如使用Service的NodePort或LoadBalancer）。
-进一步地，一个真正的生产级别的应用不可能由一个容器组提供的功能支撑（最简单的一个前后端分离的应用，就要包含一个前端、一个后端，可能还有数据库和缓存服务等），为了完成整个应用的部署，用户一般会通过配置文件来指定多个不同的容器。这些容器之间的逻辑是相互联系，平台需要能够将它们在逻辑上与其他的应用容器区分开。
-因此，可以看到，一个完整的PaaS平台可以包含（最终小组作品可以包含下述一个或多个功能点）：
-镜像管理 用户可以向平台添加自己需要的镜像，可以直接提供一个Dockerfile，也可以直接提供镜像的压缩包，也可以提供源代码（可以是代码的压缩包，也可以是一个代码仓库地址等等），也可以直接让平台去拉公共的镜像仓库 用户可以浏览、更改和删除自己添加的镜像 在镜像管理部分，可以自己在本地通过Docker Image管理，也可以考虑搭建一个私有的 Docker Registry 容器管理 用户可创建和修改容器，并监控容器状态 （考虑使用Kubernetes进行部署和管理） 应用部署 用户可以直观地将若干个逻辑上统一的容器编排成完成的应用，并发布。这里这个“应用”的概念是Kubernetes本身没有的，需要你自己去抽象。比如，可以把不同应用的容器组使用namespace隔离等等。在KubeSphere上，这个概念其实就是一个“项目”） 希望同学们在实现上述功能的过程中加深对Kubernetes各项概念的理解，并体会云计算为应用的发布和运维带来的便利。
-开发过程中，需要使用到Kubernetes和Docker Engine对外提供的API，可以直接调用他们的OpenAPI，也可以使用官方或第三方封装好的Client SDK。
-Kubernetes的OpenAPI描述文件可以在 这里找到，这里列出了比较流行的一些Kubernetes 客户端库。
-Docker的OpenAPI描述文件可以在 这里找到，这里列出了比较流行的一些Docker 客户端库。
-实验代码管理与部署 # 实验代码请托管到软院代码托管平台 BuGit上。
-首次使用代码托管平台时需要激活账户。激活账户时，请注意邮箱的正确性，并牢记密码。 系统开发将分小组进行，需要小组在 BuGit上创建项目，并邀请所有小组成员加入。
-可以使用的资源 # KubeSphere，该平台的初始账号密码与BuGit相同（如果登录失败，可以尝试使用密码Newpass@2021登录），并且其上的项目与BuGit同步。在BiGit上创建项目后，可在KubeSphere对应的项目中部署容器。
-Harbor，该平台的初始账号密码与BuGit相同，并且其上的项目与BuGit同步。在BiGit上创建进行代码仓库的构建后，可在Harbor对应的项目中查看到创建的镜像。
-校内的Docker Hub镜像地址：10.251.0.37:5000。</description></item><item><title>附录：创建Kubernetes集群</title><link>https://scs.buaa.edu.cn/doc/cloud-labs/cloud/appendix_create_kubernetes/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://scs.buaa.edu.cn/doc/cloud-labs/cloud/appendix_create_kubernetes/</guid><description>创建Kubernetes集群 # Kubernetes生态发展至今已非常完善，部署一个Kubernetes集群已经不再是一件非常繁琐和困难的事情。社区有大量简单可靠的解决方案。
-下面给出几种可选的方案，根据自己的实际情况，选择其一即可。
-kubeadm（不推荐） # Kubernetes官方推荐使用 kubeadm 来初始化一个Kubernetes集群。通过它，用户可以获得是一个相对“纯净”的Kubernetes集群。但该方法相对繁琐，而且对国内用户非常不友好，因此不推荐这种方式部署。
-有兴趣的同学可以尝试。
-KubeKey（推荐） # KubeKey 是由 Kubesphere （一个国内公司主导的开源的Kubernetes管理平台）开源的Kubernetes和Kubesphere部署工具。
-KubeKey使用声明式的配置方式，用户只需要通过一个YAML配置文件给出所需集群的相关配置，即可通过KubeKey创建集群或修改集群的状态。更详细内容和使用方式请参考 KubeKey的文档。
-创建集群 # 在本次实验分配的虚拟机中，已经提前完成了KubeKey的部分配置，只需按照下面几步操作即可完成Kubernetes集群的创建。
-注意
-为了减少不必要的麻烦，请直接使用root账户登录虚拟机，并完成相关操作。
-进入/root/kubesphere目录
-cd /root/kubesphere 修改配置文件中的IP和登录密码。可以按需修改主机的hostname。如果修改了hostname，也需要同步修改roleGroups中的值。
-apiVersion: kubekey.kubesphere.io/v1alpha1 kind: Cluster metadata: name: main-cluster spec: hosts: - {name: node1, address: 1.1.1.1, internalAddress: 1.1.1.1, user: root, password: &amp;#39;&amp;amp;&amp;amp;shieshuyuan21&amp;#39;} - {name: node2, address: 1.1.1.1, internalAddress: 1.1.1.1, user: root, password: &amp;#39;&amp;amp;&amp;amp;shieshuyuan21&amp;#39;} roleGroups: etcd: - node1 master: - node1 worker: - node1 - node2 controlPlaneEndpoint: domain: lb.</description></item><item><title>自动构建与部署</title><link>https://scs.buaa.edu.cn/doc/02_bugit/build_deploy/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://scs.buaa.edu.cn/doc/02_bugit/build_deploy/</guid><description>自动构建与部署 # 原理 # 本质上，自动构建与部署的过程是，系统根据用户提供的包含在代码仓库中的配置文件，将代码编译成一个OCI规范的镜像，然后上传到镜像中心，最后通知Kubernetes集群拉取镜像运行，以对外提供可用服务。
+分配的虚拟机中，已经安装了Docker，无需重复安装。
+背景 # 上学期的云计算课中，我们主要了解了什么是容器，以及目前最流行的容器运行时和容器管理工具Docker；并且在此过程中体会了容器技术给软件开发和部署带来的极大的便利性。
+但到此为止，我们对容器的使用和管理依旧处于非常“手工”的状态，难以胜任实际生产环境中对容器管理的要求。在实际生产环境中，
+通常一个应用包含多个容器；即，一个应用的部署，需要按照一定的顺序启动多个容器。例如，即便是一个最简单的前后端应用，我们也需要依次启动三个容器：数据库容器（例如一个MySQL容器）、后端应用容器、前端应用容器（通常是一个Nginx容器）。特别是在微服务场景中，后端可能涉及到几十个微服务模块，每个模块都对应着一个容器，不同服务之间又有复杂的依赖调用关系。 每个类别的服务通常会有多个容器实例。对于一些负载较高的服务，通常会部署多个相同的容器实例达到负载均衡的效果，从而提高服务整体的吞吐量。 容器是不稳定的，随时可能会因为各种各样的原因挂掉，因此，需要时刻监控容器的状态，在它挂掉的时候及时重新启动服务，保证服务整体的高可用。 大部分应用都是分布式的。即，一个应用中的不同服务是部署在不同机器上的，即使是一个服务的不同实例往往也会部署在多个机器上。如何在多台机器上做好资源（内存、CPU、磁盘）的负载均衡（即，避免出现某些机器负载过高的同时，其他机器负载空闲的情况）也是棘手的问题。 如果仅靠我们已经学到的几个docker命令显然是难以完成上述任务的。这就需要一个专门的容器编排调度工具帮我们处理这些事情。自Docker兴起后，很多厂商都进入该领域并推出了自己的容器编排调度解决方案，例如Docker Swarm、Mesos等，都想在新兴的容器市场中分一杯羹，但最终Kubernetes笑到了最后，并且作为CNCF的毕业项目，成为了当下容器编排调度领域的事实标准。本次实验我们就来认识一下Kubernetes，学习并实践其中一些基本概念。
+Kubernetes以其复杂难懂著称，在本次实验中，我们主要学习其中最基本的部分，培养大家对Kubernetes的感性认识，帮助大家开始入门云计算领域。
+初识Kubernetes # Kubernetes简介 # Kubernetes在希腊语中的含义是船长/领航员，这个名字生动地体现了它在容器集群管理中的作用——调度和监控全局的集装箱（container，容器）。由于Kubernetes这个单词太长，人们通常会用k8s来作为简称（Kubernetes的首尾两个字母之间正好有8个字母）。
+请始终记住，Kubernetes和Docker之类的容器运行时不是互相替代的关系，也不是包含与被包含的关系，而是互补的关系。Kubernetes仅仅是一个容器编排和调度工具，其必须运行在“容器运行时（container runtime）”之上。它能做的仅仅是接收用户的命令，然后通知其下层的容器运行时做具体的工作。
+上图可以看出，在之前，我们是直接通过Docker命令行或Docker HTTP接口来与Docker容器运行时通信，控制其构建镜像、推送或拉取镜像、启动或停止容器，等等。
+而现在，我们可以通过Kubernetes的命令行工具（即Kubectl）或Kubernetes的HTTP接口来控制Kubernetes，然后，Kubernetes会根据我们发出的命令，“翻译”成对应的Docker容器运行时的调用，从而控制Docker容器运行时构建镜像、推送或拉取镜像、启动或停止容器等等。
+另外，请注意，Kubernetes是一个非常模块化的系统，它定义了一套“容器运行时接口（CRI）”，凡是实现了这套接口的容器运行时都可以作为Kubernetes运行容器的后端。目前比较流行的有Containerd和CRI-O，实际上，从1.20版本开始，Kubernetes官方已经弃用Docker引擎作为容器运行时。
+在本次实验中，为了前后知识的连贯性，我们依旧选择使用Docker作为Kubernetes的容器运行时。
+创建Kubernetes集群 # 在Kubernetes官网的 Get Started中，分别给出了面向个人初学者的学习测试环境和一线生产环境的若干Kubernetes集群部署方法。对于生产环境， Kubernetes官方推荐使用kubeadm来启动集群。但实际上，kubeadm对非专业的运维，特别是初学者来说并不十分友好（需要用户事先完成对主机的一系列配置，如开放防火墙端口、关闭swap、安装容器运行时等），再加上国内特殊的网络环境（kubeadm默认会从gcr.io拉取启动Kubernetes所需的系统镜像），因此不推荐初学者直接使用kubeadm启动集群。
+云计算生态非常繁荣，社区中已经有很多成熟的工具帮助用户快速启动一个标准的Kubernetes集群用于学习、测试等目的。本实验文档分别针对集群版和本地版提供创建Kubernetes集群的选项，供大家参考和使用。
+集群版 # 推荐使用此种方式创建集群，这样有利于在后续章节中学习和实践Kubernetes“集群”的相关特性。如确实有问题，可以切换到个人电脑上使用“单机版”的方式。
+在本次实验中，我们将部署一个简单的 k3s（注意，不是“k8s”哦！）集群。k3s是通过CNCF认证的Kubernetes的一个发行版，是基于上游的“原生”的Kubernetes的代码进一步构建的。k3s和Kubernetes的关系可以简单类比为Ubuntu、CentOS等于Linux之间的关系。你可以在这里找到k3s官方维护的 k3s的中文文档。
+实际上，还有很多其他的Kubernetes发行版，比如k0s之类的。只不过k3s的中国化做得非常好，在国内的网络环境下使用非常便利，也有大量的资料可以使用，所以我们选用其作为本次实验的主要工具。当然，不同Kubernetes发行版之间存在着各种各样的差异，但这并不影响我们学习Kubernetes的基础知识。
+准备一台能够连接互联网的Linux机器。如果你选择使用软院云平台分配的机器，可以直接进行下一步；否则，请查看 安装要求，确保你的机器满足其中所述条件。
+确保机器已经安装Docker，并且其版本高于或等于19.03，可以使用docker info命令验证。如果你使用的是软院云平台分配的机器，可直接进行下一步；否则，请注意检查Docker是否正确安装，并且是否正确配置Docker Registry镜像地址，以保证可以顺利从docker.io中拉取镜像。（当然，如果你已经比较熟悉Kubernetes，可以忽略此步骤，选择使用k3s默认集成安装的containerd作为容器运行时。）
+保证你的机器已经连接互联网。
+切换到root用户（如果你觉得root操作危险，请保证自己有足够的能力使用普通用户权限完成所有操作），执行以下命令以初始化一个k3s的master节点（当前不理解什么是“master节点”没有关系，在后续章节中我们会进行详细介绍）：
+curl -sfL https://rancher-mirror.oss-cn-beijing.aliyuncs.com/k3s/k3s-install.sh | INSTALL_K3S_MIRROR=cn sh -s - --docker 如果你选择使用containerd作为容器运行时，请去除上述命令中的--docker参数。</description></item><item><title>自动构建与部署</title><link>https://scs.buaa.edu.cn/doc/02_bugit/build_deploy/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://scs.buaa.edu.cn/doc/02_bugit/build_deploy/</guid><description>自动构建与部署 # 原理 # 本质上，自动构建与部署的过程是，系统根据用户提供的包含在代码仓库中的配置文件，将代码编译成一个OCI规范的镜像，然后上传到镜像中心，最后通知Kubernetes集群拉取镜像运行，以对外提供可用服务。
 自动构建与部署的几个步骤：
 用户编写配置合法的配置文件，并包含在代码仓库的根目录中。
 用户触发自动构建与部署。目前支持自动监听代码推送（git push）动作，和在前端手动点击按钮触发。
@@ -101,12 +105,11 @@ MacOS 使用系统自带的Terminal.app登录即可。
 Linux 如果你是Linux Desktop用户，那么你肯定已经有了自己喜爱的终端模拟器，此处不再赘述。 Windows 一般来讲，Windows 10（及以上）自带的cmd.exe都自带ssh client，打开cmd后直接ssh foo@x.x.x.x即可登录。
 为了更好的使用体验，推荐下载使用 Windows Terminal。
 当然，你也可以使用 termius或者其他工具（如 Xshell等）进行多个ssh连接的管理。
-校外跳板 通过 d.buaa.edu.cn 跳转登录即可。 联网 # Linux系统 # 可以依次尝试以下两种方式。
-校园网登录脚本 # 这里推荐使用 srun工具。
-下载并安装登录工具：
+校外访问 || 浏览器访问 联网 # Linux系统 # 可以依次尝试以下两种方式。
+校园网登录脚本 # 这里推荐使用buaalogin（即 srun）。
+2022年8月开始分配的虚拟机默认已经安装了buaalogin工具，可使用which buaalogin验证其是否存在，如果存在，则可以跳过此步骤。 下载并安装登录工具：
 sudo wget https://scs.buaa.edu.cn/scsos/tools/linux/buaalogin -O /usr/local/bin/buaalogin sudo chmod +x /usr/local/bin/buaalogin 配置校园网登录使用的用户名和密码：
 buaalogin config 登录校园网：
 buaalogin login 登出校园网：
 buaalogin logout wukuard 服务 # 鉴于校网络中心的某些限制，上述联网方式可能在某短时间内无法使用，这里特别给出软院信息化小组的基于 Wireguard的曲线救国方案。其本质上是将虚拟机加入一个 wireguard虚拟内网，然后覆盖默认路由指向一个可以联网的内网机器，从而实现虚拟机本身与互联网的联通。
-请注意，以下步骤是针对Debian系发行版（包括Debian、Ubuntu等）给出的，其他发行版请自行对照着修改命令。 首先需要安装wireguard-tools（这里需要短暂联网，但完整整个步骤之后就不需要了）：
-export http_proxy=http://10.251.0.37:3128;export https_proxy=http://10.</description></item><item><title>FAQ</title><link>https://scs.buaa.edu.cn/doc/cloud-labs/cloud/faq/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://scs.buaa.edu.cn/doc/cloud-labs/cloud/faq/</guid><description> FAQ #</description></item></channel></rss>
+2022年8月开始分配的虚拟机默认配置好了 wukuard服务，可使用systemctl status wukuard验证之，如果运行正常，则可跳过下述的各个步骤，直接进行最后的配置hostname即可。 请注意，以下步骤是针对Debian系发行版（包括Debian、Ubuntu等）给出的，其他发行版请自行对照着修改命令。 首先需要安装wireguard-tools（这里需要短暂联网，但完整整个步骤之后就不需要了）：</description></item><item><title>FAQ</title><link>https://scs.buaa.edu.cn/doc/cloud-labs/cloud/faq/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://scs.buaa.edu.cn/doc/cloud-labs/cloud/faq/</guid><description> FAQ #</description></item></channel></rss>
