@@ -1,3 +1,5 @@
 public/
 .vscode
 resources/_gen/
+.idea
+.DS_Store
