@@ -39,7 +39,7 @@ weight: 1
 
 2. 请务必阅读[虚拟机使用说明](../../../01_common/virtual_machine_help.md)。
 
-3. 分配的虚拟机中，已经安装了Docker，无需重复安装；并设置了Docker镜像地址（该地址指向校内地址），理论上docker.io中的镜像不用联网即可拉取。例如可以直接在虚拟机上`docker pull nginx`。
+3. 分配的虚拟机中，已经安装了Docker，无需重复安装；**在使用Docker拉取镜像前，请务必使用`buaalogin`进行联网**。
 
 {{< /hint >}}
 
@@ -59,7 +59,8 @@ weight: 1
 
     比如，我们在机器上启动了一个mysql容器，在写入了一些重要数据后，因为某种原因该容器被意外删除了。此时即使重新启动一个mysql容器也找不会之前的数据了。**请结合实验文档中的内容和查阅相关资料，讨论应该通过何种方式启动容器来避免出现这一问题？你能得出几种方案？每种方案的优劣如何？并请分别使用这些方案模拟mysql容器 创建 - 写入数据 - 销毁 - 重新创建 - 重新读到之前写入的数据 的场景，以证明方案的有效性。**
 
-2. 请从ubuntu镜像开始，构建一个新的包含Nginx服务的ubuntu镜像，并修改Nginx主页内容为你的学号，**请分别使用`docker commit` 和 `Dockerfile`两种方式完成，** 并将这个新构建的镜像推送到软院的image registry中。这个镜像推送的地址应该是 `harbor.scs.buaa.edu.cn/<你的学号>/ubuntu-nginx:${TAG}`，其中，使用`docker commit`构建的镜像的`TAG`为`dockercommit`；使用`Dockerfile`构建的镜像的`TAG`为 `dockerfile`。
+2. 请从ubuntu镜像开始，构建一个新的包含Nginx服务的ubuntu镜像，并修改Nginx主页内容为你的学号，**请分别使用`docker commit` 和 `Dockerfile`两种方式完成，** 并将这个新构建的镜像推送到软院的[image registry](https://scs.buaa.edu.cn:8081)（该Image Registry的用户名是你的学号，密码请通过[这篇文档](../../../01_common/paas_token/index.md)获取）中。
+    这个镜像推送的地址应该是 `scs.buaa.edu.cn:8081/<你的学号>/ubuntu-nginx:${TAG}`，其中，使用`docker commit`构建的镜像的`TAG`为`dockercommit`；使用`Dockerfile`构建的镜像的`TAG`为 `dockerfile`。
 
     在测评时，助教会分别对你push的两个镜像执行以下命令（假设镜像名称为`example_image_name`）：
 
@@ -69,23 +70,11 @@ weight: 1
     
     **请保证上述命令的输出中包含你的学号**。
 
-{{< hint warning >}}
-
-**Hint:**
-
-1. harbor.scs.buaa.edu.cn 这个网页可以打开
-
-2. harbor.scs.buaa.edu.cn 的用户名为你的学号，默认密码为`Newpass@2021`
-
-3. 如果你使用的分配的校园网的虚拟机，默认是无法联网的。如果你的容器内部需要联网，可以在**启动容器前**执行 `export http_proxy=http://10.251.0.37:3128;export https_proxy=http://10.251.0.37:3128`
-
-    上述方式本质上只是修改当前bash进程的`HTTP_PROXY`，如果你有要求更高的联网需求，可以按照[此说明](../../../01_common/virtual_machine_help.md#联网)进行配置（配置中，需要使用的hostname是本次分配的虚拟机的名称，即`docker_lab_学号`。完成此说明中的操作后，虚拟机将持续处于联网状态。
-
-{{< /hint >}}
+    Hint： 你可能需要学习使用 [docker build](https://docs.docker.com/engine/reference/commandline/build/)，[docker push](https://docs.docker.com/engine/reference/commandline/push/)，[docker login](https://docs.docker.com/engine/reference/commandline/push/) 等命令。
 
 ## 背景
 
-我们知道，运行在操作系统中的软件，不仅包含我们实际编写的业务代码，还包含各种各样的**运行时（runtime）**（比如运行Java程序时需要依赖JRE，运行JS时需要依赖node、deno或浏览器环境，运行Python代码时需要Python环境，等等）和**依赖库（lib）**（比如，即使用C语言写个最简单的Hello World也得include一个stdio.h，以获取基本的向计算机屏幕打印字符串的能力）。在当前计算机性能普遍超越单个程序所需的性能的情况下，我们绝大多数情况下不会在一台机器中运行单个程序，而不同编程语言或不同类型的软件所需要的运行时和依赖库的类型和版本不尽相同，甚至同一个类型的运行时的不同版本之间还相互不兼容，这就需要我们在同一台机器中维护多个不同类型不同版本的运行时和依赖库，所以，大家在日常的学习和开发中，大概率会遇到下面这些问题：
+我们知道，运行在操作系统中的软件，不仅包含我们实际编写的业务代码，还包含各种各样的**运行时（runtime）**（比如运行Java程序时需要依赖JRE，运行JS时需要依赖node、deno或浏览器环境，运行Python代码时需要Python环境，等等）和**动态链接库**（比如，即使用C语言写个最简单的Hello World也得include一个stdio.h，以获取基本的向计算机屏幕打印字符串的能力）。在当前计算机性能普遍超越单个程序所需的性能的情况下，我们绝大多数情况下不会在一台机器中运行单个程序，而不同编程语言或不同类型的软件所需要的运行时和依赖库的类型和版本不尽相同，甚至同一个类型的运行时的不同版本之间还相互不兼容，这就需要我们在同一台机器中维护多个不同类型不同版本的运行时和依赖库，所以，大家在日常的学习和开发中，大概率会遇到下面这些问题：
 
 - 我想下载和使用一个软件，所有步骤都按照官方Guide一步步执行，但最后就怎么也启动不了，总是会报这样或那样的错误（经常用npm的同学应该深有体会）。
 - 我想下载和使用一个软件，结果总是提示依赖库缺失或版本冲突，最后好不容易解决了，结果把自己本地的环境搞的一团糟，甚至最后不得不重装系统。
@@ -430,7 +419,7 @@ Docker本身自诩是开源软件，它的上游构建组件确实是开源的�
 
 #### 配置镜像源
 
-我们常用的Docker官方的image registry在国内的连接非常不稳定，拉取镜像时很可能非常缓慢，这时可以配置镜像源，请参考[国内镜像加速](https://yeasy.gitbook.io/docker_practice/install/mirror)。另外，如果你在校园网内，可以考虑使用软院的镜像加速器地址：http://10.251.0.37:5000
+我们常用的Docker官方的image registry在国内的连接非常不稳定，拉取镜像时很可能非常缓慢，这时可以配置镜像源，请参考[国内镜像加速](https://yeasy.gitbook.io/docker_practice/install/mirror)。
 
 {{< hint warning >}}
 ⚠️ 请再次注意，我们在本次实验中讨论的容器是使用namespace和cgroups隔离的进程。所以理论上，这些容器只能在有Linux内核的操作系统上启动并运行。虽然可以通过Docker Desktop在macOS或Windows上启动容器，但本质上是因为Docker Desktop自动在你的机器上安装了一个Linux虚拟机，这些容器是启动在这个虚拟机里的。
@@ -494,7 +483,7 @@ docker run -it --rm ubuntu /bin/bash
 综上，我们可以看到docker实际上主要由三部分组成**docker cli**、**docker engine**、**image registry**。在后面的实验中，我们将逐步加深对着三部分的理解。
 
 {{< hint warning >}}
-💡 实际上，docker cli并不是必须的，任何可以读写docker engine所暴露的Unix socket（通常这个socket的文件名是`/var/run/docker.sock`）的程序都可以通过docker engine来实现docker的功能；甚至docker engine还可以对外暴露tcp端口，使外部程序使用特定的HTTP接口发起调用。
+💡 实际上，docker cli并不是必须的，任何可以读写docker engine所暴露的Unix socket（通常这个socket的文件名是`/var/run/docker.sock`）的程序都可以通过docker engine来实现docker的功能；甚至docker engine还可以对外暴露tcp端口，使外部程序通过该端口发起调用。
 
 {{< /hint >}}
 
@@ -522,7 +511,7 @@ docker中镜像与相关的操作都包含在`image`子命令中，如：
 - `docker image pull <image_name>` 可以从image registry中拉取名称为`image_name`的镜像：
     
     ```bash
-    root@template-debian11-base:/## docker image pull harbor.scs.buaa.edu.cn/library/mysql:8
+    root@template-debian11-base:/## docker image pull scs.buaa.edu.cn:8081/library/mysql:8
     8: Pulling from library/mysql
     b380bbd43752: Pull complete
     f23cbf2ecc5d: Pull complete
@@ -537,8 +526,8 @@ docker中镜像与相关的操作都包含在`image`子命令中，如：
     532e67ebb376: Pull complete
     233c7958b33f: Pull complete
     Digest: sha256:882e55f40d61034a2bb8a1abab1353571ad2a33866f382350788eb34740528b5
-    Status: Downloaded newer image for harbor.scs.buaa.edu.cn/library/mysql:8
-    harbor.scs.buaa.edu.cn/library/mysql:8
+    Status: Downloaded newer image for scs.buaa.edu.cn:8081/library/mysql:8
+    scs.buaa.edu.cn:8081/library/mysql:8
     ```
     
 
@@ -546,12 +535,11 @@ docker中镜像与相关的操作都包含在`image`子命令中，如：
 
 一般地，镜像名完整格式为`{image registry地址}/{仓库名}/{镜像名}:TAG`。
 
-例如本例中使用的 `harbor.scs.buaa.edu.cn/library/mysql:8` ，其中：
+例如本例中使用的 `scs.buaa.edu.cn:8081/library/mysql:8` ，其中：
 
-- `harbor.scs.buaa.edu.cn`为image registry的地址，用来告诉docker去哪里pull这个镜像；
-- `library`表示仓库名，表示这个镜像的所有者是谁；
-- `mysql`表示镜像的名称；
-- `8`是镜像的`TAG`，一般用来表示镜像的版本号。如果一个镜像名没有`TAG`，那么将会被认为`TAG`为`latest`，即`harbor.scs.buaa.edu.cn/library/mysql`等同于`harbor.scs.buaa.edu.cn/library/mysql:latest`。
+- `scs.buaa.edu.cn:8081/library/mysql`为镜像的地址，你可以将其简单理解为一个URL；
+    - 通常情况下，这个地址分为三部分，分别是`image registry地址`、`仓库名`、`镜像名`；
+- `8`是镜像的`TAG`，一般用来表示镜像的版本号。
 
 你可能已经注意到，我们在最初创建Ubuntu容器的时候也没那么麻烦，直接用`ubuntu`就表示了镜像名。那是因为当仅使用一个单词表示镜像名时，docker自动为它补上仓库名`library`、自家的image registry地址`docker.io`，以及TAG`latest`；即`ubuntu`等同于`docker.io/library/ubuntu:latest`。
 
@@ -569,7 +557,7 @@ docker中镜像与相关的操作都包含在`image`子命令中，如：
 
 ### image registry
 
-在介绍镜像名称时，同学们可能会疑惑，image registry有很多个吗，为啥还需要地址来标识？是的，image registry有很多个。image registry有的是公开的，任何人都可以访问，并从中拉取镜像；也有私有的，需要特殊的口令访问。目前，世界上最大的几个公开的image registry有Docker公司提供的[docker.io](http://docker.io)（目前也是世界上最大、使用最广泛的image registry，如果你需要通过浏览器访问的话，需要使用这个地址：[hub.docker.com](https://hub.docker.com/)）、Redhat提供的[quay.io](https://quay.io/)、Google提供的[gcr.io](https://cloud.google.com/container-registry/)（很可惜，这个地址在国内被*了）；当然还有我们软院的image registry：[harbor.scs.buaa.edu.cn](https://harbor.scs.buaa.edu.cn)。
+在介绍镜像名称时，同学们可能会疑惑，image registry有很多个吗，为啥还需要地址来标识？是的，image registry有很多个。image registry有的是公开的，任何人都可以访问，并从中拉取镜像；也有私有的，需要特殊的口令访问。目前，世界上最大的几个公开的image registry有Docker公司提供的[docker.io](http://docker.io)（目前也是世界上最大、使用最广泛的image registry，如果你需要通过浏览器访问的话，需要使用这个地址：[hub.docker.com](https://hub.docker.com/)）、Redhat提供的[quay.io](https://quay.io/)、Google提供的[gcr.io](https://cloud.google.com/container-registry/)（很可惜，这个地址在国内被*了）；当然还有我们软院的image registry：[scs.buaa.edu.cn:8081](https://scs.buaa.edu.cn:8081)。
 
 image registry不仅可以下载已经存在的镜像，还可以上传和保存自己制作的新的镜像。任何人都可以在上述registry网站创建账户和自己的仓库。对于用户上传到image registry中的镜像，用户可以自行选择是否对其他用户公开访问（公开或私有）。如果是私有镜像，则需要在每次上传和下载镜像前，在本地执行[docker login](https://docs.docker.com/engine/reference/commandline/login/)操作。
 
