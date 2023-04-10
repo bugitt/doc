@@ -1,9 +1,9 @@
 ---
-title: Kubernetes综合实验
+title: Kubernetes基础实验
 weight: 3
 ---
 
-# Kubernetes综合实验
+# Kubernetes基础实验
 
 ## 实验目的
 
@@ -17,16 +17,14 @@ weight: 3
 1. 本次分配的机器的账户和密码为：
 
   ```
-  buaa: &shieshuyuan21
+  root: &shieshuyuan21
   ```
 
-  为了避免权限问题，建议切换到root账户操作：
-  - 首先使用`sudo passwd root`为root账户设置密码
-  - 然后使用`sudo su`命令切换到root账户
+  为了避免权限问题，建议直接使用root用户进行操作。
 
   **务必首先修改机器的root和buaa账户的密码**
 
-2. 请务必阅读[虚拟机使用说明](../..//01_common/virtual_machine_help.md)。
+2. 请务必阅读[虚拟机使用说明](../../../01_common/virtual_machine_help.md)。
 
 3. 分配的虚拟机中，已经安装了Docker，无需重复安装。
 
@@ -34,7 +32,7 @@ weight: 3
 
 ## 背景
 
-上学期的云计算课中，我们主要了解了什么是容器，以及目前最流行的容器运行时和容器管理工具Docker；并且在此过程中体会了容器技术给软件开发和部署带来的极大的便利性。
+上次实验中，我们主要了解了什么是容器，以及目前最流行的容器运行时和容器管理工具Docker；并且在此过程中体会了容器技术给软件开发和部署带来的极大的便利性。
 
 但到此为止，我们对容器的使用和管理依旧处于非常“手工”的状态，难以胜任实际生产环境中对容器管理的要求。在实际生产环境中，
 
@@ -59,7 +57,7 @@ Kubernetes在希腊语中的含义是船长/领航员，这个名字生动地体
 
 请始终记住，Kubernetes和Docker之类的容器运行时不是互相替代的关系，也不是包含与被包含的关系，而是互补的关系。Kubernetes仅仅是一个容器编排和调度工具，其必须运行在“容器运行时（container runtime）”之上。它能做的仅仅是接收用户的命令，然后通知其下层的容器运行时做具体的工作。
 
-![](download/a0rNhUd.png)
+![](download/iShot_2023-04-10_16.17.54.png)
 
 上图可以看出，在之前，我们是直接通过Docker命令行或Docker HTTP接口来与Docker容器运行时通信，控制其构建镜像、推送或拉取镜像、启动或停止容器，等等。
 
@@ -69,11 +67,12 @@ Kubernetes在希腊语中的含义是船长/领航员，这个名字生动地体
 
 ![](download/KBTozW2.png)
 
+> 所谓“Kubernetes官方已经不再支持使用Docker作为容器运行时”，其实指的是Kubernetes官方不再维护Docker的CRI层。但由于历史惯性等原因，很多Kubernetes的下游发行版都会选择继续提供对Docker的支持（当然，这得益于Kubernetes本身与容器运行时的解耦）。
 > 在本次实验中，为了前后知识的连贯性，我们依旧选择使用Docker作为Kubernetes的容器运行时。
 
 ### 创建Kubernetes集群
 
-在Kubernetes官网的[Get Started](https://kubernetes.io/docs/setup/)中，分别给出了面向个人初学者的学习测试环境和一线生产环境的若干Kubernetes集群部署方法。对于生产环境，[Kubernetes官方推荐使用`kubeadm`来启动集群](https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/)。但实际上，`kubeadm`对非专业的运维，特别是初学者来说并不十分友好（需要用户事先完成对主机的一系列配置，如开放防火墙端口、关闭swap、安装容器运行时等），再加上国内特殊的网络环境（`kubeadm`默认会从`gcr.io`拉取启动Kubernetes所需的系统镜像），因此不推荐初学者直接使用`kubeadm`启动集群。
+在Kubernetes官网的[Get Started](https://kubernetes.io/docs/setup/)中，分别给出了面向个人初学者的学习测试环境和一线生产环境的若干Kubernetes集群部署方法。对于生产环境，[Kubernetes官方推荐使用`kubeadm`来启动集群](https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/)。但实际上，`kubeadm`对非专业的运维，特别是初学者来说并不十分友好（需要用户事先完成对主机的一系列配置，如开放防火墙端口、关闭swap、安装容器运行时等），再加上国内特殊的网络环境，因此不推荐初学者直接使用`kubeadm`启动集群。
 
 ![](download/Cr1awaZ.png)
 
@@ -119,7 +118,7 @@ Kubernetes在希腊语中的含义是船长/领航员，这个名字生动地体
     - 其加入当前Kubernetes集群的时间（`AGE`）是2天1小时（`2d1h`）前；
     - 其当前运行的Kubernetes版本号（`VERSION`）是`v1.24.4+k3s1`。
 
-到目前为止，我们已经得到了一个可用的Kubernetes集群。但我们注意到，当前该集群中，仅包含一个节点，并且该节点的角色为`control-plane,master`。在实际生产环境中，很少会有这样的场景，但这对我们完成一些基础的学习和实践任务是完全足够的。如果你想拓展自己的这个单节点集群为真正的生产可用的多节点集群，可以参考[k3s的文档](https://docs.rancher.cn/docs/k3s/installation/ha-embedded/_index)。
+到目前为止，我们已经得到了一个可用的Kubernetes集群。但我们注意到，当前该集群中，仅包含一个节点，并且该节点的角色为`control-plane,master`。在实际生产环境中，很少会有这样的场景，但这对我们完成一些基础的学习和实践任务是完全足够的。如果你想拓展自己的这个单节点集群为真正的生产可用的多节点集群（可以和其他同学合作完成，例如3位同学一起组件一个由3个节点组成的集群。当然，这不是本次实验的强制要求），可以参考[k3s的文档](https://docs.rancher.cn/docs/k3s/installation/ha-embedded/_index)。
 
 #### 本地版
 
@@ -227,7 +226,7 @@ Pod是Kubernetes中的基本执行单元，即管理、创建、计划的最小�
 
 ### 查看Pod
 
-Kubernetes的接口非常`Restful`，即对其进行的任何操作都可以归结为对各种资源的增删改查。因此，当我们想查看当前集群中的Pod时，只需要使用`get`方法`kubectl get pod`：
+Kubernetes的接口非常`RESTful`，即对其进行的任何操作都可以归结为对各种资源的增删改查。因此，当我们想查看当前集群中的Pod时，只需要使用`get`方法`kubectl get pod`：
 
 ![](download/a4zywa8.png)
 
@@ -316,9 +315,9 @@ spec:
 
 类似地，`kubectl delete -f pod-demo.yaml`将会把`pod-demo.yaml`文件中定义的资源删除。
 
-> `apply`操作体现的是Kubernetes的**声明式编程**的思想，即，我告诉你我想要啥（我只提供一个YAML文件，即我希望最终这个Pod的样子是什么），具体怎么做由你来负责（你怎么创建Pod，怎么启动Container，是你Kubernetes的事，跟我无关）。其实，我们经常使用的SQL就有声明式编程的影子。比如一条`SELECT`语句，我们只是告诉数据库我们想查什么东西，但具体怎么查，使用哪个索引还是别的什么东西，作为用户的我们并不关系。与声明式编程相对的是命令式编程，即需要用户自己将问题拆解，告诉执行器该怎样一步步地解决问题。
+> `apply`操作体现的是Kubernetes的**声明式编程**的思想，即，我告诉你我想要啥（我只提供一个YAML文件，即我希望最终这个Pod的样子是什么），具体怎么做由你来负责（你怎么创建Pod，怎么启动Container，是你Kubernetes的事，跟我无关）。其实，我们经常使用的SQL就有声明式编程的影子。比如一条`SELECT`语句，我们只是告诉数据库我们想查什么东西，但具体怎么查，使用哪个索引还是别的什么东西，作为用户的我们并不关心。与声明式编程相对的是命令式编程，即需要用户自己将问题拆解，告诉执行器该怎样一步步地解决问题。
 
-> 在我们后续的学习中，几乎所有的资源都会使用YAML文件来描述。YAML在Kubernetes中使用非常广泛，因此云计算工程师又经常自嘲自己是“YAML工程师”。
+> 在我们后续的学习中，几乎所有的资源都会使用YAML文件来描述。YAML在Kubernetes中使用非常广泛，因此有些云计算工程师经常自嘲自己是“YAML工程师”。
 
 ![](download/bip6xtI.png)
 
@@ -649,62 +648,69 @@ spec:
 
 可以尝试删除Pods并等待新的Pods创建完成，仍可以通过上述方式访问。
 
-## 基于云的课程设计（二选一）
+## 实验报告模板
 
-注意，以下两个课程设计二选一即可。
+```md
+# Kubernetes基础实验报告
 
-### 选项一：云PaaS平台设计
+## 个人信息
 
-以上学期的云计算课程设计中设计的云PaaS平台为基础，对其中的“自动部署”功能基于Kubernetes做进一步细化。
+姓名：
+学号：
 
-假设有这样一个需求场景，学生针对某一门课程的某一项作业，提供了若干代码仓库地址和部署所用的配置文件；教师或助教点击“部署”按钮，云平台将会自动按照学生提供的配置文件，拉取代码仓库，进行编译、部署等操作，并返回给教师或助教一个可以访问的URL或其他形式的编译产物。
+## 实验内容
 
-请你：
-1. 设计学生所提交的配置文件格式，该配置文件应该描述如何对代码仓库进行编译（或者如何打包为镜像）、编译产物如何部署、在部署时各个组件的依赖关系等等。
-2. 结合包括但不限于架构图和顺序图等方式，结合具体案例（例如，一个简单的前后端+数据库的系统），描述你的系统是如何工作的，特别是其是如何与Kubernetes进行交互的（在这个过程中，将会创建或修改哪些Kubernetes的资源对象，包括但不限于Pod、Deployment、Service等等）。
+### 启动Kubernetes集群
 
-注意：仅需完成设计并编写文档即可，**不需要编码实现**。
+<!-- 可以根据自身情况选择集群版或单机版，选择其一即可 -->
+<!-- 请详细写出自己的操作步骤，并截图说明 -->
 
-### 选项二：“数据分析开发环境”迁移上云
+### 使用Kubernetes启动第一个容器
 
-在数据分析实验中，在本地部署Hadoop开发环境是繁琐的，并且很容易出错，因此，可以尝试将本次课程实践中的“数据分析开发环境”的部署迁移到Kubernetes上。
+<!--  使用kubectl run启动一个容器，并与docker run进行比较 -->
+<!-- 请详细写出自己的操作步骤，并截图说明 -->
 
-请你：
-1. 设计并编写一系列YAML文件，这些YAML文件包含在Kubernetes中部署“数据分析开发环境”的各类Pod、Deployment、Service等的定义。用户使用kubectl将这些文件apply到Kubernetes集群中，即可完成对“数据分析开发环境”的部署，从而可以直接在Kubernetes中完成数据分析工作。 
-2. 提供说明，用户应该如何使用你的YAML文件，从而在Kubernetes中完成“数据分析开发环境”的部署；并且在部署完成后，用户应该如何使用该“数据分析开发环境”进行数据分析工作。
+### 观察Pod的生命周期
 
-#### Hint
+<!-- 结合 kubectl get pod --watch 和pod的创建、删除操作，观察Pod的生命周期 -->
+<!-- 请详细写出自己的操作步骤，并截图说明 -->
 
-在启动Hive容器时，可以直接使用已经云平台已有的Hive镜像 `scs.buaa.edu.cn:8081/iobs/hive:1.0.0`，其Dockerfile是：
+### 使用YAML文件管理Pod
 
-```dockerfile
-FROM openjdk:8-bullseye
+<!-- 使用YAML文件的方式创建Pod、查看Pod、删除Pod -->
+<!-- 请详细写出自己的操作步骤，并截图说明 -->
 
-RUN mkdir -p /export/server && \
-    wget https://mirror.tuna.tsinghua.edu.cn/apache/hive/hive-3.1.2/apache-hive-3.1.2-bin.tar.gz && \
-    tar -xvf apache-hive-3.1.2-bin.tar.gz -C /export/server && \
-    rm -rf apache-hive-3.1.2-bin.tar.gz
+### 为Pod添加Label
 
-ENV HIVE_HOME=/export/server/apache-hive-3.1.2-bin
+<!-- 使用YAML文件创建Pod后，编辑YAML文件，为Pod添加Label，并验证之 -->
+<!-- 请详细写出自己的操作步骤，并截图说明 -->
 
-ENV PATH="${PATH}:${HIVE_HOME}/bin"
+### 使用Deployment管理Pod
 
-RUN wget https://mirrors.tuna.tsinghua.edu.cn/apache/hadoop/common/hadoop-3.3.4/hadoop-3.3.4.tar.gz && \
-    tar -xvf hadoop-3.3.4.tar.gz -C /export/server && \
-    rm hadoop-3.3.4.tar.gz
+#### 创建Deployment
 
-RUN cp ${HIVE_HOME}/conf/hive-env.sh.template ${HIVE_HOME}/conf/hive-env.sh && \
-    echo "export HADOOP_HOME=/export/server/hadoop-3.3.4" >> ${HIVE_HOME}/conf/hive-env.sh && \
-    echo "export HADOOP_CONF_DIR=/export/server/hadoop-3.3.4/etc/hadoop" >> ${HIVE_HOME}/conf/hive-env.sh && \
-    echo "export HIVE_CONF_DIR=${HIVE_HOME}/conf" >> ${HIVE_HOME}/conf/hive-env.sh && \
-    echo "export HIVE_AUX_JARS_PATH=${HIVE_HOME}/lib" >> ${HIVE_HOME}/conf/hive-env.sh && \
-    echo "export HIVE_LOG_DIR=${HIVE_HOME}/logs" >> ${HIVE_HOME}/conf/hive-env.sh
+<!-- 创建Deployment，观察Deployment创建的Pod -->
+<!-- 请详细写出自己的操作步骤，并截图说明 -->
 
-RUN wget https://mirrors.tuna.tsinghua.edu.cn/mysql/downloads/Connector-J/mysql-connector-java-8.0.29.tar.gz && \
-    tar -xvf mysql-connector-java-8.0.29.tar.gz && \
-    cp mysql-connector-java-8.0.29/mysql-connector-java-8.0.29.jar ${HIVE_HOME}/lib
+#### 模拟Pod崩溃
 
-RUN mkdir -p /data/hive
+<!-- 手动删除Pod，观察集群中Pod的变化 -->
+<!-- 请详细写出自己的操作步骤，并截图说明 -->
 
-EXPOSE 10000
+#### 弹性伸缩
+
+<!-- 修改Deployment中的副本数，观察集群中Pod的变化 -->
+<!-- 请详细写出自己的操作步骤，并截图说明 -->
+
+### 使用Service暴露Pod的服务
+
+#### 创建Service
+
+<!-- 创建Service，并访问Service的IP，尝试分析Service和Pod的IP之间的关系 -->
+<!-- 请详细写出自己的操作步骤，并截图说明 -->
+
+#### 模拟Pod变化
+
+<!-- 删除Pod后重新创建，观察Service的行为变化 -->
+<!-- 请详细写出自己的操作步骤，并截图说明 -->
 ```

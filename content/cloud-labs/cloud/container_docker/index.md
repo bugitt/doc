@@ -32,7 +32,7 @@ weight: 1
 1. 本次分配的机器的账户和密码为：
 
   ```
-  buaa: &shieshuyuan21
+  root: &shieshuyuan21
   ```
 
   **务必首先修改机器的root和buaa账户的密码**
