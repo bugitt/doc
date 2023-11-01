@@ -17,28 +17,13 @@ weight: 1
 
 2. 按照实验报告模板，撰写实验报告，将重要的实验步骤截图，填入实验报告中，并回答相应问题。
 
-本次实验由小组内成员分工完成，虚拟机已分发至每组第一位同学的账户中，每组一台虚拟机，实验报告每个人都需要提交，同组的实验报告内容可以一致
+本次实验以小组形式进行，虚拟机已分发至每位同学的账户中，**每组三台**虚拟机，实验报告由每组一位同学提交即可。
 
-{{< hint info >}}
+请在云平台作业提交截止时间之前，将作业提交到云平台，命名为：`lab03-组号.pdf`的格式。
 
-本次实验的分数构成如下：
-
-- 必做（7分）：
-  - Ceph部署
-- 三选一（3分）：
-  - Ceph Filesystem
-  - Ceph RGW 对象存储
-  - Ceph RBD
-
-其中，Ceph Filesystem、Ceph RGW、Ceph RBD任选其一完成即可得到“三选一”部分的分数，多做**没有**额外的加分。如果你想在网络存储课程上投入更多的精力，欢迎参与课程设计申优答辩。
-
-{{< /hint >}}
-
-在实验过程中，**在执行每一条命令之前请务必搞清楚它是用来干啥的，执行后会有什么结果**。
+建议每组同学共同完成本次实验。
 
 **实验中遇到的困难请及时在课程微信群中抛出。** 除本指导书外，实验的主要的参考资料还包括：[Ceph 官方文档](https://docs.ceph.com/en/pacific/)、[Ceph 部署指南](https://access.redhat.com/documentation/en-us/red_hat_ceph_storage/5/html/installation_guide/index)、互联网上的技术博客等。
-
-请在云平台作业提交截止时间之前，将作业提交到云平台，命名为：`lab03-学号-姓名.pdf`的格式。
 
 ## 概述
 
@@ -82,21 +67,23 @@ Ceph(读音 /ˈsɛf/) 是一个分布式的存储集群。什么是分布式存�
 
 - 块存储。Ceph 还能提供块存储的抽象。即客户端（集群外的机器）通过块存储接口访问的“所有数据按照固定的大小分块，每一块赋予一个用于寻址的编号。”客户端可以像使用硬盘这种块设备一样，使用这些块存储的接口进行数据的读写。（一般这种块设备的读写都是由操作系统代劳的。操作系统会对块设备进行分区等操作，并在其上部署文件系统，应用程序和用户看到直接看到的是文件系统的接口（也就是文件存储））。
 
-![](https://cdn.loheagn.com/123326.jpg)
+![](img/20231102.png)
 
 需要注意的是，虽然 Ceph 对外提供了上面这三种不同类型的存储接口，但其底层会使用相同的逻辑对接收的数据进行分块和存储。
+
+**思考题1：对象存储和文件系统之间有哪些区别？**
 
 ## 重要概念
 
 一个 Ceph 集群必须包含三种类型的进程：Monitor、OSD 和 Manager。其中，Monitor 和 OSD 是最核心的两类进程。
 
-#### Monitor 和 OSD
+### Monitor 和 OSD
 
-Monitor 进程负责维护整个系统的状态信息，这些状态信息包括当前的 Ceph 集群的拓扑结构等，这些信息对 Ceph 集群中各个进程的通信来说非常关键。除此之外，Monitor 进程还负责充当外界（也就是官方文档中总是提到的“Client”）与 OSD 进程交流的媒介。
+Monitor 进程负责维护整个系统的状态信息，这些状态信息包括当前的 Ceph 集群的拓扑结构等，这些信息对 Ceph 集群中各个进程的通信来说非常关键。除此之外，Monitor 进程还负责充当外界与 OSD 进程交流的媒介。
 
 OSD 进程则负责进行真正的数据存储。如下图所示，外界传送给 Ceph 集群的数据（不管是通过文件存储、对象存储还是块存储的接口）都将被转化为一个个对象（object）。这些 object 将经由 OSD 进程存储到磁盘中。
 
-![](https://cdn.loheagn.com/134513.jpg)
+![](img/002812.jpeg)
 
 简单来说，当一个 Client 试图向 Ceph 集群读写数据时，将发生以下步骤：
 
@@ -120,7 +107,7 @@ OSD 进程则负责进行真正的数据存储。如下图所示，外界传送�
 
 {{< /hint >}}
 
-#### Manager
+### Manager
 
 Manager 进程主要负责跟踪当前集群的运行时状况，包括当前集群的存储利用率、存储性能等等。同时，它还负责提供 Ceph Dashboard、RESTful 接口的外部服务。
 
@@ -136,34 +123,22 @@ Manager 进程主要负责跟踪当前集群的运行时状况，包括当前集
 
 {{< /hint >}}
 
-#### Pool 与 Placement Group (PG) 与 Placement Group for Placement purpose (PGP)
-
-请查阅 Ceph 的相关文档，阐述 Pool、PG、PGP 与 OSD 之间的关系。可定性/定量分析 OSD、PG、PGP、OSD、PG_NUM 之间的数量关系。
-
-#### Ceph 集群的 HEALTH STATUS
-
-你在实验过程中，打 `ceph -s` 都遇到过哪些 HEALTH STATUS？（`ceph health detail` 能看到更为详细的状态信息）如果是 `WARN/ERROR` 都是哪些原因？
-
-#### PG_NUM 的相关计算
-
 请查阅 Ceph 的相关文档。
 
 ## 实验环境介绍
-本次实验发给大家了三台Centos 7虚拟机。它们的命名格式为`ceph-<序号>-<学号>`，如`ceph-01-20210000`。
-
-关于虚拟机的连接、文件传输以及连接互联网功能，可以参阅[虚拟机使用说明](https://scs.buaa.edu.cn/doc/01_common/virtual_machine_help/)
+本次实验发给大家了三台 Centos 7 虚拟机。它们的命名格式为`ceph-<学号>`，如`ceph-20210000`。
 
 {{< hint info >}}
 
 在实验开始前，你需要保证这三台虚拟机处于开机状态、用`buaalogin`连接互联网，并且设置它们的主机名与名称一致。
 
-例如在`ceph-03-20210000`机器上，你需要执行（设置后必须重启生效）
+例如在`ceph-20210000`机器上，你需要执行（设置后必须重启生效）
 ```bash
-echo 'ceph-03-20210000' > /etc/hostname
+echo 'ceph-20210000' > /etc/hostname
 reboot
 ```
 
-注意每台机器的主机名不能相同。
+注意每台机器的主机名**不能相同**。
 
 {{< /hint >}}
 
@@ -173,9 +148,9 @@ reboot
 
 Ceph 官方提供了[多种部署方式](https://docs.ceph.com/en/pacific/install/)。
 
-在本实验文档中，我们采用[Cephadm](https://docs.ceph.com/en/pacific/cephadm/#cephadm)作为部署工具。Cephadm 也是官方推荐的部署和管理 Ceph 集群的工具，它不仅可以用来部署 Ceph，还可以在安装完成后，用来管理集群（添加和移除节点、开启 rgw 等）。
+在本实验文档中，我们采用 [Cephadm](https://docs.ceph.com/en/pacific/cephadm/#cephadm) 作为部署工具。Cephadm 也是官方推荐的部署和管理 Ceph 集群的工具，它不仅可以用来部署 Ceph，还可以在安装完成后，用来管理集群（添加和移除节点、开启 rgw 等）。
 
-### Cephadm介绍
+### Cephadm 介绍
 
 Cephadm 是基于“容器技术（Container）”进行工作的，每个 Ceph 的工作进程都运行在相互隔离的容器中。Cephadm 支持使用 Docker 和 Podman 作为容器运行时。在部署时，Cephadm 将首先检查本机中安装的容器运行时类型，当 Docker 与 Podman 并存时，将首先使用 Podman（毕竟 Podman 也是 Red Hat 的产品）。
 
@@ -183,8 +158,7 @@ Cephadm 是基于“容器技术（Container）”进行工作的，每个 Ceph 
 
 下面是 Red Hat 给出使用 Cephadm 构建的集群的架构图。
 
-![](https://cdn.loheagn.com/090719.jpg)
-
+![Cephadm 架构图](<img/Cephadm 架构图.jpeg>)
 图中的“Container”指的就是我们上面所说的“容器”。
 
 图中最左边的 Bootstrap Host 就是我们执行 Cephadm 相关命令的机器（事实上，在整个集群的构建过程中，除了修改 IP 和联网等操作外，我们都只会在这个 Bootstrap Host 上进行操作）。我们在 Bootstrap Host 执行的针对其他节点的操作，都是 Cephadm 通过 ssh 的方式发送给对应节点的。
@@ -197,7 +171,7 @@ Cephadm 是基于“容器技术（Container）”进行工作的，每个 Ceph 
 
 在后续操作前，请务必保证所有机器已经连接**互联网**。
 
-基于 Cephadm 的便捷性，后续的操作只需要在**选定的一台**机器（我们把这台机器称为 Bootstrap Host）上执行即可。
+基于 Cephadm 的便捷性，后续的操作只需要在**选定的一台**机器（我们把这台机器称为 Bootstrap Host、主节点）上执行即可。
 
 {{< /hint >}}
 
@@ -233,25 +207,17 @@ cephadm --image scs.buaa.edu.cn:8081/library/ceph:v16 bootstrap  --mon-ip 10.251
 
 命令执行完成后，我们可以通过`ceph -s`查看当前集群的状态。
 
-![](https://cdn.loheagn.com/074508.png)
+![](img/004741.jpeg)
 
 可以看到，确实启动了一个 Monitor 进程和一个 Manager 进程。
 
-另外，我们还注意到，当前集群的健康状态是`HEALTH_WARN`，原因下面也列出来了：`OSD count 0 < osd_pool_default_size 3`。这是因为当前 Ceph 集群默认的每个 Pool 的副本数应该是 3（即，Ceph 中存储的每份数据必须复制 3 份，放在 3 个不同的 OSD 中），但我们 OSD 的进程数是 0。不用着急，马上我们就会创建足够的 OSD 进程（Bootstrap Host、另外两台主机都为他们创建 OSD 进程）。
-
-![](https://cdn.loheagn.com/074750.png)
-
-mini 集群启动完成后，可以使用`docker ps -a`查看当前启动的容器的状态：
-
-![](img/fig01.jpg)
-
-可以看到，最下面这两个容器，对应的就是 ceph 集群的 Monitor 进程和 Manager 进程。
+另外，我们还注意到，当前集群的健康状态是`HEALTH_WARN`，原因下面也列出来了：`OSD count 0 < osd_pool_default_size 3`。这是因为当前 Ceph 集群默认的每个 Pool 的副本数应该是 3（即，Ceph 中存储的每份数据必须复制 3 份，放在 3 个不同的 OSD 中），但我们 OSD 的进程数是 0。不用着急，马上我们就会创建足够的 OSD 进程（主节点和另外两台主机都为他们创建 OSD 进程）。
 
 ### Ceph Dashboard
 
 注意看`bootstrap`指令的输出，你可以看到一段这样的内容：
 
-![](https://cdn.loheagn.com/074911.png)
+![](img/074911.png)
 
 显然，这是在告诉我们，cephadm 同样启动了一个`Ceph Dashboard`，这是一个 Ceph 的管理前端。通过访问这个页面，我们就可以以可视化的方式观察到当前集群的状态。
 
@@ -282,15 +248,15 @@ ceph mgr module enable dashboard
 ceph mgr services
 ```
 
-![](https://cdn.loheagn.com/080831.png)
+![](img/220645.jpeg)
 
 访问`"dashboard"`后面的网址，如果它仍为`https`开头，则需要手动改成`http`开头。
 
 现在，你应该可以正常访问 Dashboard 服务了。注意，用户名和密码是我们前面提到的 Bootstrap 命令输出的那堆信息中提到的。
 
-![](https://cdn.loheagn.com/081143.png)
+![](img/081143.png)
 
-如果你忘记了密码，则可以用以下方式将密码重置为`@buaa21`
+如果你忘记了密码，则可以用以下方式将 admin 账户的密码重置为`@buaa21`
 ```bash
 echo '@buaa21' > passwd.txt
 ceph dashboard set-login-credentials admin -i passwd.txt
@@ -300,7 +266,13 @@ ceph dashboard set-login-credentials admin -i passwd.txt
 
 接下来，我们将把其他机器添加到现有的这个 mini 集群中来。
 
-前面提到过，cephadm 是通过 ssh 协议与其他机器通信的。所以，这里需要首先把 Bootstrap Host 机器的公钥 copy 到其他的所有机器：
+{{< hint info >}}
+
+再次提醒：执行接下来步骤之间，请保证其他节点已连接互联网。以下命令均在主节点上执行。
+
+{{< /hint >}}
+
+前面提到过，cephadm 是通过 ssh 协议与其他机器通信的。所以，这里需要首先把主节点的公钥 copy 到其他的所有机器：
 
 ```bash
 ssh-copy-id -f -i /etc/ceph/ceph.pub root@*<new-host>*
@@ -318,10 +290,10 @@ ssh-copy-id -f -i /etc/ceph/ceph.pub root@10.251.252.177
 ceph orch host add *<newhost>* [*<ip>*] [*<label1> ...*]
 ```
 
-例如，你另一台机器的主机名是`ceph-02-20210000`，IP 是`10.251.252.177`，那么这条命令应该是：
+例如，你另一台机器的主机名是`ceph-20210001`，IP 是`10.251.252.177`，那么这条命令应该是：
 
 ```bash
-ceph orch host add ceph-02-20210000 10.251.252.177
+ceph orch host add ceph-20210001 10.251.252.177
 ```
 
 添加完成后，你可以通过`ceph -s`查看当前集群状态的变化。也可以通过 Ceph Dashboard 看到变化。
@@ -350,7 +322,7 @@ ceph orch host add ceph-02-20210000 10.251.252.177
 
 可以通过`fdisk -l`来查看：
 
-![](https://cdn.loheagn.com/090352.png)
+![](img/090352.png)
 
 注意看上面这两块磁盘：
 
@@ -364,10 +336,10 @@ ceph orch host add ceph-02-20210000 10.251.252.177
 ceph orch daemon add osd *<hostname>*:*<device-name>*
 ```
 
-比如，你要在主机`ceph-01-20210000`的名称为`/dev/sdb`的磁盘上创建 OSD 进程，那么命令应该是：
+比如，你要在主机 `ceph-20210000` 的名称为`/dev/sdb`的磁盘上创建 OSD 进程，那么命令应该是：
 
 ```bash
-ceph orch daemon add osd ceph-01-20210000:/dev/sdb
+ceph orch daemon add osd ceph-20210000:/dev/sdb
 ```
 
 {{< hint info >}}
@@ -377,22 +349,24 @@ ceph orch daemon add osd ceph-01-20210000:/dev/sdb
 比如：
 
 ```bash
-ceph orch daemon add osd ceph-01:/dev/sdb --verbose
+ceph orch daemon add osd ceph-20210000:/dev/sdb --verbose
 ```
 
 {{< /hint >}}
 
-执行完成后，可以使用`ceph -s`查看当前的集群状态，可以发现已经有一个 OSD 进程加入了进来。
+使用同样的方法，将所有节点的附加硬盘都加入进来。至此，我们可以再使用 `ceph -s` 查看当前集群的状态。
 
-![](https://cdn.loheagn.com/105544.png)
+**任务1：集群安装完毕后，将 Dashboard 和 `ceph -s` 的结果截图**
 
-使用同样的方法，将所有节点的附加硬盘都加入进来。至此，我们可以再使用`ceph -s`查看当前集群的状态。
+**思考题2：查阅资料，阐述 Pool、PG、PGP 与 OSD 之间的关系**
 
-## Ceph Filesystem (选)
+PG (Placement Group)、PGP (Placement Group for Placement purpose)
+
+## Ceph Filesystem
 
 [参考资料: CEPH FILE SYSTEM](https://docs.ceph.com/en/latest/cephfs/)
 
-Ceph 文件系统 (Ceph FS)是个 POSIX 兼容的文件系统，它使用 Ceph 存储集群来存储数据。 Ceph 文件系统与 Ceph 块设备、对象存储或者原生库 (librados) 一样，都使用着相同的 Ceph 存储集群系统。
+Ceph 文件系统 (Ceph FS) 是个 POSIX 兼容的文件系统，它使用 Ceph 存储集群来存储数据。 Ceph 文件系统与 Ceph 块设备、对象存储或者原生库 (librados) 一样，都使用着相同的 Ceph 存储集群系统。
 
 Ceph 文件系统要求 Ceph 存储集群内至少有一个 Ceph 元数据服务器 MDS。
 
@@ -407,7 +381,7 @@ ceph orch host ls
 ```
 
 输入类似如下
-```bash
+```
 # 可有类似输出
 HOST   ADDR      LABELS  STATUS
 host1  10.1.2.3
@@ -479,9 +453,9 @@ ceph config set mon mon_allow_pool_delete true # 还需要通过这条命令修�
 
 [参考资料：MOUNT CEPHFS USING FUSE](https://people.redhat.com/bhubbard/nature/default/cephfs/fuse/)
 
-CephFS 在创建后应当能被实际使用，如完成分布式存储文件的任务。在这一步，我们将把 CephFS 挂载到 Client 端，让 Client 能够创建和存储文件。你需要选择除 Bootstrap Host 之外的任意一台机器作为 Client 端。
+CephFS 在创建后应当能被实际使用，如完成分布式存储文件的任务。在这一步，我们将把 CephFS 挂载到 **Client 端**，让 Client 能够创建和存储文件。你需要选择除主节点**之外**的任意一台机器作为 Client 端。
 
-我们先要对 Client 端进行一些配置，保证 Client 端能连接到 MON 主机，即 Bootstrap Host。
+我们先要对 Client 端进行一些配置，保证 Client 端能连接到主节点。
 
 第一步：给 Client 端创建一个最小配置文件，放置在 /etc/ceph 目录下：
 
@@ -492,62 +466,98 @@ CephFS 在创建后应当能被实际使用，如完成分布式存储文件的�
 以防万一，请先执行两个操作：
 
 1.  在两台机器上执行`cat /etc/ceph/ceph.conf > /etc/ceph/backup_ceph.conf` 备份原来的 `ceph.conf`
-2.  在 cephadm shell (即 bootstarp 主机) 里面，用 `ceph config generate-minimal-conf` 生成 config，将生成出来的内容也保存备份一下 (复制粘贴+截图大法 / 重定向输出)
+2.  在 cephadm shell (即主节点) 里面，用 `ceph config generate-minimal-conf` 生成 config，将生成出来的内容也保存备份一下 (复制粘贴+截图大法 / 重定向输出)
 
 {{< /hint >}}
 
-在 Client 端执行（将`{user}`替换成`root`，`{mon-host}`替换成 Bootstrap Host 的 IP 地址）
+在 Client 端执行（将`{mon-host}`替换成主节点的 IP 地址）
 
 ```bash
 # on client host
 mkdir /etc/ceph
-ssh {user}@{mon-host} "sudo ceph config generate-minimal-conf" | sudo tee /etc/ceph/ceph.conf
+ssh root@{mon-host} "sudo ceph config generate-minimal-conf" | sudo tee /etc/ceph/ceph.conf
 chmod 644 /etc/ceph/ceph.conf # 赋权
 ```
 
-如果不能成功，可直接到 MON 主机执行 `sudo ceph config generate-minimal-conf`，将输出的内容粘贴到 `/etc/ceph/ceph.conf`（下同）。如果上述操作导致 Client/Bootstrap Host 挂了，多半是 `/etc/ceph/ceph.conf` 被误清空了，将先前备份的 `ceph.conf` 写回即可恢复。
+如果不能成功，可直接到主节点执行 `sudo ceph config generate-minimal-conf`，将输出的内容粘贴到 Client 端的 `/etc/ceph/ceph.conf`（下同）。如果上述操作导致 Client / 主节点挂了，多半是 `/etc/ceph/ceph.conf` 被误清空了，将先前备份的 `ceph.conf` 写回即可恢复。
 
-第二步：生成 CephX 用户名和密钥（将`{user}`替换成`root`，`{mon-host}`替换成 Bootstrap Host 的 IP 地址）:
+第二步：生成 CephX 用户名和密钥（将`{mon-host}`替换成主节点的 IP 地址）:
 
 ```bash
 # on client host
-ssh {user}@{mon-host} "sudo ceph fs authorize ceph_fs client.foo / rw" | sudo tee /etc/ceph/ceph.keyring
+ssh root@{mon-host} "sudo ceph fs authorize ceph_fs client.foo / rw" | sudo tee /etc/ceph/ceph.keyring
 chmod 600 /etc/ceph/ceph.keyring # 赋权
 ```
 
 在上述命令中，`ceph_fs` 是先前所创建的 CephFS 的名称，请将其替换。foo 是 CephX 的用户名，也可自己起。
 
-以上是前置准备，完成后，我们可通过 ceph-fuse 工具实现文件挂接。如机器上没有，则需要连网安装一下。
+以上是前置准备，完成后，我们可通过 ceph-fuse 工具实现目录挂载。如机器上没有，则需要连网安装一下。
 
 ```bash
 yum install -y ceph-fuse
 ```
 
-安装完成后，我们可以创建一个被挂接的目录，如 `mycephfs`：`mkdir /mnt/mycephfs`
+安装完成后，我们可以创建一个被挂载的目录，如 `mycephfs`：`mkdir /mnt/mycephfs`
 
-执行 `ceph-fuse --id foo -m {mon-host}:6789 /mnt/mycephfs` 即可完成挂接，如`ceph-fuse --id foo -m 10.251.252.182:6789 /mnt/mycephfs`，如果此命令不能成功运行，可从[参考资料：MOUNT CEPHFS USING FUSE](https://people.redhat.com/bhubbard/nature/default/cephfs/fuse/)试一下其他的命令
+执行 `ceph-fuse --id foo -m {mon-host}:6789 /mnt/mycephfs` 即可完成挂载，如`ceph-fuse --id foo -m 10.251.252.182:6789 /mnt/mycephfs`，如果此命令不能成功运行，可从[参考资料：MOUNT CEPHFS USING FUSE](https://people.redhat.com/bhubbard/nature/default/cephfs/fuse/) 试一下其他的命令
 
-若想取消挂接非常简单，只需 `umount /mnt/mycephfs`。
+若想取消挂载非常简单，只需 `umount /mnt/mycephfs`。
 
 {{< hint info >}}
 
-**如何判断挂接成功？**
+**如何判断挂载成功？**
 
-上述命令不报错是一方面，我们也可以通过一些命令来看挂接的情况。
+上述命令不报错是一方面，我们也可以通过一些命令来看挂载的情况。
 
 - `lsblk` 列出所有可用块设备的信息，还能显示他们之间的依赖关系
 - `df -h` 查看磁盘占用的空间
 
-通过这些命令，应能看到挂接盘 mycephfs 的存在，查看到其容量等信息。
+执行 `df -h` 命令，可以看到挂载点 mycephfs 的存在，查看到其容量等信息。
 
-```bash
-文件系统                 容量  已用  可用 已用% 挂载点
-ceph-fuse                9.4G     0  9.4G    0% /mnt/mycephfs
+```
+文件系统        容量     已用  可用     已用%   挂载点
+ceph-fuse      9.4G     0    9.4G    0%     /mnt/mycephfs
 ```
 
 {{< /hint >}}
 
-## Ceph RGW 对象存储 (选)
+**任务2：在你的机器上执行 `df -h` 并将结果截图**
+
+**思考题3：MDS 元数据服务器的作用是什么？**
+
+## 实验报告模板
+
+```markdown
+# Lab03 Ceph 存储实践
+
+> 组号：
+| | 学号 | 姓名 |
+|------|------|------|
+|  1  |  |  |
+|  2  |  |  |
+|  3  |  |  |
+
+---
+
+## 实验内容
+
+**思考题1：对象存储和文件系统之间有哪些区别？**
+
+**任务1：集群安装完毕后，执行 `ceph -s` 并将结果截图**
+
+**思考题2：查阅资料，阐述 Pool、PG、PGP 与 OSD 之间的关系**
+
+**任务2：在你的机器上执行 `df -h` 并将结果截图**
+
+**思考题3：MDS 元数据服务器的作用是什么？**
+
+```
+
+## 附录
+
+**以下内容不在本次实验的要求范围内，同学们仅做了解即可。**
+
+### Ceph RGW 对象存储
 
 Ceph RGW(即 RADOS Gateway)是 Ceph 对象存储网关服务，是基于 LIBRADOS 接口封装实现的 FastCGI 服务，对外提供存储和管理对象数据的 Restful API。对象存储适用于图片、视频等各类文件的上传下载，可以设置相应的访问权限。目前 Ceph RGW 兼容常见的对象存储 API，例如兼容绝大部分 Amazon S3 API，兼容 OpenStack Swift API。
 
@@ -575,7 +585,7 @@ Ceph RGW(即 RADOS Gateway)是 Ceph 对象存储网关服务，是基于 LIBRADO
 
 {{< /hint >}}
 
-### Deploy RGW
+#### Deploy RGW
 
 [参考：RGW SERVICE](https://docs.ceph.com/en/latest/cephadm/services/rgw/)
 
@@ -601,7 +611,7 @@ ceph orch apply rgw *<name>* [--realm=*<realm-name>*] [--zone=*<zone-name>*] --p
 
 在执行上述命令的 Bootstrap host，`curl <bootstrap_host_ip:80>` 应能看到包含了 `<Buckets/>` 的 XML 形式的输出。
 
-### 使用对象存储
+#### 使用对象存储
 
 我们为 rgw 创建用户：`radosgw-admin user create --uid=<username> --display-name=<your_display_name> --system`。如 `radosgw-admin user create --uid=s3 --display-name="object_storage" --system`。执行后，能看到类似输出：
 
@@ -699,7 +709,7 @@ s3cmd ls
 
 {{< /hint >}}
 
-## Ceph RBD (选)
+### Ceph RBD
 
 {{< hint info >}}
 
@@ -810,63 +820,6 @@ realtime =none                   extsz=4096   blocks=0, rtextents=0
 
 {{< hint info >}}
 
-和 CephFS 类似，我们同样可在挂载的目录中创建修改文件，感受 Ceph 的能力——如分布式存储的容错啊，存储共享等。
+和 CephFS 类似，我们同样可在挂载的目录中创建修改文件，感受 Ceph 的能力——如分布式存储的容错，存储共享等。
 
 {{< /hint >}}
-
-## 实验报告模板
-
-```markdown
-# Lab03 Ceph 存储实践
-
-> 班级：
-> 学号：
-> 姓名：
-
----
-
-## 基本概念思考
-
-回答下列问题：
-
-### 请阐述Placement Group (PG) 与 Placement Group for Placement purpose (PGP)的区别和关系
-
-### Ceph 集群的 HEALTH STATUS
-
-## Ceph 部署
-<!-- 本部分内容可以根据部署方式的不同进行不同的改动，这里是使用Cephadm部署的模板 -->
-
-### 实验前置准备
-
-### Bootstrap
-<!-- 截图查看ceph -s的输出 -->
-
-### Ceph Dashboard
-<!-- 截图查看Ceph Dashboard登录后的界面 -->
-
-### 添加其他节点并创建 OSD 进程
-<!-- 截图查看ceph -s的输出 -->
-
-## Ceph Filesystem (选)
-
-### 部署 CephFS (选)
-<!-- 截图查看ceph fs status的输出 -->
-
-### 挂载 CephFS (选)
-<!-- 截图查看df -h和文件读写命令的输出 -->
-
-## Ceph RGW 对象存储 (选)
-
-### Deploy RGW (选)
-<!-- 截图查看radosgw-admin user create的输出 -->
-
-### 使用对象存储 (选)
-<!-- 截图查看上传文件、上传文件夹、下载、ls、删除等命令的输出 -->
-
-## Ceph RBD (选)
-<!-- 截图查看rbd --image rbd1 info的输出 -->
-<!-- 截图查看df -hl | grep rbd和文件读写命令的输出 -->
-
-## 自行扩展和设计内容 (选)
-
-```
