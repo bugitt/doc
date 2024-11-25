@@ -17,16 +17,12 @@ weight: 3
 1. 本次分配的机器的账户和密码为：
 
   ```
-  root: &shieshuyuan21
+  buaa: &shieshuyuan21
   ```
 
-  为了避免权限问题，建议直接使用root用户进行操作。
-
-  **务必首先修改机器的root和buaa账户的密码**
+  **务必首先修改机器的buaa账户的密码**
 
 2. 请务必阅读[虚拟机使用说明](../../../01_common/virtual_machine_help.md)。
-
-3. 分配的虚拟机中，已经安装了Docker，无需重复安装。
 
 {{< /hint >}}
 
@@ -88,17 +84,27 @@ Kubernetes在希腊语中的含义是船长/领航员，这个名字生动地体
 
 1. 准备一台能够连接互联网的Linux机器。如果你选择使用软院云平台分配的机器，可以直接进行下一步；否则，请查看[安装要求](https://docs.rancher.cn/docs/k3s/installation/installation-requirements/_index/)，确保你的机器满足其中所述条件。
 
-2. 确保机器已经安装Docker，并且其版本高于或等于`19.03`，可以使用`docker info`命令验证。如果你使用的是软院云平台分配的机器，可直接进行下一步；否则，请注意检查Docker是否正确安装，并且是否正确配置Docker Registry镜像地址，以保证可以顺利从`docker.io`中拉取镜像。（当然，如果你已经比较熟悉Kubernetes，可以忽略此步骤，选择使用k3s默认集成安装的containerd作为容器运行时。）
+2. 保证你的机器已经连接互联网。
 
-3. 保证你的机器已经连接互联网。
+3. **切换到root用户**（如果你觉得root操作危险，请保证自己有足够的能力使用普通用户权限完成所有操作）
+    ```shell
+    sudo -i
+    ```
 
-4. **切换到root用户**（如果你觉得root操作危险，请保证自己有足够的能力使用普通用户权限完成所有操作），执行以下命令以初始化一个k3s的master节点（当前不理解什么是“master节点”没有关系，在后续章节中我们会进行详细介绍）：
+4. 安装 Docker（需提前用 `buaalogin` 联网）
+    ```shell
+    curl -fsSL https://get.docker.com/ -o get-docker.sh && sh get-docker.sh --mirror Aliyun
+    ```
+
+5. 确保机器已经安装Docker，并且其版本高于或等于 `19.03`，可以使用 `docker info` 命令验证，请注意是否正确配置 Docker Registry 镜像地址，以保证可以顺利从 `docker.io` 中拉取镜像。（当然，如果你已经比较熟悉 Kubernetes，可以忽略此步骤，选择使用 k3s 默认集成安装的 containerd 作为容器运行时。）
+
+6. 执行以下命令以初始化一个k3s的master节点（当前不理解什么是“master节点”没有关系，在后续章节中我们会进行详细介绍）：
     ```shell
     curl -sfL https://rancher-mirror.oss-cn-beijing.aliyuncs.com/k3s/k3s-install.sh | INSTALL_K3S_MIRROR=cn sh -s - --docker
     ```
     如果你选择使用containerd作为容器运行时，请去除上述命令中的`--docker`参数。
 
-5. 等待上述命令执行结束后，实际上我们的k3s已经安装完成，即，我们已经得到了一个可用的Kubernetes集群。在继续后续操作前，我们先完善一下配置：
+7. 等待上述命令执行结束后，实际上我们的k3s已经安装完成，即，我们已经得到了一个可用的Kubernetes集群。在继续后续操作前，我们先完善一下配置：
 
     ```shell
     echo 'export KUBECONFIG=/etc/rancher/k3s/k3s.yaml' >> ~/.bashrc
@@ -106,7 +112,7 @@ Kubernetes在希腊语中的含义是船长/领航员，这个名字生动地体
     ```
     注意，如果你使用的不是bash，请注意更改上述命令。
 
-6. 使用`kubectl get node`验证一下Kubernetes集群是否就绪，一般可以得到如下结果：
+8. 使用`kubectl get node`验证一下Kubernetes集群是否就绪，一般可以得到如下结果：
     ```txt
     NAME     STATUS   ROLES                  AGE    VERSION
     debian   Ready    control-plane,master   2d1h   v1.24.4+k3s1

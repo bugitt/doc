@@ -32,14 +32,14 @@ weight: 1
 1. 本次分配的机器的账户和密码为：
 
   ```
-  root: &shieshuyuan21
+  buaa: &shieshuyuan21
   ```
 
-  **务必首先修改机器的root和buaa账户的密码**
+**务必首先修改机器 buaa 账户的密码**
 
 2. 请务必阅读[虚拟机使用说明](../../../01_common/virtual_machine_help.md)。
 
-3. 分配的虚拟机中，已经安装了Docker，无需重复安装；**在使用Docker拉取镜像前，请务必使用`buaalogin`进行联网**。
+3. 分配的虚拟机是一个干净的 Ubuntu 镜像，需要你安装 docker；**在使用 docker 拉取镜像前，请务必使用`buaalogin`进行联网**。
 
 {{< /hint >}}
 
@@ -47,9 +47,9 @@ weight: 1
 
 - 理解容器的概念，了解实现容器所使用的的底层技术，理解容器与虚拟机的区别
 
-- 理解容器与Docker之间的关系
+- 理解容器与 Docker 之间的关系
 
-- 掌握Docker的基本使用方法和常见命令，可以使用Dockerfile构建镜像
+- 掌握 Docker 的基本使用方法和常见命令，可以使用 Dockerfile 构建镜像
 
 ## 实验要求
 
@@ -60,7 +60,7 @@ weight: 1
     比如，我们在机器上启动了一个mysql容器，在写入了一些重要数据后，因为某种原因该容器被意外删除了。此时即使重新启动一个mysql容器也找不会之前的数据了。**请结合实验文档中的内容和查阅相关资料，讨论应该通过何种方式启动容器来避免出现这一问题？你能得出几种方案？每种方案的优劣如何？并请分别使用这些方案模拟mysql容器 创建 - 写入数据 - 销毁 - 重新创建 - 重新读到之前写入的数据 的场景，以证明方案的有效性。**
 
 2. 请从ubuntu镜像开始，构建一个新的包含Nginx服务的ubuntu镜像，并修改Nginx主页内容为你的学号，**请分别使用`docker commit` 和 `Dockerfile`两种方式完成，** 并将这个新构建的镜像推送到软院的[image registry](https://scs.buaa.edu.cn:8081)（该Image Registry的用户名是你的学号，密码请通过[这篇文档](../../../01_common/paas_token/index.md)获取）中。
-    这个镜像推送的地址应该是 `scs.buaa.edu.cn:8081/<你的学号>/ubuntu-nginx:${TAG}`，其中，使用`docker commit`构建的镜像的`TAG`为`dockercommit`；使用`Dockerfile`构建的镜像的`TAG`为 `dockerfile`。
+    这个镜像推送的地址应该是 `scs.buaa.edu.cn:8081/personal-<你的学号>/ubuntu-nginx:${TAG}`，其中，使用`docker commit`构建的镜像的`TAG`为`dockercommit`；使用`Dockerfile`构建的镜像的`TAG`为 `dockerfile`。
 
     在测评时，助教会分别对你push的两个镜像执行以下命令（假设镜像名称为`example_image_name`）：
 
@@ -412,6 +412,12 @@ Docker本身自诩是开源软件，它的上游构建组件确实是开源的�
 #### Linux
 
 请参考[文档](https://yeasy.gitbook.io/docker_practice/install/ubuntu#shi-yong-jiao-ben-zi-dong-an-zhuang)，并从“使用脚本自动安装”开始读起。
+
+安装前务必联网
+```bash
+curl -fsSL get.docker.com -o get-docker.sh
+sudo sh get-docker.sh --mirror Aliyun
+```
 
 #### 线上环境
 
