@@ -1,10 +1,7 @@
-name: github pages
+name: build
 
 on:
-  push:
-    branches:
-      - main  # Set a branch to deploy
-  pull_request:
+  workflow_dispatch:
 
 jobs:
   deploy:
@@ -18,15 +15,20 @@ jobs:
       - name: Setup Hugo
         uses: peaceiris/actions-hugo@v2
         with:
-          hugo-version: 'latest'
-          # extended: true
+          hugo-version: '0.118.2'
+          extended: true
 
       - name: Build
         run: hugo --minify
 
-      - name: Deploy
-        uses: peaceiris/actions-gh-pages@v3
-        if: github.ref == 'refs/heads/main'
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./public
+      - name: Push Image
+        env:
+          image: ${{ secrets.ALI_DOCKER_REGISTRY }}/iobs/scs-guidance
+          tags: ${{ github.sha }}
+          registry: ${{ secrets.ALI_DOCKER_REGISTRY }}
+          username: ${{ secrets.ALI_DOCKER_USERNAME }}
+          password: ${{ secrets.ALI_DOCKER_PASSWORD }}
+        run: |
+          docker login ${registry} -u ${username} -p ${password}
+          docker build -t ${image}:${tags} .
+          docker push ${image}:${tags}
