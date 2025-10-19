@@ -1,9 +1,8 @@
 ---
-title: Lab02 虚拟化实验
+title: Lab02/Lab03 虚拟化实验
 weight: 1
 ---
-
-# Lab02 虚拟化实验
+# Lab02/Lab03 虚拟化实验
 
 ## 实验目标
 
@@ -20,6 +19,7 @@ weight: 1
 请在云平台作业提交截止时间之前，将作业提交到云平台，命名为：`lab02-组号.pdf`的格式。
 
 供参考的分工方式：
+
 * 组员 A 负责搭建 2 台 ESXi 主机，完成**思考题1、2**
 * 组员 B 负责新建 CentOS，完成**任务1**和**思考题3、4**
 * 组员 C 负责安装 vCenter，完成**任务2**
@@ -131,6 +131,7 @@ ESXi 最主要的功能就是对虚拟机的管理。可以看到显著的入口
 **任务1：CentOS 安装完成后，修改主机名为 `host-<组号>`，打开控制台并将浏览器截图**
 
 通过下列命令修改主机名（把组号替换成自己的），重启后生效
+
 ```bash
 hostnamectl set-hostname host-<组号>
 ```
@@ -152,6 +153,7 @@ hostnamectl set-hostname host-<组号>
 ### 7. VMware Tools
 
 先通过浏览器访问 [gw.buaa.edu.cn](gw.buaa.edu.cn) 使你的实验环境联网，然后在 CentOS 上通过 `yum` 安装开源的 VMware Tools
+
 ```bash
 yum install -y open-vm-tools
 ```
@@ -169,29 +171,21 @@ yum install -y open-vm-tools
 在上面的实验中，我们进行了 ESXi 的部署，并使用 ESXi 创建了虚拟机。在实际应用中，往往需要多个 ESXi 主机组成集群，来提供更多的资源，或者提高可用性。在接下来的实验中，我们将使用 vCenter Server 管理多个 ESXi 主机，来管理所有的虚拟机和 ESXi “物理机”集群。
 
 1. 与前面的步骤一致，在 VMware Workstation 中新建一个新的 ESXi 虚拟机。该虚拟机内存可以给大一些，比如 14G，磁盘大小也可以大一些，比如 100G。以方便后续在其上安装 vCenter Server。
-
 2. 点击打开 vCenter Server 安装包 `VMware-VCSA-all-6.7.0-19832974.iso`，打开 `vcsa-ui-installer\win32\install` 进行安装。也可以打开 `readme-zh-CN.txt` 查看具体的安装指引，**之后的安装步骤，如无特殊说明，无需改动默认选项，直接下一步即可。**
-    ![](https://cdn.loheagn.com/125244.png)
-
+   ![](https://cdn.loheagn.com/125244.png)
 3. 我们刚刚启动的是一个安装器程序，将 vCenter Server 安装在一个特定的 ESXi 主机中。所以，在选择安装目标时，需要填入刚才新建的那个内存和磁盘容量都比较大的 ESXi 虚拟机的相关信息。
-    ![](https://cdn.loheagn.com/131933.png)
-
+   ![](https://cdn.loheagn.com/131933.png)
 4. 设置磁盘时，需要勾选上 Enable Thin Disk Mode
    ![20231013-155856](img/20231013-155856.jpeg)
-   
 5. 在最后的网络配置这里，需要手动选择 `DHCP`
-    ![](https://cdn.loheagn.com/132706.png)
-
+   ![](https://cdn.loheagn.com/132706.png)
 6. 设置登录时的用户名和密码
    ![20231013-162711](img/20231013-162711.jpeg)
-
 7. 安装完成后，在浏览器上通过 vCenter 虚拟机地址来访问（用户名一般为 `administrator@vsphere.local`）。
    ![](./img/%E9%A3%9E%E4%B9%A620221027-122527.jpeg)
-
 8. 新建数据中心。
-
-9.  添加主机。把本次实验创建的两个 ESXi 主机都添加进去。在添加主机时会弹出安全警示，选择“是”继续添加即可。输入主机的用户名和密码，一路默认即可（**一定要禁用锁定模式**）。
-    ![](img/飞书20221027-122928.jpg)
+9. 添加主机。把本次实验创建的两个 ESXi 主机都添加进去。在添加主机时会弹出安全警示，选择“是”继续添加即可。输入主机的用户名和密码，一路默认即可（**一定要禁用锁定模式**）。
+   ![](img/飞书20221027-122928.jpg)
 
 **任务2：将你的 vSphere Client 界面截图**
 
