@@ -23,11 +23,11 @@ jobs:
 
       - name: Push Image
         env:
-          image: ${{ secrets.ALI_DOCKER_REGISTRY }}/iobs/scs-guidance
+          image: ${{ secrets.ALIYUN_DOCKER_REGISTRY }}/${{ secrets.ALIYUN_DOCKER_NAMESPACE }}/scs-guidance
           tags: ${{ github.sha }}
-          registry: ${{ secrets.ALI_DOCKER_REGISTRY }}
-          username: ${{ secrets.ALI_DOCKER_USERNAME }}
-          password: ${{ secrets.ALI_DOCKER_PASSWORD }}
+          registry: ${{ secrets.ALIYUN_DOCKER_REGISTRY }}
+          username: ${{ secrets.ALIYUN_DOCKER_USERNAME }}
+          password: ${{ secrets.ALIYUN_DOCKER_PASSWORD }}
         run: |
           docker login ${registry} -u ${username} -p ${password}
           docker build -t ${image}:${tags} .
