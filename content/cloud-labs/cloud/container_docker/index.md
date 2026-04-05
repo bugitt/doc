@@ -45,6 +45,8 @@ weight: 1
 
 ## Docker的安装
 
+### 方式一（使用 get-docker.sh）
+
 请参考[文档](https://yeasy.gitbook.io/docker_practice/install/ubuntu#shi-yong-jiao-ben-zi-dong-an-zhuang)，并从“使用脚本自动安装”开始读起。
 
 安装前务必联网
@@ -52,6 +54,30 @@ weight: 1
 curl -fsSL get.docker.com -o get-docker.sh
 sudo sh get-docker.sh --mirror Aliyun
 ```
+
+### 方式二（2026新增）
+
+由于 Docker 官方对于实验环境所使用的 Ubuntu 系统版本可能存在支持问题，因此提供一种更为简便的方法供同学们参考。
+
+安装前务必联网
+```bash
+sudo apt update
+sudo apt install docker.io
+```
+
+### 确认 Docker 安装完成
+
+使用命令
+```bash
+sudo docker ps
+```
+
+如果出现以下内容：
+```
+CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES
+```
+
+则安装完成。
 
 #### 配置镜像源
 
