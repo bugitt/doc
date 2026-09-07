@@ -16,7 +16,7 @@ weight: 1
 
 本次实验以小组形式进行，虚拟机已分发至每位同学的账户中，**每组三台**虚拟机，实验报告所有同学都需要提交。
 
-请在云平台作业提交截止时间之前，将作业提交到云平台，命名为：`lab04-组号.pdf`的格式。
+请在云平台作业提交截止时间之前，将作业提交到云平台，命名为：`lab04-组号.pdf` 的格式。
 
 建议每组同学共同完成本次实验。
 
@@ -123,12 +123,12 @@ Manager 进程主要负责跟踪当前集群的运行时状况，包括当前集
 
 {{< hint info >}}
 
-在实验开始前，小组需要保证这三台虚拟机处于开机状态、用 `buaalogin`连接互联网，并且设置它们的主机名与名称一致。
+在实验开始前，小组需要保证这三台虚拟机处于开机状态、用 `buaalogin` 连接互联网，并且设置它们的主机名与名称一致。
 
-例如在 `ceph-24210000`机器上，你需要执行（设置后必须重启生效）
+例如在 `ceph-24210000` 机器上，你需要执行（设置后必须重启生效）
 
 ```bash
-echo 'ceph-24210000' > /etc/hostname
+sudo hostnamectl set-hostname ceph-24210000
 reboot
 ```
 
@@ -189,7 +189,7 @@ Cephadm 是基于“容器技术（Container）”进行工作的，每个 Ceph 
 
 ### BootStrap
 
-我们首先需要在一台选定的机器上，使用 `cephadm`启动一个 mini 集群。
+我们首先需要在一台选定的机器上，使用 `cephadm` 启动一个 mini 集群。
 
 首先拉取适配 Ubuntu 20.04 的 ceph 版本镜像：
 
@@ -208,13 +208,13 @@ cephadm version
 cephadm --image quay.io/ceph/ceph:v17.2 bootstrap --mon-ip *<mon-ip>* --allow-overwrite
 ```
 
-请将 `*<mon-ip>*`替换为你执行这命令的机器的 IP。如：
+请将 `*<mon-ip>*` 替换为你执行这命令的机器的 IP。如：
 
 ```bash
 cephadm --image quay.io/ceph/ceph:v17.2 bootstrap --mon-ip 10.251.252.182 --allow-overwrite
 ```
 
-上面这条命令中，`--image`制定了 Cephadm 启动容器时使用的镜像名称，`--mon-ip`指定了 Cephadm 要在哪个机器上启动一个 mini 集群。
+上面这条命令中，`--image` 指定了 Cephadm 启动容器时使用的镜像名称，`--mon-ip` 指定了 Cephadm 要在哪个机器上启动一个 mini 集群。
 
 更详细地，这条命令将会做如下事情：
 
@@ -225,7 +225,7 @@ cephadm --image quay.io/ceph/ceph:v17.2 bootstrap --mon-ip 10.251.252.182 --allo
 > - Write a copy of the client.admin administrative (privileged!) secret key to /etc/ceph/ceph.client.admin.keyring.
 > - Add the \_admin label to the bootstrap host. By default, any host with this label will (also) get a copy of /etc/ceph/ceph.conf and /etc/ceph/ceph.client.admin.keyring.
 
-集群启动完成后，我们需要再下载一个工具，以方便在正常环境下执行后续所有以ceph开头的命令：
+集群启动完成后，我们需要再下载一个工具，以方便在正常环境下执行后续所有以 `ceph` 开头的命令：
 
 ```bash
 apt install -y ceph-common
@@ -237,7 +237,7 @@ apt install -y ceph-common
 
 {{< /hint >}}
 
-然后我们可以通过 `ceph -s`查看当前集群的状态。
+然后我们可以通过 `ceph -s` 查看当前集群的状态。
 
 ![](img/004741.jpeg)
 
@@ -247,7 +247,7 @@ apt install -y ceph-common
 
 ### Ceph Dashboard
 
-注意看 `bootstrap`指令的输出，你可以看到一段这样的内容：
+注意看 `bootstrap` 指令的输出，你可以看到一段这样的内容：
 
 ![](img/ceph-dashboard.png)
 
@@ -270,7 +270,7 @@ ceph mgr services
 
 ![](img/ceph-mgr-service.png)
 
-访问 `"dashboard"`后面的网址，如果它仍为 `https`开头，则需要手动改成 `http`开头。
+访问 `"dashboard"` 后面的网址，如果它仍为 `https` 开头，则需要手动改成 `http` 开头。
 
 现在，你应该可以正常访问 Dashboard 服务了。注意，用户名和密码是我们前面提到的 Bootstrap 命令输出的那堆信息中提到的。初次访问时，会强制要求你设置一个新的密码。
 
@@ -321,7 +321,7 @@ ceph orch host add ceph-24210001 10.251.253.174
 
 ![](img/ceph-orch-host-list.png)
 
-添加完成后，你可以通过 `ceph -s`查看当前集群状态的变化。也可以通过 Ceph Dashboard 看到变化。
+添加完成后，你可以通过 `ceph -s` 查看当前集群状态的变化。也可以通过 Ceph Dashboard 看到变化。
 
 ### 创建 OSD 进程
 
@@ -340,7 +340,7 @@ ceph orch host add ceph-24210001 10.251.253.174
 
 在实验提供的虚拟机中，每台机器都额外插入了一块这样干净的磁盘。
 
-可以通过 `fdisk -l`来查看：
+可以通过 `fdisk -l` 来查看：
 
 ![](img/090352.png)
 
@@ -355,7 +355,7 @@ ceph orch host add ceph-24210001 10.251.253.174
 ceph orch daemon add osd *<hostname>*:*<device-name>*
 ```
 
-比如，你要在主机 `ceph-24210000` 的名称为 `/dev/sdb`的磁盘上创建 OSD 进程，那么命令应该是：
+比如，你要在主机 `ceph-24210000` 的名称为 `/dev/sdb` 的磁盘上创建 OSD 进程，那么命令应该是：
 
 ```bash
 ceph orch daemon add osd ceph-24210000:/dev/sdb
@@ -363,7 +363,7 @@ ceph orch daemon add osd ceph-24210000:/dev/sdb
 
 {{< hint info >}}
 
-这条命令默认不会有输出创建 OSD 进程的详细信息，也就是说，如果该命令很耗时的话，那么你将在什么输出都没有的情况下等待较长时间，这可能令人发慌。你可以加上 `--verbose`参数，来让它输出详细信息。
+这条命令默认不会有输出创建 OSD 进程的详细信息，也就是说，如果该命令很耗时的话，那么你将在什么输出都没有的情况下等待较长时间，这可能令人发慌。你可以加上 `--verbose` 参数，来让它输出详细信息。
 
 比如：
 
@@ -498,7 +498,7 @@ docker pull quay.io/ceph/ceph:v17.2
 
 以防万一，请一定不要更改**主节点**的 `/etc/ceph/ceph.conf` 文件！
 
-可以在主节点执行 `cat /etc/ceph/ceph.conf > /etc/ceph/backup_ceph.conf` 备份原来的 `ceph.conf`
+可以在主节点执行 `cat /etc/ceph/ceph.conf > /etc/ceph/backup_ceph.conf` 备份原来的 `ceph.conf` 。
 
 如果执行某些操作导致节点挂了，多半是 `/etc/ceph/ceph.conf` 被误清空了，将先前备份的 `ceph.conf` 写回即可恢复。
 
@@ -512,7 +512,7 @@ docker pull quay.io/ceph/ceph:v17.2
 
 {{< /hint >}}
 
-在 Client 端执行（将 `{mon-host}`替换成主节点的 IP 地址）
+在 Client 端执行：
 
 ```bash
 # on client host
@@ -689,7 +689,7 @@ Ceph RGW(即 RADOS Gateway)是 Ceph 对象存储网关服务，是基于 LIBRADO
 ceph orch apply rgw *<name>* [--realm=*<realm-name>*] [--zone=*<zone-name>*] --placement="*<num-daemons>* [*<host1>* ...]"
 ```
 
-其中，`[]`中的内容为可选项，可以都添上。如 `ceph orch apply rgw ceph_rgw --realm=default --zone=default --placement=3`。`--placement`参数的使用和先前实验也是类似的，还可以用 `3 node1 node2 node3` 来完成指定。
+其中，`[]` 中的内容为可选项，可以都添上。如 `ceph orch apply rgw ceph_rgw --realm=default --zone=default --placement=3`。`--placement` 参数的使用和先前实验也是类似的，还可以用 `3 node1 node2 node3` 来完成指定。
 
 其实这一条命令就够了，然后我们可查看各个 rgw 节点是否已启动：`ceph orch ps --daemon-type rgw`。
 
@@ -775,7 +775,7 @@ yum -y install s3cmd
 Configuration saved to '/root/.s3cfg'
 ```
 
-进入到刚刚保存新建的 config：`/root/.s3cfg`中，继续修改 `signature_v2`为 `True`，可以自行检查其它选项是否填写正确
+进入到刚刚保存新建的 config：`/root/.s3cfg` 中，继续修改 `signature_v2` 为 `True`，可以自行检查其它选项是否填写正确。
 
 ```bash
 [default]
@@ -946,7 +946,7 @@ systemctl reset-failed
 ```
 
 3. 确保 3300 和 6789 端口已经被释放，正确情况应该是不输出任何东西，表示端口已经空闲。
-如果还有输出，找到 PID，使用 `kill -9 <PID>` 杀掉它。
+如果还有输出，找到 PID，使用 `kill -9 <PID>` 关闭相应进程。
 
 ```bash
 netstat -tulpn | grep -E '3300|6789'
