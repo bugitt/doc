@@ -547,8 +547,6 @@ sudo vi /etc/ceph/ceph.conf # 完全替换内容
 chmod 644 /etc/ceph/ceph.conf # 赋权
 ```
 
-如果不能成功，可直接到主节点执行 `sudo ceph config generate-minimal-conf`，将输出的内容粘贴到 Client 端的 `/etc/ceph/ceph.conf`（下同）。如果上述操作导致 Client / 主节点挂了，多半是 `/etc/ceph/ceph.conf` 被误清空了，将先前备份的 `ceph.conf` 写回即可恢复。
-
 **第二步：生成 CephX 用户名和密钥**
 
 在主节点中，先执行以下命令生成 CephX 用户名和密钥：
