@@ -113,22 +113,46 @@ Manager 进程主要负责跟踪当前集群的运行时状况，包括当前集
 
 ## 实验环境介绍
 
-本次实验发给大家了三台 Centos 7 虚拟机。它们的命名格式为 `ceph-<学号>`，如 `ceph-20210000`。
+推荐使用 [Termius 终端](https://termius.com/) 来 ssh 连接到服务器进行实验。
+
+本次实验发给每位同学一台  Ubuntu 20.04 LTS Server 虚拟机。它们的命名格式为 `ceph-<学号>`，如 `ceph-24210000`。
+
+用户名：`buaa`，密码：`&shieshuyuan21`。
+
+由于 Ceph 自身的可靠性冗余要求，至少需要 3 个节点进行部署，因此本实验需要**以三人为一组自行组队**。
 
 {{< hint info >}}
 
-在实验开始前，你需要保证这三台虚拟机处于开机状态、用 `buaalogin`连接互联网，并且设置它们的主机名与名称一致。
+在实验开始前，小组需要保证这三台虚拟机处于开机状态、用 `buaalogin`连接互联网，并且设置它们的主机名与名称一致。
 
-例如在 `ceph-20210000`机器上，你需要执行（设置后必须重启生效）
+例如在 `ceph-24210000`机器上，你需要执行（设置后必须重启生效）
 
 ```bash
-echo 'ceph-20210000' > /etc/hostname
+echo 'ceph-24210000' > /etc/hostname
 reboot
 ```
 
-注意每台机器的主机名**不能相同**。
+注意每台机器的主机名**不能相同**，这是为了保证接下来分布式部署的操作正常进行。
 
 {{< /hint >}}
+
+修改主机名后重启再次登录服务器后，你可以先做如下操作：
+
+```bash
+# 联网
+buaalogin
+# 测试是否接入互联网
+ping -c 4 www.baidu.com
+
+# 输入默认用户 buaa 的密码，切换到 root 用户
+sudo -i
+# 为 root 用户设置密码，方便后续使用 su 命令切换到 root 用户
+passwd root
+
+# 更新包管理器
+sudo apt update 
+# 在 root 用户下可以更方便地完成实验，也可以避免反复输入 sudo 指令提高权限
+```
 
 ## Ceph 部署
 
@@ -167,14 +191,27 @@ Cephadm 是基于“容器技术（Container）”进行工作的，每个 Ceph 
 
 我们首先需要在一台选定的机器上，使用 `cephadm`启动一个 mini 集群。
 
+首先拉取适配 Ubuntu 20.04 的 ceph 版本镜像：
+
 ```bash
-cephadm --image scs.buaa.edu.cn:8081/library/ceph:v16 bootstrap  --mon-ip *<mon-ip>*
+docker pull quay.io/ceph/ceph:v17.2
+```
+
+接下来我们可以用指令查看当前 ceph 版本：
+```bash
+cephadm version
+```
+
+然后使用以下指令启动一个 mini 集群：
+
+```bash
+cephadm --image quay.io/ceph/ceph:v17.2 bootstrap --mon-ip *<mon-ip>* --allow-overwrite
 ```
 
 请将 `*<mon-ip>*`替换为你执行这命令的机器的 IP。如：
 
 ```bash
-cephadm --image scs.buaa.edu.cn:8081/library/ceph:v16 bootstrap  --mon-ip 10.251.252.182
+cephadm --image quay.io/ceph/ceph:v17.2 bootstrap --mon-ip 10.251.252.182 --allow-overwrite
 ```
 
 上面这条命令中，`--image`制定了 Cephadm 启动容器时使用的镜像名称，`--mon-ip`指定了 Cephadm 要在哪个机器上启动一个 mini 集群。
@@ -188,7 +225,17 @@ cephadm --image scs.buaa.edu.cn:8081/library/ceph:v16 bootstrap  --mon-ip 10.251
 > - Write a copy of the client.admin administrative (privileged!) secret key to /etc/ceph/ceph.client.admin.keyring.
 > - Add the \_admin label to the bootstrap host. By default, any host with this label will (also) get a copy of /etc/ceph/ceph.conf and /etc/ceph/ceph.client.admin.keyring.
 
-集群启动完成后，我们先通过 `cephadm shell` 命令进入 Ceph 管理端（后续所有 ceph 开头的命令都需通过管理端执行）
+集群启动完成后，我们需要再下载一个工具，以方便在正常环境下执行后续所有以ceph开头的命令：
+
+```bash
+apt install -y ceph-common
+```
+
+{{< hint info >}}
+
+也可以通过 `cephadm shell` 命令进入 Ceph 管理端，所有 ceph 开头的命令都可以直接通过管理端执行。
+
+{{< /hint >}}
 
 然后我们可以通过 `ceph -s`查看当前集群的状态。
 
@@ -202,25 +249,11 @@ cephadm --image scs.buaa.edu.cn:8081/library/ceph:v16 bootstrap  --mon-ip 10.251
 
 注意看 `bootstrap`指令的输出，你可以看到一段这样的内容：
 
-![](img/074911.png)
+![](img/ceph-dashboard.png)
 
-显然，这是在告诉我们，cephadm 同样启动了一个 `Ceph Dashboard`，这是一个 Ceph 的管理前端。通过访问这个页面，我们就可以以可视化的方式观察到当前集群的状态。
+显然，这是在告诉我们，cephadm 同样启动了一个 `Ceph Dashboard`，这是一个 Ceph 的管理前端。通过访问这个页面，我们就可以以可视化的方式观察到当前集群的状态。**请务必保存好这份密码！**
 
-在内网环境中，签发 SSL 证书的过程太过繁琐，我们可以手动禁用 SSL：
 
-```bash
-ceph config set mgr mgr/dashboard/ssl false
-```
-
-禁用 SSL 后，Dashboard 服务将默认监听 8080 端口。但在 CentOS 中，8080 端口默认是被防火墙屏蔽的。
-
-你可以选择手动打开防火墙的 8080 端口；也可以像下面这样，将 Dashboard 服务的监听端口手动改为 8443（因为这个端口就是使用 HTTPS 时 Dashboard 的监听端口，在刚才的 Bootstrap 时已经在防火墙中打开了）：
-
-```bash
-ceph config set mgr mgr/dashboard/server_port 8443
-```
-
-然后，重启该 Dashboard 服务，使刚才的配置生效。
 
 ```bash
 ceph mgr module disable dashboard
@@ -233,11 +266,13 @@ ceph mgr module enable dashboard
 ceph mgr services
 ```
 
-![](img/220645.jpeg)
+预期得到类似下面这样的输出：
+
+![](img/ceph-mgr-service.png)
 
 访问 `"dashboard"`后面的网址，如果它仍为 `https`开头，则需要手动改成 `http`开头。
 
-现在，你应该可以正常访问 Dashboard 服务了。注意，用户名和密码是我们前面提到的 Bootstrap 命令输出的那堆信息中提到的。
+现在，你应该可以正常访问 Dashboard 服务了。注意，用户名和密码是我们前面提到的 Bootstrap 命令输出的那堆信息中提到的。初次访问时，会强制要求你设置一个新的密码。
 
 ![](img/081143.png)
 
@@ -254,21 +289,21 @@ ceph dashboard set-login-credentials admin -i passwd.txt
 
 {{< hint info >}}
 
-再次提醒：执行接下来步骤之间，请保证其他节点已连接互联网。以下命令均在主节点上执行。
+再次提醒：执行接下来步骤之间，请保证其他节点已连接互联网。以下命令均在**主节点**上执行。
 
 {{< /hint >}}
 
-前面提到过，cephadm 是通过 ssh 协议与其他机器通信的。所以，这里需要首先把主节点的公钥 copy 到其他的所有机器：
+前面提到过，cephadm 是通过 ssh 协议与其他机器通信的。所以，这里需要首先把**主节点**的公钥 copy 到其他的所有机器：
 
-```bash
-ssh-copy-id -f -i /etc/ceph/ceph.pub root@*<new-host>*
-```
+- 由于校园网的安全性设置，我们无法使用 `ssh-copy-id` 来向其他机器的 root 签发 ssh 公钥。因此，我们需要使用手动的**复制粘贴大法**来签发 ssh 公钥。
 
-例如，你的另一台机器的 IP 是 `10.251.252.177`，那么这条命令应该是：
+- 在**主节点**中，使用 `cat /etc/ceph/ceph.pub`，复制其中的内容。 
 
-```bash
-ssh-copy-id -f -i /etc/ceph/ceph.pub root@10.251.252.177
-```
+![](img/cat-pub-key.png)
+
+- 在**子节点**中，使用 `vi /root/.ssh/authorized_keys`，在其中**新增一行**，粘贴主节点公钥中的内容。
+
+![](img/paste-pub-key.png)
 
 处理完所有的机器后，就可以正式将它们加入到 mini 集群中来了：
 
@@ -276,11 +311,15 @@ ssh-copy-id -f -i /etc/ceph/ceph.pub root@10.251.252.177
 ceph orch host add *<newhost>* [*<ip>*] [*<label1> ...*]
 ```
 
-例如，你另一台机器的主机名是 `ceph-20210001`，IP 是 `10.251.252.177`，那么这条命令应该是：
+例如，你另一台机器的主机名是 `ceph-24210001`，IP 是 `10.251.253.174`，那么这条命令应该是：
 
 ```bash
-ceph orch host add ceph-20210001 10.251.252.177
+ceph orch host add ceph-24210001 10.251.253.174
 ```
+
+如果不放心是否已经添加进来其他机器，可以使用 `ceph orch host list` 查看：
+
+![](img/ceph-orch-host-list.png)
 
 添加完成后，你可以通过 `ceph -s`查看当前集群状态的变化。也可以通过 Ceph Dashboard 看到变化。
 
@@ -316,10 +355,10 @@ ceph orch host add ceph-20210001 10.251.252.177
 ceph orch daemon add osd *<hostname>*:*<device-name>*
 ```
 
-比如，你要在主机 `ceph-20210000` 的名称为 `/dev/sdb`的磁盘上创建 OSD 进程，那么命令应该是：
+比如，你要在主机 `ceph-24210000` 的名称为 `/dev/sdb`的磁盘上创建 OSD 进程，那么命令应该是：
 
 ```bash
-ceph orch daemon add osd ceph-20210000:/dev/sdb
+ceph orch daemon add osd ceph-24210000:/dev/sdb
 ```
 
 {{< hint info >}}
@@ -329,7 +368,7 @@ ceph orch daemon add osd ceph-20210000:/dev/sdb
 比如：
 
 ```bash
-ceph orch daemon add osd ceph-20210000:/dev/sdb --verbose
+ceph orch daemon add osd ceph-24210000:/dev/sdb --verbose
 ```
 
 {{< /hint >}}
@@ -362,14 +401,14 @@ Ceph 文件系统要求 Ceph 存储集群内至少有一个 Ceph 元数据服务
 ceph orch host ls
 ```
 
-输入类似如下
+输出类似如下：
 
 ```
 # 可有类似输出
 HOST   ADDR      LABELS  STATUS
-host1  10.1.2.3
-host2  10.1.2.4
-host3  10.1.2.5
+ceph1  10.1.2.3
+ceph2  10.1.2.4
+ceph3  10.1.2.5
 ```
 
 {{< tabs "Deploy CephFS" >}}
@@ -382,11 +421,14 @@ host3  10.1.2.5
 ceph fs volume create <fs_name> [--placement="<placement spec>"]
 ```
 
-其中，`fs_name` 是 CephFS 的名称，后面的 `--placement` 为可选参数，可以通过它来指定 daemon container 跑在哪几个 hosts 上（[参考资料](https://docs.ceph.com/en/latest/cephfs/fs-volumes/)
-）。例如：
+其中，`fs_name` 是 CephFS 的名称，后面的 `--placement` 为可选参数，可以通过它来指定 daemon container 跑在哪几个 hosts 上（[参考资料](https://docs.ceph.com/en/latest/cephfs/fs-volumes/)）。
+
+**注意！**这里指定的 hosts 名称要与 `ceph orch host ls` 中显示的一致。
+
+例如：
 
 ```bash
-ceph fs volume create ceph_fs --placement="ceph-01-20210000,ceph-02-20210000,ceph-03-20210000"
+ceph fs volume create ceph_fs --placement="ceph01,ceph02,ceph03"
 ```
 
 {{< /tab >}}
@@ -441,18 +483,32 @@ CephFS 在创建后应当能被实际使用，如完成分布式存储文件的�
 
 我们先要对 Client 端进行一些配置，保证 Client 端能连接到主节点。
 
-在 Client 端上使用 `cephadm shell` 之前，需要先拉取 Ceph 镜像：`docker pull scs.buaa.edu.cn:8081/library/ceph:v16`
+在 Client 端上使用 `cephadm shell` 之前，需要先拉取 Ceph 镜像：
 
-第一步：给 Client 端创建一个最小配置文件，放置在 /etc/ceph 目录下：
+```bash
+# on client host
+docker pull quay.io/ceph/ceph:v17.2
+```
+
+**第一步：给 Client 端创建一个最小配置文件**（在 `/etc/ceph/` 路径下）
 
 {{< hint danger >}}
 
 **这一步操作高危！**
 
-以防万一，请先执行两个操作：
+以防万一，请一定不要更改**主节点**的 `/etc/ceph/ceph.conf` 文件！
 
-1. 在两台机器上执行 `cat /etc/ceph/ceph.conf > /etc/ceph/backup_ceph.conf` 备份原来的 `ceph.conf`
-2. 在 cephadm shell (即主节点) 里面，用 `ceph config generate-minimal-conf` 生成 config，将生成出来的内容也保存备份一下 (复制粘贴+截图大法 / 重定向输出)
+可以在主节点执行 `cat /etc/ceph/ceph.conf > /etc/ceph/backup_ceph.conf` 备份原来的 `ceph.conf`
+
+如果执行某些操作导致节点挂了，多半是 `/etc/ceph/ceph.conf` 被误清空了，将先前备份的 `ceph.conf` 写回即可恢复。
+
+{{< /hint >}}
+
+{{< hint info >}}
+
+如同前文签发 ssh 公钥的问题，我们无法直接 ssh 连接到其他机器的 root 用户执行操作。
+
+因此，接下来，我们要继续使用**复制粘贴大法**为 **Client 端/子节点**发放配置。
 
 {{< /hint >}}
 
@@ -460,32 +516,84 @@ CephFS 在创建后应当能被实际使用，如完成分布式存储文件的�
 
 ```bash
 # on client host
+ls /etc/ceph/
+```
+
+如果有 `ceph.conf` 文件，请使用 `cat /etc/ceph/ceph.conf > /etc/ceph/backup_ceph.conf` 备份。
+
+如果不存在文件夹，则请自行创建文件夹：
+
+```bash
+# on client host
 mkdir /etc/ceph
-ssh root@{mon-host} "sudo ceph config generate-minimal-conf" | sudo tee /etc/ceph/ceph.conf
+```
+
+然后在主节点执行以下命令生成配置：
+
+```bash
+# on mon host
+sudo ceph config generate-minimal-conf
+```
+
+期望得到类似下图的输出：
+
+![](img/generate-ceph-config.png)
+
+复制输出的内容，粘贴在 Client 端的 `/etc/ceph/ceph.conf` 文件中，并赋权。
+
+```bash
+# on client host
+sudo vi /etc/ceph/ceph.conf # 完全替换内容
 chmod 644 /etc/ceph/ceph.conf # 赋权
 ```
 
 如果不能成功，可直接到主节点执行 `sudo ceph config generate-minimal-conf`，将输出的内容粘贴到 Client 端的 `/etc/ceph/ceph.conf`（下同）。如果上述操作导致 Client / 主节点挂了，多半是 `/etc/ceph/ceph.conf` 被误清空了，将先前备份的 `ceph.conf` 写回即可恢复。
 
-第二步：生成 CephX 用户名和密钥（将 `{mon-host}`替换成主节点的 IP 地址）:
+**第二步：生成 CephX 用户名和密钥**
+
+在主节点中，先执行以下命令生成 CephX 用户名和密钥：
 
 ```bash
-# on client host
-ssh root@{mon-host} "sudo ceph fs authorize ceph_fs client.foo / rw" | sudo tee /etc/ceph/ceph.keyring
-chmod 600 /etc/ceph/ceph.keyring # 赋权
+# on mon host
+sudo ceph fs authorize ceph_fs client.foo / rw
 ```
 
 在上述命令中，`ceph_fs` 是先前所创建的 CephFS 的名称，请将其替换。foo 是 CephX 的用户名，也可自己起。
 
-以上是前置准备，完成后，我们可通过 ceph-fuse 工具实现目录挂载。如机器上没有，则需要连网安装一下。
+![](img/ceph-fs.png)
+
+请复制输出的内容，然后粘贴在 Client 端的 `/etc/ceph/ceph.keyring` 文件中，并赋权。
 
 ```bash
-yum install -y ceph-fuse
+# on client host
+sudo vi /etc/ceph/ceph.keyring # 完全替换内容
+chmod 600 /etc/ceph/ceph.keyring # 赋权
 ```
 
-安装完成后，我们可以创建一个被挂载的目录，如 `mycephfs`：`mkdir /mnt/mycephfs`
+以上是前置准备，完成后，我们可通过 `ceph-fuse` 工具实现目录挂载。如机器上没有，则需要联网安装一下。
 
-执行 `ceph-fuse --id foo -m {mon-host}:6789 /mnt/mycephfs` 即可完成挂载，如 `ceph-fuse --id foo -m 10.251.252.182:6789 /mnt/mycephfs`，如果此命令不能成功运行，可从[参考资料：MOUNT CEPHFS USING FUSE](https://people.redhat.com/bhubbard/nature/default/cephfs/fuse/) 试一下其他的命令
+```bash
+apt install -y ceph-fuse
+```
+
+安装完成后，我们可以创建一个被挂载的目录，如起名为 `mycephfs`：
+
+```bash
+mkdir /mnt/mycephfs
+```
+
+执行如下命令即可完成挂载 ，注意将 `{mon-host}` 替换为主节点的 IP 地址，同时注意 `/mnt/mycephfs` 是你创建的要被挂载的目录。
+
+```bash
+ceph-fuse --id foo -m {mon-host}:6789 /mnt/mycephfs
+```
+
+假设主节点的 IP 为 10.251.252.182 ，且用户名和目录均如上文，则命令应当是：
+```bash
+ceph-fuse --id foo -m 10.251.252.182:6789 /mnt/mycephfs
+```
+
+如果此命令不能成功运行，可从[参考资料：MOUNT CEPHFS USING FUSE](https://people.redhat.com/bhubbard/nature/default/cephfs/fuse/) 试一下其他的命令。
 
 若想取消挂载非常简单，只需 `umount /mnt/mycephfs`。
 
@@ -810,3 +918,46 @@ realtime =none                   extsz=4096   blocks=0, rtextents=0
 和 CephFS 类似，我们同样可在挂载的目录中创建修改文件，感受 Ceph 的能力——如分布式存储的容错，存储共享等。
 
 {{< /hint >}}
+
+## 部分实验问题的排查解决办法
+
+### BootStrap 初次启动失败无法重复启动
+
+当没有更改 hostname 时，可能会出现 IP loopback 的问题导致无法启动 BootStrap。再次使用实验手册中的指令尝试启动时，会出现报错显示端口已占用，无法再启动。
+
+这是因为上次的启动虽然没有成功，但是已经初始化了一些服务，如 Monitor 和 Manager 容器可能已经启动了，或者 systemd 服务已经注册并占用了 3300 和 6789 端口。
+
+我们需要手动清理失败的初始化的产物，按照如下的步骤进行：
+
+1. 停止并删除所有包含 'ceph' 名字的容器。
+
+```bash
+docker ps -a | grep ceph | awk '{print $1}' | xargs docker rm -f
+```
+
+2. 清理 cephadm 创建的 systemd 单元文件，如果它们还在运行，会一直重启容器占用端口。
+
+```bash
+# 停止所有 ceph 相关的服务
+systemctl stop ceph.target
+rm -rf /etc/systemd/system/ceph*
+systemctl daemon-reload
+systemctl reset-failed
+```
+
+3. 确保 3300 和 6789 端口已经被释放，正确情况应该是不输出任何东西，表示端口已经空闲。
+如果还有输出，找到 PID，使用 `kill -9 <PID>` 杀掉它。
+
+```bash
+netstat -tulpn | grep -E '3300|6789'
+```
+4. 删除所有残留的配置文件，防止影响新一次的安装启动。
+
+```bash
+# 警告：这会删除所有 ceph 配置和数据，确保这是个新集群
+rm -rf /etc/ceph/*
+rm -rf /var/lib/ceph/*
+rm -rf /var/log/ceph/*
+```
+
+5. 执行完以上步骤后再次使用指令启动 BootStrap 即可，如果依然显示端口占用，请尝试使用 `reboot` 重启服务器，以清除潜在的内核层连接。
